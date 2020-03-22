@@ -1,0 +1,16 @@
+{
+   "name": "armies.io",
+   "version": "0.0.1",
+   "description": "",
+   "main": "server.js", 
+   "author": {
+      "name": "Horton Cheng",
+      "email": "horton0712@gmail.com"
+   },
+   "dependencies": {
+      "hashmap": "^2.4.0",
+      "socket.io": "^2.3.0"
+   },
+   "private": true,
+   "license": "GPL-3.0-or-later"
+}
