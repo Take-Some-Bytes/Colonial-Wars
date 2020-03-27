@@ -1,2 +1,2 @@
-# Armies.io
-```Armies.io``` is a multiplayer, online game, set in the colonial era.
+# Colonial Wars.io
+```Colonial Wars.io``` is a multiplayer, online game, set in the colonial era.
