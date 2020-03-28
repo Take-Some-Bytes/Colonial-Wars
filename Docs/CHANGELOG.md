@@ -3,8 +3,13 @@ This is a changelog for the whole web app.
 
 ## Pre-release
 This is the pre-release part of the changelog
+#### 0.2.2
+- Html nonsense
+- Added game directory
+- Added Constants.js
 #### 0.2.1
-- Ditched .php files because they complicate things too much
+- Ditched .php files because they complicate things too much. Used .html files instead
+- Debugging things
 #### 0.2.0
 - Added ``Public`` directory, with Images directory, CSS directory,
 .php files, and Common directory.
