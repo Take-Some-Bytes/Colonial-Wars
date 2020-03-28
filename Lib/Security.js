@@ -36,8 +36,10 @@ class Security {
    setDefaultHeaders(req, res) {
       res.set({
          "Content-Security-Policy": 
-         "default-src 'self' https://ajax.googleapis.com/ base-uri 'none'; report-uri 'self'; " +
-         "frame-ancestors 'none'; form-action self",
+         "default-src 'self' https://ajax.googleapis.com/; " + 
+         "style-src 'self' https://fonts.googleapis.com/ https://fonts.gstatic.com/; " + 
+         "font-src https://fonts.googleapis.com/ https://fonts.gstatic.com/;" + 
+         "base-uri 'none'; report-uri 'self';frame-ancestors 'none'; form-action self",
          "X-XSS-Protection": "1; mode=block",
          "X-Content-Type-Options": "nosniff"
       });
@@ -62,7 +64,7 @@ class Security {
     * @param {response} res Server response
     */
    enforceHTTPS(req, res) {
-      if (!this.HTTPS || !this.HSTS_PRLD_LIST_SUBM) {
+      if(!this.HTTPS || !this.HSTS_PRLD_LIST_SUBM) {
          // eslint-disable-next-line max-len
          throw new Error("Header is only for HTTPS servers registered with the HSTS preload list submission.");
       }
@@ -79,14 +81,14 @@ class Security {
    checkMethod(req, res) {
       for (let i = 0; i < this.allowed_methods.length; i++) {
          // eslint-disable-next-line eqeqeq
-         if (req.method != this.allowed_methods[i] && i == this.allowed_methods.length - 1) {
+         if(req.method != this.allowed_methods[i] && i == this.allowed_methods.length - 1) {
             res.type("html");            
             res.status(501)
                .send("<h1>Method Not Supported</h1>\n<h3>That method is not supported.</h3>");
             this.status = "error";
             return this.status;
          // eslint-disable-next-line eqeqeq
-         } else if (req.method == this.allowed_methods[i]) {
+         } else if(req.method == this.allowed_methods[i]) {
             this.status = "success";
             return this.status;
          }
@@ -97,22 +99,25 @@ class Security {
     * Returns a string reporting whether there is an error or not.
     * @param {request} req Client request
     * @param {response} res Server response
-    * @param {String} dir The directory that you store your public files in
+    * @param {Array<string>} allowed_paths The paths that you will allow clients to request for
     * @param {String} reqFile The requested file
     * @returns {String}
     */
-   checkRequest(req, res, dir, reqFile) {
-      if(reqFile.indexOf(dir + path.sep) !== 0) {
-         res.type("html");
-         res.status(403)
-            .send(
-               "<h1>That is forbidden.</h1>\n<h3>The requested page is not for the public.</h3>"
-            );
-         this.status = "error";
-         return this.status;
+   checkRequest(req, res, allowed_paths, reqFile) {
+      for(let i = 0; i < allowed_paths.length; i++) {
+         if(reqFile.indexOf(allowed_paths[i] + path.sep) !== 0 && i === allowed_paths.length - 1) {
+            res.type("html");
+            res.status(403)
+               .send(
+                  "<h1>That is forbidden.</h1>\n<h3>The requested page is not for the public.</h3>"
+               );
+            this.status = "error";
+            return this.status;
+         } else if(reqFile.indexOf(allowed_paths[i] + path.sep) === 0) {
+            this.status = "success";
+            return this.status;   
+         }
       }
-      this.status = "success";
-      return this.status;
    }  
    /**
     * Factory method for the Security class
