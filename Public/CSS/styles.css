@@ -1,6 +1,7 @@
 .home-header {
    font-family: 'Raleway', sans-serif;
    text-align: center;
+   padding: 3vh 3vw;
 }
 .button-href {
    color: black;
@@ -15,6 +16,9 @@
    height: 4vh;
    width: 10vw;
 }
+.button-href:hover {
+   background-color: #cccccc;
+}
 .default-button {
    border-radius: 30%;
    height: 4.5vh;
@@ -22,5 +26,5 @@
 }
 .button-wrapper {
    text-align: center;
-   margin: 4vh auto;
+   margin: 2vh auto;
 }
