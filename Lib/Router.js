@@ -1,7 +1,7 @@
 /**
  * @fileoverview The express router for the server
  * @author Horton Cheng <horton0712@gmail.com>
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 //Dependencies and stuff
@@ -10,41 +10,8 @@ const fs = require("fs");
 const path = require("path");
 var security = require("./Security").create(["GET", "POST", "HEAD"], false, false);
 var router = express.Router();
+var { serveFile, methodNotImplemented, handleOther, logCSPReport } = require("./Common");
 
-/**
- * Automatically handles the requests that the server approves of.
- * @param {express.request} req Client Request
- * @param {express.response} res Server Response
- * @param {express.NextFunction} next Next function
- * @param {String} file The file to read
- * @param {String} response The response to send if an error occurs
- */
-function serveFile(req, res, next, file, response) {
-   //File reading
-   var s = fs.createReadStream(file);
-   s.on("open", () => {
-      res.type(path.extname(file).slice(1));
-      s.pipe(res);
-   });
-   s.on("error", err => {
-      console.error(err);
-      res.type("html");
-      res.status(404).send(response);
-   });
-}
-
-/**
- * Automatically handles the requests that uses a method that the server
- * doesn't support.
- * @param {express.request} req Client Request
- * @param {express.response} res Server Response
- * @param {express.NextFunction} next Next function
- */
-function methodNotImplemented(req, res, next) {
-   res.type("html");
-   res.status(501)
-      .send("<h1>Method Not Supported</h1>\n<h3>That method is not supported.</h3>");
-}
 
 //Route logger and security thing
 router.use((req, res, next) => {
@@ -96,6 +63,23 @@ router.route("/version")
    .put((req, res, next) => methodNotImplemented(req, res, next))
    .delete((req, res, next) => methodNotImplemented(req, res, next));
 
+//CSP report uri
+router.route("/logs/CSP-reports.log")
+   .get((req, res, next) => methodNotImplemented(req, res, next))
+   .post((req, res, next) => {
+      logCSPReport(req, res, next);
+   })
+   .put((req, res, next) => methodNotImplemented(req, res, next))
+   .delete((req, res, next) => methodNotImplemented(req, res, next));
+
+//All other routes
+router.route("*")
+   .get((req, res, next) => {
+      handleOther(req, res, next);
+   })
+   .post((req, res, next) => methodNotImplemented(req, res, next))
+   .put((req, res, next) => methodNotImplemented(req, res, next))
+   .delete((req, res, next) => methodNotImplemented(req, res, next));
 /**
  * Module exports
  */
