@@ -3,10 +3,17 @@ This is a changelog for the whole web app.
 
 ## Pre-release
 This is the pre-release part of the changelog
-#### 0.2.2
+#### 0.3.1
+- ```winston``` approved as a logger
+- Added logs directory to store the logs
+- Added a bunch of error handlers
+#### 0.3.0
 - Html nonsense
-- Added game directory
+- Added Game directory and game things
 - Added Constants.js
+- Testing ```winston``` as a logger
+- Server ```file not found``` handling
+- Server CSP report handling
 #### 0.2.1
 - Ditched .php files because they complicate things too much. Used .html files instead
 - Debugging things
