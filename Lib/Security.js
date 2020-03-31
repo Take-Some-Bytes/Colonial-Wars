@@ -36,10 +36,10 @@ class Security {
    setDefaultHeaders(req, res) {
       res.set({
          "Content-Security-Policy": 
-         "default-src 'self' https://ajax.googleapis.com/; " + 
+         "default-src 'self' https://ajax.googleapis.com/;" + 
          "style-src 'self' https://fonts.googleapis.com/ https://fonts.gstatic.com/; " + 
-         "font-src https://fonts.googleapis.com/ https://fonts.gstatic.com/;" + 
-         "base-uri 'none'; report-uri 'self';frame-ancestors 'none'; form-action self",
+         "font-src https://fonts.googleapis.com/ https://fonts.gstatic.com/; base-uri 'none'; " + 
+         "report-uri logs/CSP-reports.log; frame-ancestors 'none'; form-action self",
          "X-XSS-Protection": "1; mode=block",
          "X-Content-Type-Options": "nosniff"
       });
