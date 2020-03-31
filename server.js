@@ -7,8 +7,8 @@
 //Dependencies
 const http = require("http");
 const path = require("path");
-const express = require("./node_modules/express");
-const socketIO = require("./node_modules/socket.io");
+const express = require("express");
+const socketIO = require("socket.io");
 
 //Variables
 var PROTOCOL = "http";
