@@ -6,7 +6,7 @@ This is the pre-release part of the changelog
 #### 0.3.1
 - ```winston``` approved as a logger
 - Added logs directory to store the logs
-- Added a bunch of error handlers
+- Added a bunch of handlers
 #### 0.3.0
 - Html nonsense
 - Added Game directory and game things
