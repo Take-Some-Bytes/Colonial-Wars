@@ -1,6 +1,7 @@
 /**
  * @fileoverview eslint configuration file.
  * @author Alvin Lin (alvin@omgimanerd.tech)
+ * Edited by Horton Cheng (Take-Some-Bytes) for personal use
  */
  {
    "env": {
@@ -23,8 +24,7 @@
          "requireReturnType": true,
          "requireReturnDescription": false
       }],
- 
-      // Best Practices
+      
       "array-callback-return": "warn",
       "block-scoped-var": "warn",
       "class-methods-use-this": "off",
@@ -124,7 +124,7 @@
       "func-style": ["warn", "declaration", {
          "allowArrowFunctions": true
       }],
-      "indent": ["warn", 3],
+      "indent": ["warn", 2],
       "key-spacing": ["off", {
          "mode": "strict"
       }],
