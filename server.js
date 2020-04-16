@@ -32,6 +32,6 @@ app.use("/imgs", express.static(path.join(__dirname, "Public/Images")));
 app.use("/", router);
 
 server.listen(PORT, HOST, 20, () => {
-   console.log(`Server started on port ${PORT}, http://${HOST}.`);
-   console.log(`Protocol is: ${PROTOCOL}.`);
+  console.log(`Server started on port ${PORT}, http://${HOST}.`);
+  console.log(`Protocol is: ${PROTOCOL}.`);
 });
