@@ -24,13 +24,18 @@ class Building extends Entity {
     * @param {String} [team="Neutral"] The team of the building
     */                 
   constructor(position, mass, type = "tent", team = "Neutral") {
-    super(position, Vector.zero(), Vector.zero(), mass, Constants.BUILDING_HITBOX_SIZE[type]);
+    super(
+      position, Vector.zero(), Vector.zero(), mass, 
+      Constants.BUILDING_HITBOX_SIZE[type]
+    );
 
     this.type = type;
     this.team = team;
     this.health = Constants.BUILDING_MAX_HEALTH[type];
     this.buildTime = Constants.BUILDING_BUILD_TIME[type];
-    if(this.type === "barracks" || this.type === "recruiting_office" || this.type === "factory") {
+    if(this.type === "barracks" || 
+    this.type === "recruiting_office" || this.type === "factory"
+    ) {
       this.spawnedTroops = Constants.BUILDINGS_SPAWNED_TROOP[type];      
     } else {
       this.spawnedTroops = [];
@@ -92,7 +97,9 @@ class Building extends Entity {
       const projectile = Projectile.createFromBuilding(this);
       return projectile;
     }
-    throw new Error("Building type is not a cannon tower; Cannot get projectile from shot.");
+    throw new Error(
+      "Building type is not a cannon tower; Cannot get projectile from shot."
+    );
   }
   /**
     * Damages the current building
