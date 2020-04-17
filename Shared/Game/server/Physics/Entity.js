@@ -35,23 +35,31 @@ class Entity {
   collided(other) {
     const minDistance = other.hitbox + this.hitbox;
     return Vector.sub(this.position, other.position).mag2 <=
-      minDistance * minDistance
+      minDistance * minDistance;
   }
   /**
     * Tests if an entity is inside the world bounds
     * @returns {Boolean}
     */
   inWorld() {
-    return Util.inBound(this.position.x, Constants.WORLD_MIN, Constants.WORLD_MAX) &&
-      Util.inBound(this.position.y, Constants.WORLD_MIN, Constants.WORLD_MAX)
+    return Util.inBound(
+      this.position.x, Constants.WORLD_MIN, Constants.WORLD_MAX
+    ) &&
+      Util.inBound(
+        this.position.y, Constants.WORLD_MIN, Constants.WORLD_MAX
+      );
   }
   /**
     * Binds this entity's position within the world if it is outside of the 
     * game world
     */
   bindToWorld() {
-    this.position.x = Util.bind(this.position.x, Constants.WORLD_MIN, Constants.WORLD_MAX);
-    this.position.y = Util.bind(this.position.y, Constants.WORLD_MIN, Constants.WORLD_MAX);
+    this.position.x = Util.bind(
+      this.position.x, Constants.WORLD_MIN, Constants.WORLD_MAX
+    );
+    this.position.y = Util.bind(
+      this.position.y, Constants.WORLD_MIN, Constants.WORLD_MAX
+    );
   }
 }
 
