@@ -134,7 +134,8 @@ class Vector {
   }
  
   /**
-    * Add another Vector to this Vector. Returns this Vector for method chaining.
+    * Add another Vector to this Vector. Returns this Vector for 
+    * method chaining.
     * @param {Vector} other The other vector to add
     * @return {Vector}
     */
