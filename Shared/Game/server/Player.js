@@ -54,8 +54,12 @@ class Player {
     * game world
     */
   bindToWorld() {
-    this.position.x = bind(this.position.x, Constants.WORLD_MIN, Constants.WORLD_MAX);
-    this.position.y = bind(this.position.y, Constants.WORLD_MIN, Constants.WORLD_MAX);
+    this.position.x = bind(
+      this.position.x, Constants.WORLD_MIN, Constants.WORLD_MAX
+    );
+    this.position.y = bind(
+      this.position.y, Constants.WORLD_MIN, Constants.WORLD_MAX
+    );
   }
   /**
     * Calculates this player's resource rates
