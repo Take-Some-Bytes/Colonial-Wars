@@ -75,7 +75,8 @@ class Manager {
   }
   /**
     * Gets the game with the specified game ID
-    * @param {String} gameID The game ID associated with the game you want to get
+    * @param {String} gameID The game ID associated with the game
+    * you want to get
     * @returns {Game}
     */
   getGame(gameID) {
