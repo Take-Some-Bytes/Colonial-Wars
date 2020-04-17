@@ -27,7 +27,9 @@ class Troop extends Entity {
     * @param {Boolean} [isHuman=true] Is the troop human?
     * @param {String} [team="Neutral"] The troop's team
     */
-  constructor(position, mass, type = "light_infantry", isHuman = true, team = "Neutral") {
+  constructor(position, mass, type = "light_infantry", 
+    isHuman = true, team = "Neutral"
+  ) {
     super(position, Vector.zero(), mass, Constants.TROOP_HITBOX_SIZE[type]);
 
     this.type = type;
@@ -106,9 +108,13 @@ class Troop extends Entity {
     */
   updateOnInput(data) {
     if(data.up) {
-      this.velocity = Vector.fromPolar(this.movementSpeed, Util.degreeToRadian(this.angle));
+      this.velocity = Vector.fromPolar(
+        this.movementSpeed, Util.degreeToRadian(this.angle)
+      );
     } else if(data.down) {
-      this.velocity = Vector.fromPolar(this.movementSpeed, Util.degreeToRadian(this.angle));
+      this.velocity = Vector.fromPolar(
+        this.movementSpeed, Util.degreeToRadian(this.angle)
+      );
     } else if(!(data.up ^ data.down)) {
       this.velocity = Vector.zero();
     }
@@ -155,8 +161,12 @@ class Troop extends Entity {
     let isHuman = null;
 
     for(i = 0; i < building.spawnedTroops.length; i++) {
-      if(type !== building.spawnedTroops[i] && i === building.spawnedTroops.length - 1) {
-        throw new Error("Troop type cannot be spawned from specified building!");
+      if(type !== building.spawnedTroops[i] && 
+        i === building.spawnedTroops.length - 1
+      ) {
+        throw new Error(
+          "Troop type cannot be spawned from specified building!"
+        );
       } else if(type === building.spawnedTroops[i]) {
         break;
       }
