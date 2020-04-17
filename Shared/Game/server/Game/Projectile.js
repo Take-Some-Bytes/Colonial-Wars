@@ -24,7 +24,8 @@ class Projectile extends Entity {
     * @param {Number} mass The mass of the projectile
     * @param {Number} hitbox The circular hitbox of the projectile
     * @param {Number} angle The orientation of the projectile(in degrees)
-    * @param {Building|Troop} source The Troop or Building object firing the projectile
+    * @param {Building|Troop} source The Troop or Building object 
+    * firing the projectile
     * @param {String} type The type of projectile
     */
   constructor(position, velocity, mass, hitbox, angle, source, type) {
@@ -66,8 +67,8 @@ class Projectile extends Entity {
   /**
     * Creates a new Projectile from a Troop
     * @param {Troop} troop The Troop object to create the Projectile from
-    * @param {Number} [angleDeviation=0] The angle deviation if the projectile is
-    * not traveling in the direction of the Troop
+    * @param {Number} [angleDeviation=0] The angle deviation if the projectile 
+    * is not traveling in the direction of the Troop
     * @returns {Projectile}
     */
   static createFromTroop(troop, angleDeviation = 0) {
@@ -85,9 +86,10 @@ class Projectile extends Entity {
   }
   /**
     * Creates a new Projectile from a Building
-    * @param {Building} building The Building object to create the Projectile from
-    * @param {Number} [angleDeviation=0] The angle deviation if the projectile is
-    * not traveling in the direction of the Building
+    * @param {Building} building The Building object to create the 
+    * Projectile from
+    * @param {Number} [angleDeviation=0] The angle deviation if the projectile 
+    * is not traveling in the direction of the Building
     * @returns {Projectile}
     */
   static createFromBuilding(building, angleDeviation = 0) {
