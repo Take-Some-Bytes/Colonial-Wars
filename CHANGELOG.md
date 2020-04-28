@@ -3,6 +3,16 @@ This is a changelog for the whole web app.
 
 ## Pre-release
 This is the pre-release part of the changelog
+#### 0.5.0
+- Work has started on the client-side stuff
+- Server-side game still needs work; we aren't done yet!
+- Deleted ```Shared``` folder; moved contents elsewhere
+- Removed `@version` part of every file's starting JSDoc
+#### 0.4.0
+- Kept working on serverside game
+- Added more CSP headers(and debugging them)
+- Removed unneeded imports
+- Changed some style stuff in eslint
 #### 0.3.1
 - ```winston``` approved as a logger
 - Added logs directory to store the logs
