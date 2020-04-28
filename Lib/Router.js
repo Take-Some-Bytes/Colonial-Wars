@@ -1,28 +1,27 @@
 /**
  * @fileoverview The express router for the server
  * @author Horton Cheng <horton0712@gmail.com>
- * @version 1.1.0
  */
 
 //Dependencies and stuff
 const express = require("express");
-var security = require("./Security").create(
+const security = require("./Security").create(
   ["GET", "POST", "HEAD"], false, false
 );
-var router = express.Router();
-var { 
-  serveFile, methodNotImplemented, handleOther, logCSPReport, methodNotAllowed 
-} = require("./Common");
+const router = express.Router();
+const {
+  serveFile, methodNotImplemented, handleOther, logCSPReport, methodNotAllowed
+} = require("./Common/Common");
 
 
 //Route logger and security thing
 router.use((req, res, next) => {
-  var reqPath = req.url.toString().split("?")[0];
+  const reqPath = req.url.toString().split("?")[0];
   //Security
   security.setDefaultHeaders(req, res);
-  var date = new Date();
+  const date = new Date();
   console.log(
-    "Request method: %s; Request URL: %s Request date: %s", 
+    "Request method: %s; Request URL: %s Request date: %s",
     req.method, reqPath, date
   );
   next();
@@ -31,8 +30,8 @@ router.use((req, res, next) => {
 //Homepage
 router.route("/")
   .get((req, res, next) => {
-    serveFile(req, res, next, "Public/index.html", 
-      "<h1>Page Not Found:(</h1>\n" + 
+    serveFile(req, res, next, "Public/index.html",
+      "<h1>Page Not Found:(</h1>\n" +
       "<h3>Somehow the home page isn't where it used to be</h3>"
     );
   })
@@ -43,8 +42,8 @@ router.route("/")
 //Game page
 router.route("/play")
   .get((req, res, next) => {
-    serveFile(req, res, next, "Public/play.html", 
-      "<h1>Page Not Found:(</h1>\n" + 
+    serveFile(req, res, next, "Public/play.html",
+      "<h1>Page Not Found:(</h1>\n" +
       "<h3>Somehow the play page isn't where it used to be</h3>"
     );
   })
@@ -55,8 +54,8 @@ router.route("/play")
 //About page
 router.route("/about")
   .get((req, res, next) => {
-    serveFile(req, res, next, "Public/about.html", 
-      "<h1>Page Not Found:(</h1>\n" + 
+    serveFile(req, res, next, "Public/about.html",
+      "<h1>Page Not Found:(</h1>\n" +
       "<h3>Somehow the about page isn't where it used to be</h3>"
     );
   })
@@ -67,8 +66,8 @@ router.route("/about")
 //Version page
 router.route("/version")
   .get((req, res, next) => {
-    serveFile(req, res, next, "Public/version.html", 
-      "<h1>Page Not Found:(</h1>\n" + 
+    serveFile(req, res, next, "Public/version.html",
+      "<h1>Page Not Found:(</h1>\n" +
       "<h3>Somehow the version page isn't where it used to be</h3>"
     );
   })
