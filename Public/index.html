@@ -1,26 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-   <title>Colonial Wars.io</title>
-   <link rel="icon" href="imgs/favicon.ico">
-   <link rel="stylesheet" href="CSS/jquery-ui.css">
-   <link rel="stylesheet" href="CSS/styles.css">
-   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
-   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-   <script src="JS/jquery-ui.js"></script>
-   <script src="JS/client.js"></script>
+  <title>Colonial Wars</title>
+  <link rel="icon" href="imgs/favicon.ico">
+  <link rel="stylesheet" href="CSS/jquery-ui.css">
+  <link rel="stylesheet" href="CSS/styles.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="JS/jquery-ui.js"></script>
+  <script src="socket.io/socket.io.js"></script>
+  <script src="JS/client.js" type="module"></script>
 </head>
 <body>
-   <header class="home-header">
-      <h1><b>Colonial Wars.io</b></h1>
-   </header>
-   <main>
-      <div class="button-wrapper">
-         <a class="button-href" href="/play">Play</a>
+  <div id="body">
+    <div class="content-wrap">
+      <div class="home-header">
+        <header>
+          <h1><b>Colonial Wars</b></h1>
+        </header>
       </div>
-      <div class="button-wrapper">
-         <a class="button-href" href="/about">About</a>
-      </div>
-   </main>
+      <main>
+        <div class="button-wrapper">
+          <a class="button-href" href="/play">Play</a>
+        </div>
+        <div class="button-wrapper">
+          <a class="button-href" href="/about">About</a>
+        </div>
+      </main>
+    <div id="dialog-form-container">
+
+    </div>
+    </div>
+    <footer id="version" class="footer"></footer>  
+  </div>
 </body>
 </html>
