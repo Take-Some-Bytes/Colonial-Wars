@@ -132,7 +132,7 @@
       "line-comment-position": ["off", "above"],
       "linebreak-style": ["off", "unix"],
       "max-len": ["warn", {
-         "code": 100
+         "code": 80
       }],
       "multiline-ternary": ["warn", "never"],
       "new-cap": ["warn", {
@@ -151,7 +151,7 @@
       "no-nested-ternary": "warn",
       "no-new-object": "warn",
       "no-tabs": "warn",
-      "no-trailing-spaces": "off",
+      "no-trailing-spaces": "warn",
       "no-underscore-dangle": "warn",
       "no-unneeded-ternary": "warn",
       "no-whitespace-before-property": "warn",
@@ -202,7 +202,7 @@
       "no-duplicate-imports": "error",
       "no-useless-computed-key": "warn",
       "no-useless-rename": "error",
-      "no-var": "off",
+      "no-var": "warn",
       "object-shorthand": ["warn", "consistent-as-needed"],
       "prefer-arrow-callback": "warn",
       "prefer-const": "warn",
