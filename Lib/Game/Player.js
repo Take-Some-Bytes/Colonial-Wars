@@ -7,7 +7,7 @@
 const Troop = require("./Game/Troop");
 const Building = require("./Game/Building");
 const Projectile = require("./Game/Projectile");
-const Vector = require("./Physics/Vector");
+const Vector = require("../../Shared/Vector");
 const Constants = require("../Constants");
 const { degreeToRadian, bind, multiplySomething } = require("../Util");
 
