@@ -6,8 +6,8 @@
 
 //Imports
 const Projectile = require("./Projectile");
-const Entity = require("../Physics/Entity");
-const Vector = require("../Physics/Vector");
+const Entity = require("../../../Shared/Entity");
+const Vector = require("../../../Shared/Vector");
 const Building = require("./Building");
 const Constants = require("../../Constants");
 const Util = require("../../Util");
