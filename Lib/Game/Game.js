@@ -5,7 +5,7 @@
 
 const { deepClear } = require("../Util");
 const Player = require("./Player");
-const Vector = require("../../Shared/Vector");
+const Vector = require("./Physics/Vector");
 const Constants = require("../Constants");
 
 /**
