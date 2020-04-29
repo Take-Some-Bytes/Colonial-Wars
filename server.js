@@ -27,6 +27,7 @@ app.disable("x-powered-by");
 
 //Server stuff
 app.use("/dist", express.static(path.join(__dirname, "dist")));
+app.use("/shared", express.static(path.join(__dirname, "Shared")));
 app.use("/JS", express.static(path.join(__dirname, "Public/JS")));
 app.use("/CSS", express.static(path.join(__dirname, "Public/CSS")));
 app.use("/imgs", express.static(path.join(__dirname, "Public/Images")));
