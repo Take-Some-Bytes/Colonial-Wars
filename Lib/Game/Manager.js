@@ -4,7 +4,7 @@
  */
 
 const Game = require("./Game");
-const Vector = require("./Physics/Vector");
+const Vector = require("../../Shared/Vector");
 const Constants = require("../Constants");
 const { deepClear } = require("../Util");
 
