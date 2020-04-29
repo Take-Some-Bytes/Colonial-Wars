@@ -5,8 +5,8 @@
  */
 
 //Imports
-const Entity = require("../../../Shared/Entity");
-const Vector = require("../../../Shared/Vector");
+const Entity = require("../Physics/Entity");
+const Vector = require("../Physics/Vector");
 const Constants = require("../../Constants");
 const Building = require("./Building");
 const Troop = require("./Troop");
