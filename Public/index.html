@@ -2,36 +2,58 @@
 <html>
 <head>
   <title>Colonial Wars</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="imgs/favicon.ico">
   <link rel="stylesheet" href="CSS/jquery-ui.css">
   <link rel="stylesheet" href="CSS/styles.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-  <script src="JS/jquery-ui.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
   <script src="socket.io/socket.io.js"></script>
   <script src="JS/client.js" type="module"></script>
 </head>
-<body>
-  <div id="body">
-    <div class="content-wrap">
-      <div class="home-header">
-        <header>
-          <h1><b>Colonial Wars</b></h1>
-        </header>
+<body id="body">
+  <div class="content-wrap">
+    <div class="home-header">
+      <header>
+        <h1><b>Colonial Wars</b></h1>
+      </header>
+    </div>
+    <main>
+      <div class="button-wrapper">
+        <a class="button-href" id="play">Play</a>
       </div>
-      <main>
-        <div class="button-wrapper">
-          <a class="button-href" href="/play">Play</a>
-        </div>
-        <div class="button-wrapper">
-          <a class="button-href" href="/about">About</a>
-        </div>
-      </main>
-    <div id="dialog-form-container">
+      <div class="button-wrapper">
+        <a class="button-href" href="/about" id="about">About</a>
+      </div>
+    </main>
 
-    </div>
-    </div>
-    <footer id="version" class="footer"></footer>  
+  <div id="dialog-form-container" title="Play">
+    <form>
+      <div id="name-input-container">
+        <label for="name-input">Player Name</label><br>
+        <input id="name-input" placeholder="Player Name" type="text" autocomplete="off">      
+      </div>
+      <div id="game-select" class="ui-controlgroup-vertical">
+        <label>Choose a game</label><br>
+      </div>
+
+        <div id="team-opt">
+          <label for="teams">Choose a team</label><br>
+          <select id="teams" name="teams">
+            <option value="British" selected>British</option>
+            <option value="French">French</option>
+            <option value="Italian">Italian</option>
+            <option value="Russian">Russian</option>
+            <option value="German">German</option>
+            <option value="American">American</option>
+          </select>
+        </div>
+    </form>
+    <span id="error-span"></span>
   </div>
+  </div>
+  <footer id="version" class="footer"></footer>
 </body>
 </html>
