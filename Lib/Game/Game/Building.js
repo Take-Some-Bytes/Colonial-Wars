@@ -18,13 +18,12 @@ class Building extends Entity {
   /**
     * Constructor for a Building object
     * @param {Vector} position The current position of the Building
-    * @param {Number} mass The mass of the building
     * @param {String} [type="tent"] The type of the Building
     * @param {String} [team="Neutral"] The team of the building
     */
-  constructor(position, mass, type = "tent", team = "Neutral") {
+  constructor(position, type = "tent", team = "Neutral") {
     super(
-      position, Vector.zero(), Vector.zero(), mass,
+      position, Vector.zero(), Vector.zero(), Constants.BUILDING_MASS[type],
       Constants.BUILDING_HITBOX_SIZE[type]
     );
 
@@ -53,6 +52,8 @@ class Building extends Entity {
     this.turretAngle = 0;
     this.lastUpdateTime = 0;
     this.lastShotTime = 0;
+    this.kills = 0;
+    this.destroyed = false;
   }
   /**
    * Performs a physics update.
@@ -61,9 +62,11 @@ class Building extends Entity {
    */
   update(lastUpdateTime, deltaTime) {
     this.lastUpdateTime = lastUpdateTime;
-    this.turretAngle = Util.normalizeAngle(
-      this.turretAngle + this.turnRate * deltaTime
-    );
+    if(this.type === "cannon_tower") {
+      this.turretAngle = Util.normalizeAngle(
+        this.turretAngle + this.turnRate * deltaTime
+      );
+    }
   }
   /**
     * Updates the building on input from the player or building defense AI
@@ -108,10 +111,10 @@ class Building extends Entity {
     this.health -= amount;
   }
   /**
-   * Returns a boolean determining if the building is destroyed or not
+   * Returns a boolean determining if the building is dead or not
    * @return {Boolean}
    */
-  isDestroyed() {
+  isDead() {
     return this.health <= 0;
   }
 }
