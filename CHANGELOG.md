@@ -3,11 +3,33 @@ This is a changelog for the whole web app.
 
 ## Pre-release
 This is the pre-release part of the changelog
+#### 0.7.1
+- Got the server-to-client game communications up and running
+- Got the client-side game to draw something on the canvas
+- Updated ```README.md```
+#### 0.7.0
+- Completely re-thought how the ```Socket.IO``` server is going to work
+- Re-done main client.js file
+- Deleted game changelog
+- Added XHR router for XHR requests
+- Went on a mission to eliminate all ```console``` logging and replace them with
+```winston``` logging that are for production uses
+- Dropped the ```.io``` part of the name; now the game is called ```colonialwars```
+#### 0.6.0
+- Security updates. Added sessions and lots of security middleware
+- Going to use ```winston``` for logging most production stuff
+- Extensive work has began on the client files
+- JQuery UI now is being used
+- Started using ```cookie-parser``` middleware
+- Created file ```middleware.js``` for storing ```Express``` and ```Socket.IO``` middleware
+#### 0.5.1
+- Big brain physics handling has started on the server side.
+- Set up ```WebSockets``` handlers
 #### 0.5.0
 - Work has started on the client-side stuff
 - Server-side game still needs work; we aren't done yet!
 - Deleted ```Shared``` folder; moved contents elsewhere
-- Removed `@version` part of every file's starting JSDoc
+- Removed ```@version``` part of every file's starting JSDoc
 #### 0.4.0
 - Kept working on serverside game
 - Added more CSP headers(and debugging them)
