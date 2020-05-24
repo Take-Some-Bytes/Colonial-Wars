@@ -27,19 +27,19 @@ export class Input {
    */
   onKeyDown(event) {
     switch(event.key) {
-    case "A":
+    case "a":
     case "ArrowLeft":
       this.left = true;
       break;
-    case "W":
+    case "w":
     case "ArrowUp":
       this.up = true;
       break;
-    case "S":
+    case "s":
     case "ArrowDown":
       this.down = true;
       break;
-    case "D":
+    case "d":
     case "ArrowRight":
       this.right = true;
       break;
@@ -51,19 +51,19 @@ export class Input {
    */
   onKeyUp(event) {
     switch(event.key) {
-    case "A":
+    case "a":
     case "ArrowLeft":
       this.left = false;
       break;
-    case "W":
+    case "w":
     case "ArrowUp":
       this.up = false;
       break;
-    case "S":
+    case "s":
     case "ArrowDown":
       this.down = false;
       break;
-    case "D":
+    case "d":
     case "ArrowRight":
       this.right = false;
       break;
@@ -98,5 +98,35 @@ export class Input {
   onMouseMove(event) {
     this.mousePosition[0] = event.offsetX;
     this.mousePosition[1] = event.offsetY;
+  }
+  /**
+   * Applies the event handlers to elements in the DOM.
+   * @param {Element} keyElement The element to track keypresses on
+   * @param {Element} mouseClickElement The element to track mouse clicks on
+   * @param {Element} mouseMoveElement The element to track mouse movement
+   *   relative to
+   */
+  applyEventHandlers(keyElement, mouseClickElement, mouseMoveElement) {
+    keyElement.addEventListener("keydown", this.onKeyDown.bind(this));
+    keyElement.addEventListener("keyup", this.onKeyUp.bind(this));
+    mouseClickElement.addEventListener(
+      "mousedown", this.onMouseDown.bind(this)
+    );
+    mouseClickElement.addEventListener("mouseup", this.onMouseUp.bind(this));
+    mouseMoveElement.setAttribute("tabindex", 1);
+    mouseMoveElement.addEventListener("mousemove", this.onMouseMove.bind(this));
+  }
+  /**
+   * Factory method for a Input class
+   * @param {Element} keyElement The element to listen for keypresses and
+   * mouse clicks on
+   * @param {Element} mouseMoveElement The element to track mouse coordinates
+   * relative to
+   * @returns {Input}
+   */
+  static create(keyElement, mouseMoveElement) {
+    const input = new Input();
+    input.applyEventHandlers(keyElement, keyElement, mouseMoveElement);
+    return input;
   }
 }
