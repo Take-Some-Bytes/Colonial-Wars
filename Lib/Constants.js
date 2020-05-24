@@ -4,11 +4,12 @@
  */
 
 const { deepFreeze } = require("./Util");
+const Vector = require("./Game/Physics/Vector");
 
 const Constants = {
   //World max and min
-  WORLD_MIN: -1000,
-  WORLD_MAX: 1000,
+  WORLD_MIN: -3000,
+  WORLD_MAX: 3000,
   //Declaration arrays
   TROOPS: [
     "militia",
@@ -104,10 +105,10 @@ const Constants = {
   SPLASH_DAMAGE_RADIUS: {
     musket_ball: 0,
     pistol_ball: 0,
-    field_artillery: 45,
+    field_artillery: 23,
     siege_artillery: 0,
-    howitzer_shell: 30,
-    mortar_shell: 28
+    howitzer_shell: 18,
+    mortar_shell: 24
   },
   //Troop stuff
   TROOP_RANGE: {
@@ -608,6 +609,28 @@ const Constants = {
       ammo: 0
     }
   },
+  BUILDING_MASS: {
+    main_tent: 500,
+    tent: 300,
+    house: 1500,
+    farm: 2000,
+    woodcutter: 2250,
+    stone_quarry: 2300,
+    mill: 6000,
+    sawmill: 4700,
+    stonemason: 4500,
+    well: 600,
+    barracks: 5200,
+    recruiting_office: 2000,
+    munitions_plant: 5900,
+    factory: 10000,
+    watchtower: 950,
+    cannon_tower: 1700,
+    tower: 1600,
+    wall: 1200,
+    guard_post: 2100,
+    supply_depot: 4500
+  },
   //Weapons stuff
   MELEE_WEAPONS: {
     pikemen: "pike"
@@ -650,6 +673,16 @@ const Constants = {
   MAX_PLAYERS: 60,
   MAX_GAMES: 6,
   GAME_UPDATE_SPEED: 1000 / 25,
+  START_POSITIONS_TEAM_MAP_1: {
+    British: new Vector(-800, -20),
+    French: new Vector(300, 60),
+    Russian: new Vector(-100, -90),
+    German: new Vector(800, 990),
+    American: new Vector(0, 0),
+    Italian: new Vector(400, 400)
+  },
+  TILE_SIZE: 100,
+  MAP_1: "testing",
 
   //Communications
   SOCKET_UPDATE: "update",
@@ -658,8 +691,12 @@ const Constants = {
   /*SOCKET_CHAT_CLIENT_SERVER: "chat-client-to-server",
   SOCKET_CHAT_SERVER_CLIENT: "chat-server-to-client",*/
   SOCKET_DISCONNECT: "disconnect",
+  SOCKET_AVAILABLE_GAMES: "available-games",
+  SOCKET_ERROR: "err",
+  SOCKET_SECURITY_DATA: "security-data",
+  SOCKET_PROCEED: "proceed",
   //Version
-  VERSION: "0.4.0-BETA"
+  VERSION: "0.7.0-ALPHA"
 };
 
 deepFreeze(Constants);
