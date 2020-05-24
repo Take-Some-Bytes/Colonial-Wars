@@ -4,6 +4,7 @@
  * edited by Horton Cheng for my purposes
  */
 
+const Vector = require("./Game/Physics/Vector");
 /**
  * Given a value, a minimum, and a maximum, returns true if value is
  * between the minimum and maximum, inclusive of both bounds. This
@@ -133,7 +134,7 @@ function deepClear(variable, deleteProperties = false) {
 }
 /**
    * Multiplies stuff. Skips a number if it is zero or negative
-   * @param {Array<number>} factors First factor
+   * @param {Array<number>} factors Factors to multiply
    * @returns {number}
    */
 function multiplySomething(factors) {
@@ -173,7 +174,6 @@ function multiplySomething(factors) {
       }
     } else {
       factor = factors[i];
-      console.log(factor);
       if(!factor) {
         i++;
         continue;
@@ -187,33 +187,74 @@ function multiplySomething(factors) {
   product = preProduct;
   return product;
 }
-
-if(typeof module === "object") {
-  /**
-   * If Util is loaded as a Node module, then this line is called.
-   */
-  module.exports = exports = {
-    inBound,
-    bind,
-    degreeToRadian,
-    normalizeAngle,
-    makeID,
-    deepFreeze,
-    deepClear,
-    multiplySomething
-  };
-} else {
-  /**
-   * If Util is loaded into the browser, then this line is called.
-   */
-  window.Util = {
-    inBound,
-    bind,
-    degreeToRadian,
-    normalizeAngle,
-    makeID,
-    deepFreeze,
-    deepClear,
-    multiplySomething
-  };
+/**
+ * Checks an object's properties. Returns true if the object's
+ * properties are true, otherwise returns false
+ * @param {{}} obj The object to check for the properties
+ * @returns {Boolean}
+ */
+function checkProperties(obj) {
+  for(const key in obj) {
+    const property = obj[key];
+    if(!property === true) {
+      return false;
+    }
+  }
+  return true;
 }
+/**
+ * Delays the calling of a function
+ * @param {Number} length The length of the delay in seconds
+ * @param {Function} cb Callback
+ */
+function delay(length, cb) {
+  setTimeout(cb(), length * 1000);
+}
+/**
+ * Gets the euclidean distance squared
+ * @param {Vector} p1 Point number 1
+ * @param {Vector} p2 Point number 2
+ * @returns {Number}
+ */
+function getEuclideanDist2(p1, p2) {
+  const distance = Math.sqrt(
+    (p2.x - p1.x) * (p2.x - p1.x) +
+    (p2.y - p1.y) * (p2.y - p1.y)
+  );
+
+  if(isNaN(distance)) {
+    throw new TypeError(
+      "Arguments are not valid Vectors, or " +
+      "the properties of the Vectors are not valid numbers!"
+    );
+  }
+  return distance;
+}
+/**
+ * Tests if a point is in a circle
+ * @param {Vector} circlePosition The circle's position
+ * @param {Number} circleRadius The circle's radius
+ * @param {Vector} pointPosition The point that you want to test
+ * @returns {Boolean}
+ */
+function inCircle(circlePosition, circleRadius, pointPosition) {
+  const euclideanDist = getEuclideanDist2(pointPosition, circlePosition);
+
+  const isInCircle = euclideanDist < circleRadius;
+  return isInCircle;
+}
+
+module.exports = exports = {
+  inBound,
+  bind,
+  degreeToRadian,
+  normalizeAngle,
+  makeID,
+  deepFreeze,
+  deepClear,
+  multiplySomething,
+  checkProperties,
+  delay,
+  getEuclideanDist2,
+  inCircle
+};
