@@ -6,9 +6,10 @@
 const fs = require("fs");
 const path = require("path");
 const express = require("express");
-const loggers = require("./Winstoninit");
+const loggers = require("./init");
 const CSPLogger = loggers.get("CSP-logger");
 const ServerLogger = loggers.get("Server-logger");
+const ErrorLogger = loggers.get("Error-logger")
 
 /**
  * Automatically handles the requests that the server approves of.
@@ -26,7 +27,7 @@ function serveFile(req, res, next, file, response) {
     s.pipe(res);
   });
   s.on("error", err => {
-    console.error(err);
+    ErrorLogger.error(err);
     ServerLogger.error(err);
     res.type("html");
     res.status(404).send(response);
@@ -99,7 +100,7 @@ function handleOther(req, res, next) {
       s.pipe(res);
     });
     s.on("error", err => {
-      console.error(err);
+      ErrorLogger.error(err);
       ServerLogger.error(err);
       res.type("html");
       res.status(404)
