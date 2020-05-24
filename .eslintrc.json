@@ -75,9 +75,9 @@
       "no-with": "error",
       "prefer-promise-reject-errors": "error",
       "radix": "warn",
-      "require-await": "error",
+      "require-await": "off",
       "vars-on-top": "off",
-      "wrap-iife": ["error", "outside"],
+      "wrap-iife": ["error", "any"],
  
       // Variables
       "init-declarations": ["error", "always"],
@@ -134,7 +134,7 @@
       "max-len": ["warn", {
          "code": 80
       }],
-      "multiline-ternary": ["warn", "never"],
+      "multiline-ternary": ["warn", "always-multiline"],
       "new-cap": ["warn", {
          "capIsNew": false
       }],
