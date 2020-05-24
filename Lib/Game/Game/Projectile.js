@@ -38,6 +38,8 @@ class Projectile extends Entity {
     this.splashDamage = Constants.SPLASH_DAMAGE[type];
     this.splashDamageRadius = Constants.SPLASH_DAMAGE_RADIUS[type];
     this.maxDistance = Constants.BULLET_MAX_RANGE[type];
+    this.explodes = !!this.splashDamage;
+
     this.distanceTraveled = 0;
     this.destroyed = false;
     this.lastUpdateTime = 0;
