@@ -9,7 +9,9 @@ const Building = require("./Game/Building");
 const Projectile = require("./Game/Projectile");
 const Vector = require("./Physics/Vector");
 const Constants = require("../Constants");
-const { degreeToRadian, bind, multiplySomething } = require("../Util");
+const {
+  degreeToRadian, bind, multiplySomething, checkProperties, delay
+} = require("../Util");
 
 /**
  * Player class
@@ -20,11 +22,13 @@ class Player {
     * @param {Vector} position The starting position of the player
     * @param {String} name The name of the player
     * @param {String} socketID The socketID associated with this player
+    * @param {String} team The team of the player
     */
-  constructor(position, name, socketID) {
+  constructor(position, name, socketID, team = "British") {
     this.position = position;
     this.name = name;
     this.socketID = socketID;
+    this.team = team;
 
     this.troops = [];
     this.buildings = [];
@@ -124,8 +128,10 @@ class Player {
       numMortars: 0
     };
     const totalResourceRate = {};
+    const buildingsLength = buildings.length;
+    const troopsLength = troops.length;
 
-    for(let i = 0; i < buildings.length; i++) {
+    for(let i = 0; i < buildingsLength; i++) {
       switch(buildings[i].type) {
       case "main_tent":
         resourceGenBuildings.numMainTents++;
@@ -169,7 +175,7 @@ class Player {
         continue;
       }
     }
-    for(let i = 0; i < troops.length; i++) {
+    for(let i = 0; i < troopsLength; i++) {
       switch(troops[i].type) {
       case "militia":
         resourceMinTroops.numMilitia++;
@@ -266,6 +272,7 @@ class Player {
       Constants.BUILDING_RESOURCE_BONUS.well.goldIncrease
     ])) - baseResourceMinRate.gold;
     totalResourceRate.ammo = baseResourceRate.ammo - baseResourceMinRate.ammo;
+
     return totalResourceRate;
   }
   /**
@@ -299,6 +306,21 @@ class Player {
       }
       continue;
     }
+
+    const allIsFalse = checkProperties(resourcesMissing);
+    if(!allIsFalse) {
+      let errorMessage =
+        "Some resources are missing; cannot build building.\n" +
+        "Resources missing:\n";
+      for(let i = 0; i < resources.length; i++) {
+        errorMessage += `\t ${resourcesMissing[resources[i]]}\n`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    delay(Constants.BUILDING_BUILD_TIME[type], () => {
+      this.buildings.push(new Building(position, type, this.team));
+    });
   }
   /**
     * Updates this player's resources
@@ -345,38 +367,40 @@ class Player {
    */
   updateOnInput(data) {
     if(data.up) {
-      this.velocity = Vector.fromPolar(this.speed, degreeToRadian(0));
+      this.velocity = Vector.fromPolar(this.speed, degreeToRadian(270));
     } else if(data.down) {
-      this.velocity = Vector.fromPolar(-this.speed, degreeToRadian(180));
-    } else if(data.right) {
       this.velocity = Vector.fromPolar(this.speed, degreeToRadian(90));
+    } else if(data.right) {
+      this.velocity = Vector.fromPolar(this.speed, degreeToRadian(0));
     } else if(data.left) {
-      this.velocity = Vector.fromPolar(-this.speed, degreeToRadian(270));
+      this.velocity = Vector.fromPolar(this.speed, degreeToRadian(180));
     } else if(!(data.up ^ data.down) | !(data.right ^ data.left)) {
       this.velocity = Vector.zero();
     }
   }
   /**
-    * Performs a physics update
+    * Performs an update
     * @param {Number} lastUpdateTime The last time an update occured
     * @param {Number} deltaTime The current timestamp
     */
   update(lastUpdateTime, deltaTime) {
-    if(this.lastUpdateTime === lastUpdateTime) {
-      this.pastBuildings = this.buildings;
-      this.pastTroops = this.troops;
-    }
     this.lastUpdateTime = lastUpdateTime;
     this.position.add(Vector.scale(this.velocity, deltaTime));
     if(this.pastTroops !== this.troops ||
       this.pastBuildings !== this.buildings
     ) {
-      this.calculateResourceRates();
-      this.updateResourceRate();
+      const newResourceRates = this.calculateResourceRates();
+      this.updateResourceRate(newResourceRates);
     }
 
-    this.updateResources();
+    const allIsTrue = checkProperties(this.resourceRate);
+    if(allIsTrue) {
+      this.updateResources();
+    }
     this.bindToWorld();
+
+    this.pastBuildings = this.buildings;
+    this.pastTroops = this.troops;
   }
   /**
    * Initializes the player
