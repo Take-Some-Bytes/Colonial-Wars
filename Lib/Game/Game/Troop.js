@@ -79,6 +79,8 @@ class Troop extends Entity {
     this.lastShotTime = 0;
     this.angle = 0;
     this.turnRate = 0;
+    this.kills = 0;
+    this.destroyed = false;
   }
   /**
     * Returns a boolean based on whether the
