@@ -8,7 +8,7 @@ export const Constants = {
   WORLD_MIN: -3000,
   WORLD_MAX: 3000,
   //Version
-  VERSION: "0.7.0-ALPHA",
+  VERSION: "0.7.1-ALPHA",
   //Drawing
   DRAWING_TROOP_BASE_PATH: "/imgs/troops",
   DRAWING_BUILDING_BASE_PATH: "/imgs/troops",
