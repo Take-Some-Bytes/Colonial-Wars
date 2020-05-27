@@ -3,6 +3,19 @@ This is a changelog for the whole web app.
 
 ## Pre-release
 This is the pre-release part of the changelog
+#### 0.7.2
+- Cleaned up some of the code--meaning that I replaced some ```if-else``` statements
+with ternaries
+- Fixed some code that was bound to cause problems later on(like the switch statements that used
+the ```||``` operator in the case blocks)
+- Added a static ```create``` method in ```Building.js```
+- Updated the ```deepClear``` method in ```Util.js```, added a ```logMemoryUsage``` method in Util as well
+- Made the game able to draw buildings
+- Added an event handler so that when the client presses ```Enter``` for the game-select form, it doesn't submit
+to the server
+- Changed ```npm start``` script to ```npm run dev```
+- Name changes
+- Changed game world size
 #### 0.7.1
 - Got the server-to-client game communications up and running
 - Got the client-side game to draw something on the canvas
