@@ -31,13 +31,16 @@ class Building extends Entity {
     this.team = team;
     this.health = Constants.BUILDING_MAX_HEALTH[type];
     this.buildTime = Constants.BUILDING_BUILD_TIME[type];
-    if(this.type === "barracks" ||
-    this.type === "recruiting_office" || this.type === "factory"
-    ) {
-      this.spawnedTroops = Constants.BUILDINGS_SPAWNED_TROOP[type];
-    } else {
-      this.spawnedTroops = [];
-    }
+    this.spawnedTroops =
+      this.type === "barracks" ||
+      this.type === "recruiting_office" ||
+      this.type === "factory" ?
+        Constants.BUILDINGS_SPAWNED_TROOP[type] :
+        [];
+    this.preventsTeamLoss = this.type === "main_base";
+    this.preventsPlayerLoss =
+      this.type === "main_tent" && !this.preventsTeamLoss;
+
     if(this.type === "cannon_tower") {
       this.range = Constants.BUILDING_RANGE[type];
       this.shotCoolDown = Constants.ATTACK_COOLDOWN[type];
@@ -116,6 +119,17 @@ class Building extends Entity {
    */
   isDead() {
     return this.health <= 0;
+  }
+  /**
+   * Factory method for a building object
+   * @param {Vector} position The position of the building
+   * @param {String} type The type of the building
+   * @param {String} team The team the building is on
+   * @returns {Building}
+   */
+  static create(position, type, team) {
+    const building = new Building(position, type, team);
+    return building;
   }
 }
 
