@@ -20,9 +20,10 @@ const router = require("./Lib/Router");
 const loggers = require("./Lib/Common/init");
 const manager = loggers.manager;
 const ErrorLogger = loggers.get("Error-logger");
-const SessionStore = require("./Lib/Security/SessionStorage");
+const SessionStorage = require("./Lib/Security/SessionStorage");
 const middleware = require("./Lib/middleware");
 const Constants = require("./Lib/Constants");
+const { logMemoryUsage } = require("./Lib/Util");
 
 //Initialization
 const serverToken = crypto.randomBytes(32).toString("hex");
@@ -30,12 +31,12 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 const playIO = io.of("/play");
-const wsSessions = new SessionStore(
+const wsSessions = new SessionStorage(
   crypto.randomBytes(16).toString("hex"),
   serverToken,
   8 * 60 * 1000
 );
-const webSessions = new SessionStore(
+const webSessions = new SessionStorage(
   crypto.randomBytes(16).toString("hex"),
   serverToken,
   8 * 60 * 1000
@@ -165,18 +166,16 @@ playIO.use((socket, next) => {
 });
 playIO.on("connection", socket => {
   const gameID = pendingClients[socket.handshake.query.prevSocketID].gameID;
+  delete pendingClients[socket.handshake.query.prevSocketID];
   console.log("Connection!", socket.id);
-  console.log("----Memory Usage----");
-  const used = process.memoryUsage();
-  for(const key in used) {
-    console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
-  }
+  logMemoryUsage();
   socket.on(Constants.SOCKET_PLAYER_ACTION, data => {
     const parsedData = JSON.parse(data);
     const game = manager.getGame(gameID);
     game.updatePlayerOnInput(socket.id, parsedData.playerData.actionData);
   });
   socket.on(Constants.SOCKET_DISCONNECT, () => {
+    console.log("Client Disconnected!", socket.id);
     const client = manager.getClient(socket.id);
     const session = wsSessions.getSessionInfo(socket.id);
     if(client && session) {
@@ -194,10 +193,7 @@ playIO.on("connection", socket => {
 server.listen(PORT, HOST, 20, () => {
   console.log(`Server started on port ${PORT}, http://${HOST}.`);
   console.log(`Protocol is: ${PROTOCOL}.`);
-  const used = process.memoryUsage();
-  for(const key in used) {
-    console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
-  }
+  logMemoryUsage();
 });
 
 setInterval(() => {
