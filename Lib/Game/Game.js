@@ -54,7 +54,7 @@ class Game {
     this.startPositions = startPositions;
     this.mapName = mapName;
 
-    if(mode !== "FFA" && mode !== "test") {
+    if(mode !== "FFA") {
       this.teams = new Map();
       this.teams.set("British", new Map());
       this.teams.set("French", new Map());
@@ -63,8 +63,6 @@ class Game {
       this.teams.set("American", new Map());
       this.teams.set("Italian", new Map());
       this.teams.set("Neutral", []);
-    } else if(mode === "test") {
-      this.teams = null;
     }
 
     this.lastUpdateTime = 0;
@@ -97,10 +95,33 @@ class Game {
     deepClear(this.teams);
     deepClear(this.projectiles, Array.isArray(this.projectiles));
     deepClear(this.troops, Array.isArray(this.troops));
-    deepClear(this.obstacles, Array.isArray(this.obstacles));
+    // deepClear(this.obstacles, Array.isArray(this.obstacles));
     deepClear(this.buildings, Array.isArray(this.buildings));
     deepClear(this.players);
     deepClear(this.clients);
+
+    this.addMainBases();
+  }
+  /**
+   * Adds the game's main bases, if any are needed
+   */
+  addMainBases() {
+    if(this.mode !== "FFA") {
+      const objKeys = Object.getOwnPropertyNames(this.startPositions);
+      const objKeysLength = objKeys.length;
+
+      for(let i = 0; i < objKeysLength; i++) {
+        const startPosition = this.startPositions[objKeys[i]];
+        const mainBaseToCreate = Building.create(
+          startPosition,
+          "main_base",
+          objKeys[i]
+        );
+
+        this.buildings.push(mainBaseToCreate);
+      }
+    }
+    console.table(this.buildings);
   }
   /**
     * Adds a new player
@@ -201,6 +222,9 @@ class Game {
         entity.update(this.lastUpdateTime, this.deltaTime);
       });
       const entitiesLength = entities.length;
+      if(entitiesLength < 2) {
+        return;
+      }
       for(let i = 0; i < entitiesLength; i++) {
         for(let j = i + 1; j < entitiesLength; j++) {
           let e1 = entities[i];
@@ -384,10 +408,10 @@ class Game {
           gameToken: this.token
         },
         playerData: {
-          self: currentPlayer//,
+          self: currentPlayer,
           // players: players,
           // projectiles: this.projectiles,
-          // buildings: this.buildings,
+          buildings: this.buildings//,
           // troops: this.troops
         },
         otherData: {}
@@ -404,6 +428,9 @@ class Game {
     * Factory method for a game
     * @param {String} mode The game mode
     * @param {String} id The game ID
+    * @param {String} token The token of the game
+    * @param {String} mapName The name of the map that the game is
+    * going to take place in
     * @param {{
     * British: Vector,
     * French: Vector,
@@ -415,8 +442,8 @@ class Game {
     * that join a team
     * @returns {Game}
     */
-  static create(mode, id, startPositions) {
-    const game = new Game(mode, id, startPositions);
+  static create(mode, id, token, mapName, startPositions) {
+    const game = new Game(mode, id, token, mapName, startPositions);
     game.init();
     return game;
   }
