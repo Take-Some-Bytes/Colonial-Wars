@@ -44,10 +44,13 @@ class Troop extends Entity {
     this.buildTime = Constants.TROOP_BUILD_TIME[type];
 
     switch(this.type) {
-    case Constants.TROOPS[0] || Constants.TROOPS[1] || Constants.TROOPS[3]:
+    case Constants.TROOPS[0]:
+    case Constants.TROOPS[1]:
+    case Constants.TROOPS[2]:
       this.firedProjectile = Constants.PROJECTILES[0];
       break;
-    case Constants.TROOPS[3] || Constants.TROOPS[5]:
+    case Constants.TROOPS[3]:
+    case Constants.TROOPS[5]:
       this.firedProjectile = Constants.PROJECTILES[1];
       break;
     case Constants.TROOPS[6]:
@@ -69,11 +72,10 @@ class Troop extends Entity {
       throw new Error("Troop type not recognized!");
     }
 
-    if(!this.firedProjectile && this.isHuman) {
-      this.usedWeapon = Constants.MELEE_WEAPONS[type];
-    } else {
-      this.usedWeapon = Constants.RANGED_WEAPONS[type];
-    }
+    this.usedWeapon =
+    !this.firedProjectile && this.isHuman ?
+      Constants.MELEE_WEAPONS[type] :
+      Constants.RANGED_WEAPONS[type];
 
     this.lastUpdateTime = 0;
     this.lastShotTime = 0;
@@ -166,16 +168,22 @@ class Troop extends Entity {
     * @returns {Troop}
     */
   static createFromBuilding(building, type, spawnPoint) {
+    const buildingSpawnedTroopLength = building.spawnedTroops.length;
+    const buildingSpawnedTroops = building.spawnedTroops;
     let isHuman = null;
 
-    for(i = 0; i < building.spawnedTroops.length; i++) {
-      if(type !== building.spawnedTroops[i] &&
-        i === building.spawnedTroops.length - 1
+    if(buildingSpawnedTroopLength < 1) {
+      throw new Error("The specified building cannot spawn troops!");
+    }
+
+    for(i = 0; i < buildingSpawnedTroopLength; i++) {
+      if(type !== buildingSpawnedTroops[i] &&
+        i === buildingSpawnedTroopLength - 1
       ) {
         throw new Error(
           "Troop type cannot be spawned from specified building!"
         );
-      } else if(type === building.spawnedTroops[i]) {
+      } else if(type === buildingSpawnedTroops[i]) {
         break;
       }
     }
