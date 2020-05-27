@@ -8,8 +8,8 @@ const Vector = require("./Game/Physics/Vector");
 
 const Constants = {
   //World max and min
-  WORLD_MIN: -3000,
-  WORLD_MAX: 3000,
+  WORLD_MIN: -4500,
+  WORLD_MAX: 4500,
   //Declaration arrays
   TROOPS: [
     "militia",
@@ -50,7 +50,8 @@ const Constants = {
     "cannon_tower",
     "wall",
     "guard_post",
-    "supply_depot"
+    "supply_depot",
+    "main_base"
   ],
   //Bullet stuff
   BULLET_MAX_RANGE: {
@@ -324,11 +325,12 @@ const Constants = {
     tower: 2100,
     wall: 2000,
     guard_post: 1100,
-    supply_depot: 3000
+    supply_depot: 3000,
+    main_base: 10000
   },
   BUILDING_HITBOX_SIZE: {
-    main_tent: 350,
-    tent: 150,
+    main_tent: 300,
+    tent: 100,
     house: 200,
     farm: 900,
     woodcutter: 170,
@@ -346,7 +348,8 @@ const Constants = {
     tower: 130,
     wall: 10,
     guard_post: 500,
-    supply_depot: 1100
+    supply_depot: 1100,
+    main_base: 300
   },
   BUILDINGS_SPAWNED_TROOP: {
     barracks: [
@@ -386,7 +389,8 @@ const Constants = {
     tower: 22,
     wall: 24,
     guard_post: 26,
-    supply_depot: 40
+    supply_depot: 40,
+    main_base: 0
   },
   BUILDING_COST: {
     main_tent: {
@@ -489,6 +493,11 @@ const Constants = {
       wood: 36,
       stone: 16,
       gold: 20
+    },
+    main_base: {
+      wood: 0,
+      stone: 0,
+      gold: 0
     }
   },
   BUILDING_RESOURCE_GEN: {
@@ -629,7 +638,8 @@ const Constants = {
     tower: 1600,
     wall: 1200,
     guard_post: 2100,
-    supply_depot: 4500
+    supply_depot: 4500,
+    main_base: 6000
   },
   //Weapons stuff
   MELEE_WEAPONS: {
@@ -662,7 +672,7 @@ const Constants = {
     cannon_tower: 4.97
   },
   //Other troop things
-  TROOP_HEAL_RATE: 12,
+  TROOP_HEAL_RATE: 8,
   TROOP_TURN_SPEED: 0.58,
   //Other building things
   BUILDING_REPAIR_RATE: 18,
@@ -674,12 +684,12 @@ const Constants = {
   MAX_GAMES: 6,
   GAME_UPDATE_SPEED: 1000 / 25,
   START_POSITIONS_TEAM_MAP_1: {
-    British: new Vector(-800, -20),
-    French: new Vector(300, 60),
-    Russian: new Vector(-100, -90),
-    German: new Vector(800, 990),
+    British: new Vector(-3800, -3220),
+    French: new Vector(-2200, -2800),
+    Russian: new Vector(-1100, -1100),
+    German: new Vector(3800, 3220),
     American: new Vector(0, 0),
-    Italian: new Vector(400, 400)
+    Italian: new Vector(2300, 1900)
   },
   TILE_SIZE: 100,
   MAP_1: "testing",
