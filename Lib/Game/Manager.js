@@ -126,7 +126,7 @@ class Manager {
       throw new Error("Max number of games is reached; cannot add game");
     }
     const token = crypto.randomBytes(16).toString("hex");
-    const game = new Game(mode, gameID, token, mapName, startPositions);
+    const game = Game.create(mode, gameID, token, mapName, startPositions);
     this.games.set(gameID, game);
     return game;
   }
