@@ -105,14 +105,12 @@ function deepClear(variable, deleteProperties = false) {
       }
     }
   } else if(variable instanceof Array) {
+    if(deleteProperties) {
+      return variable.splice(0);
+    }
     for(let i = 0; i < variable.length; i++) {
-      if(deleteProperties) {
-        delete variable[i];
-        continue;
-      } else {
-        variable[i] = undefined;
-        continue;
-      }
+      variable[i] = undefined;
+      continue;
     }
   } else if(typeof variable === "object") {
     const properties = Object.getOwnPropertyNames(variable);
@@ -243,6 +241,17 @@ function inCircle(circlePosition, circleRadius, pointPosition) {
   const isInCircle = euclideanDist < circleRadius;
   return isInCircle;
 }
+/**
+ * Logs the memory usage of the node js current process
+ */
+function logMemoryUsage() {
+  console.log("----Memory Usage----");
+  const used = process.memoryUsage();
+  for(const key in used) {
+    console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
+  }
+  console.log("");
+}
 
 module.exports = exports = {
   inBound,
@@ -256,5 +265,6 @@ module.exports = exports = {
   checkProperties,
   delay,
   getEuclideanDist2,
-  inCircle
+  inCircle,
+  logMemoryUsage
 };
