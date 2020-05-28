@@ -706,7 +706,7 @@ const Constants = {
   SOCKET_SECURITY_DATA: "security-data",
   SOCKET_PROCEED: "proceed",
   //Version
-  VERSION: "0.7.1-ALPHA"
+  VERSION: "0.7.2-ALPHA"
 };
 
 deepFreeze(Constants);
