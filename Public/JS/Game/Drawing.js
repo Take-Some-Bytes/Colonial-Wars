@@ -28,9 +28,10 @@ export class Drawing {
     this.width = context.canvas.width;
     this.height = context.canvas.height;
     this.mapName = mapName;
-    this.tilesCanDraw = mapName === "testing" ?
-      ["test_tile"] :
-      [""];
+    this.tilesCanDraw =
+      mapName === "testing" ?
+        ["test_tile"] :
+        [""];
   }
   /**
    * Clears the canvas
@@ -55,6 +56,24 @@ export class Drawing {
     }
   }
   /**
+   * Draws a building to the game world
+   * @param {Building} building The building to draw
+   */
+  drawBuilding(building) {
+    this.context.save();
+    const canvasPosition = this.viewport.toCanvas(building.position);
+    this.context.translate(canvasPosition.x, canvasPosition.y);
+    this.drawCenteredImage(this.images[building.type]);
+    this.context.restore();
+  }
+  /**
+   * Draws a centered image
+   * @param {Image} image The image to draw
+   */
+  drawCenteredImage(image) {
+    this.context.drawImage(image, -image.width / 2, -image.height / 2);
+  }
+  /**
    * Creates a Drawing class
    * @param {HTMLCanvasElement} canvas The canvas element to draw to
    * @param {Viewport} viewport The viewport object for coordinate translation
@@ -65,10 +84,23 @@ export class Drawing {
   static create(canvas, viewport, mapName) {
     const context = canvas.getContext("2d");
     const images = {};
+    //Add tiles
     if(mapName === "testing") {
       images.test_tile = new Image();
       images.test_tile.src =
         `${Constants.DRAWING_TILE_BASE_PATH}/test_tile.png`;
+    } else {
+      for(const tile of Constants.DRAWING_TILE_KEYS) {
+        images[tile] = new Image();
+        images[tile].src = `${Constants.DRAWING_TILE_BASE_PATH}/${tile}.png`;
+      }
+    }
+
+    //Add buildings
+    for(const building of Constants.DRAWING_BUILDING_KEYS) {
+      images[building] = new Image();
+      images[building].src =
+        `${Constants.DRAWING_BUILDING_BASE_PATH}/${building}.png`;
     }
     return new Drawing(context, images, viewport, mapName);
   }
