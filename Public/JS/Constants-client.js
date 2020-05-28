@@ -5,17 +5,24 @@
 
 export const Constants = {
   //World max and min
-  WORLD_MIN: -3000,
-  WORLD_MAX: 3000,
+  WORLD_MIN: -4500,
+  WORLD_MAX: 4500,
   //Version
-  VERSION: "0.7.1-ALPHA",
+  VERSION: "0.7.2-ALPHA",
   //Drawing
   DRAWING_TROOP_BASE_PATH: "/imgs/troops",
-  DRAWING_BUILDING_BASE_PATH: "/imgs/troops",
+  DRAWING_BUILDING_BASE_PATH: "/imgs/buildings",
   DRAWING_OBSTACLE_BASE_PATH: "/imgs/obstacles",
   DRAWING_TILE_BASE_PATH: "/imgs/tiles",
   DRAWING_TILE_KEYS: [
-    "test_tile"
+    "grass_tile",
+    "dirt_tile",
+    "water_tile",
+    "rocky_tile",
+    "sand_tile"
+  ],
+  DRAWING_BUILDING_KEYS: [
+    "main_base"
   ],
   DRAWING_TILE_SIZE: 100,
   //Viewport
