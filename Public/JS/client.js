@@ -1,6 +1,6 @@
 /**
  * @fileoverview Client init file. This should be one of the only files that
- * have `no-def` in eslint disabled
+ * have `no-undef` in eslint disabled
  * @author Horton Cheng <horton0712@gmail.com>
  */
 /* eslint-disable no-undef */
@@ -158,6 +158,43 @@ if(pathname === "/play") {
           disabled: false
         });
       $("#name-input").focus();
+    });
+
+    $("#dialog-form").submit(e => {
+      e.preventDefault();
+      init((err, data) => {
+        if(err) {
+          $("#error-span")
+            .addClass("error")
+            .text(`${err}`);
+          return;
+        }
+        socket.emit(Constants.SOCKET_NEW_PLAYER, JSON.stringify({
+          securityData: {
+            clientData: {
+              id: securityData.clientData.id,
+              token: securityData.clientData.token
+            }
+          },
+          playerData: data,
+          otherData: {}
+        }), error => {
+          if(error) {
+            $("#error-span")
+              .addClass("error")
+              .text(`${error}`);
+            return;
+          }
+          localStorage.setItem(
+            "prevSocketID",
+            socket.id
+          );
+          dialog.dialog("close");
+          window.location.href =
+            `${window.location.protocol}//` +
+            `${window.location.hostname}/play`;
+        });
+      });
     });
   });
 }
