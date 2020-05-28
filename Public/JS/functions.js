@@ -29,6 +29,33 @@ export function bind(val, min, max) {
   if (min > max) { return Math.min(Math.max(val, max), min); }
   return Math.min(Math.max(val, min), max);
 }
+/**
+ * Converts an angle in degrees into an angle in radians
+ * @param {Number} degree The angle in degrees
+ * @returns {Number}
+ */
+export function degreeToRadian(degree) {
+  return degree * (Math.PI / 180);
+}
+/**
+ * Normalizes an angle into radians that are equvilent to 0 degrees,
+ * 90 degrees, 180 degrees, and 270 degrees
+ * @param {Number} angle The angle in either degrees or radians
+ * @param {Boolean} [isDegree] Is the angle supplied in degrees?
+ * Default is false
+ * @returns {Number}
+ */
+export function normalizeAngle(angle, isDegree = false) {
+  if(isDegree) {
+    angle = degreeToRadian(angle);
+  }
+
+  if(angle < 0.7853981633974483 && angle > 0) {
+    return 0;
+  } else if(angle > 0.7853981633974483 && angle < 2.356194490192345) {
+    return 1.5707963267948966;
+  }
+}
 
 /**
  * Gets this client's game info
