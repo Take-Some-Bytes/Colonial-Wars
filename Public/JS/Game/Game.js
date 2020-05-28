@@ -110,16 +110,10 @@ export class Game {
    */
   draw() {
     if(this.self) {
-      this.drawing.clear()
+      this.drawing.clear();
 
-      this.drawing.drawTiles()
-
-      // this.projectiles.forEach(this.drawing.drawBullet.bind(this.drawing))
-
-      // this.powerups.forEach(this.drawing.drawPowerup.bind(this.drawing))
-
-      // this.drawing.drawTank(true, this.self)
-      // this.players.forEach(tank => this.drawing.drawTank(false, tank))
+      this.drawing.drawTiles();
+      this.buildings.forEach(this.drawing.drawBuilding.bind(this.drawing));
     }
   }
   /**
@@ -128,7 +122,7 @@ export class Game {
    */
   onReceiveGameState(data) {
     const parsedData = JSON.parse(data);
-    // console.log(parsedData);
+
     if(this.expectedToken !== parsedData.securityData.gameToken) {
       const body = document.body;
       body.innerHTML = "";
@@ -142,7 +136,7 @@ export class Game {
     this.self = parsedData.playerData.self;
     // this.players = state.players;
     // this.projectiles = state.projectiles;
-    // this.buildings = state.buildings;
+    this.buildings = parsedData.playerData.buildings;
     // this.troops = state.troops;
 
     this.viewport.updateTrackingPosition(parsedData.playerData.self);
