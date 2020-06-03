@@ -44,7 +44,7 @@ class Manager {
    */
   get allGames() {
     const games = [];
-    for(const game of this.games.values()) {
+    for (const game of this.games.values()) {
       games.push(game);
     }
     return games;
@@ -78,7 +78,7 @@ class Manager {
    * @param {String} socketID The socket ID associated with this client
    */
   removeClient(socketID) {
-    if(this.clients.has(socketID)) {
+    if (this.clients.has(socketID)) {
       this.clients.delete(socketID);
     }
   }
@@ -93,7 +93,7 @@ class Manager {
    */
   changeStats(newStats, ID) {
     let client = {};
-    if(!this.clients.has(ID)) {
+    if (!this.clients.has(ID)) {
       throw new Error("Client does not exist!");
     }
     client = {
@@ -122,7 +122,7 @@ class Manager {
     * @returns {Game}
     */
   addNewGame(mode, gameID, mapName, startPositions) {
-    if(this.games.size === Constants.MAX_GAMES) {
+    if (this.games.size === Constants.MAX_GAMES) {
       throw new Error("Max number of games is reached; cannot add game");
     }
     const token = crypto.randomBytes(16).toString("hex");
@@ -135,7 +135,7 @@ class Manager {
     * @param {String} gameID The ID associated with the game
     */
   removeGame(gameID) {
-    if(this.games.has(gameID)) {
+    if (this.games.has(gameID)) {
       this.games.delete(gameID);
     }
   }
@@ -146,7 +146,7 @@ class Manager {
     * @returns {Game}
     */
   getGame(gameID) {
-    if(this.games.has(gameID)) {
+    if (this.games.has(gameID)) {
       const game = this.games.get(gameID);
       return game;
     }
@@ -156,7 +156,7 @@ class Manager {
    * Performs a game update
    */
   update() {
-    for(const game of this.games.values()) {
+    for (const game of this.games.values()) {
       game.update();
     }
   }
@@ -164,7 +164,7 @@ class Manager {
    * Sends the player state to all clients
    */
   sendState() {
-    for(const game of this.games.values()) {
+    for (const game of this.games.values()) {
       game.sendState();
     }
   }
@@ -177,7 +177,7 @@ class Manager {
    * @param {String} team The team of the player
    */
   addClientToGame(gameID, client, name, team) {
-    if(this.games.has(gameID)) {
+    if (this.games.has(gameID)) {
       const game = this.games.get(gameID);
       game.addNewPlayer(client, name, team);
       return;
@@ -191,7 +191,7 @@ class Manager {
    * client
    */
   removeClientFromGame(gameID, client) {
-    if(this.games.has(gameID)) {
+    if (this.games.has(gameID)) {
       const game = this.games.get(gameID);
       game.removePlayer(client.id);
     }
@@ -203,7 +203,7 @@ class Manager {
    */
   getClient(ID) {
     const client = this.clients.get(ID);
-    if(!client) {
+    if (!client) {
       return {};
     }
     return client;
