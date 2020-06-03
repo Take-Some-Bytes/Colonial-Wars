@@ -3,7 +3,9 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-const { deepClear, getEuclideanDist2, inCircle } = require("../Util");
+const {
+  deepClear, getEuclideanDist2, inCircle, getNonCallableProps
+} = require("../Util");
 const Player = require("./Player");
 const Vector = require("./Physics/Vector");
 const Projectile = require("./Game/Projectile");
@@ -54,7 +56,7 @@ class Game {
     this.startPositions = startPositions;
     this.mapName = mapName;
 
-    if(mode !== "FFA") {
+    if (mode !== "FFA") {
       this.teams = new Map();
       this.teams.set("British", new Map());
       this.teams.set("French", new Map());
@@ -106,11 +108,11 @@ class Game {
    * Adds the game's main bases, if any are needed
    */
   addMainBases() {
-    if(this.mode !== "FFA") {
+    if (this.mode !== "FFA") {
       const objKeys = Object.getOwnPropertyNames(this.startPositions);
       const objKeysLength = objKeys.length;
 
-      for(let i = 0; i < objKeysLength; i++) {
+      for (let i = 0; i < objKeysLength; i++) {
         const startPosition = this.startPositions[objKeys[i]];
         const mainBaseToCreate = Building.create(
           startPosition,
@@ -121,7 +123,6 @@ class Game {
         this.buildings.push(mainBaseToCreate);
       }
     }
-    console.table(this.buildings);
   }
   /**
     * Adds a new player
@@ -131,7 +132,7 @@ class Game {
     * @param {String} team The team of the player
     */
   addNewPlayer(socket, name, team) {
-    if(this.closed) {
+    if (this.closed) {
       throw new Error("Max number of players reached; game is closed.")
     }
     const startPosition = this.startPositions[team].copy();
@@ -143,7 +144,7 @@ class Game {
       team
     ));
     this.numPlayers++;
-    if(this.numPlayers === this.maxPlayers) {
+    if (this.numPlayers === this.maxPlayers) {
       this.closed = true;
     }
   }
@@ -155,14 +156,14 @@ class Game {
     * @returns {String}
     */
   removePlayer(socketID) {
-    if(this.clients.has(socketID)) {
+    if (this.clients.has(socketID)) {
       this.clients.delete(socketID);
     }
-    if(this.players.has(socketID)) {
+    if (this.players.has(socketID)) {
       const player = this.players.get(socketID);
       this.players.delete(socketID);
       this.numPlayers--;
-      if(this.numPlayers < this.maxPlayers) {
+      if (this.numPlayers < this.maxPlayers) {
         this.closed = false;
       }
       return player.name;
@@ -174,7 +175,7 @@ class Game {
     * @returns {String}
     */
   getPlayerNameBySocketID(socketID) {
-    if(this.players.has(socketID)) {
+    if (this.players.has(socketID)) {
       const playerName = this.players.get(socketID).name;
       return playerName;
     }
@@ -191,7 +192,7 @@ class Game {
    */
   updatePlayerOnInput(socketID, data) {
     const player = this.players.get(socketID);
-    if(player) {
+    if (player) {
       player.updateOnInput(data);
     }
   }
@@ -212,63 +213,63 @@ class Game {
       ...this.troops,
       ...this.buildings
     ];
-    if(players) {
+    if (players) {
       players.forEach(player => {
         player.update(this.lastUpdateTime, this.deltaTime);
       });
     }
-    if(entities) {
+    if (entities) {
       entities.forEach(entity => {
         entity.update(this.lastUpdateTime, this.deltaTime);
       });
       const entitiesLength = entities.length;
-      if(entitiesLength < 2) {
+      if (entitiesLength < 2) {
         return;
       }
-      for(let i = 0; i < entitiesLength; i++) {
-        for(let j = i + 1; j < entitiesLength; j++) {
+      for (let i = 0; i < entitiesLength; i++) {
+        for (let j = i + 1; j < entitiesLength; j++) {
           let e1 = entities[i];
           let e2 = entities[j];
 
-          if(!e1.collided(e2)) {
+          if (!e1.collided(e2)) {
             continue;
           }
 
           //Projectile--Building + Troop interaction
-          if(e1 instanceof Projectile && e2 instanceof Building ||
+          if (e1 instanceof Projectile && e2 instanceof Building ||
           e1 instanceof Projectile && e2 instanceof Troop
           ) {
             e1 = entities[j];
             e2 = entities[i];
           }
-          if(
+          if (
             e1 instanceof Building && e2 instanceof Projectile &&
           e2.source !== e1 ||
           e1 instanceof Troop && e2 instanceof Projectile &&
           e2.source !== e1
           ) {
-            if(e2.explodes) {
+            if (e2.explodes) {
               const AOE = e2.splashDamageRadius;
 
               entities.forEach(entity => {
-                if(inCircle(e2.position, AOE, entity.position)) {
+                if (inCircle(e2.position, AOE, entity.position)) {
                   const totalDamage = e2.splashDamage;
 
                   entity.damage(totalDamage);
-                  if(entity.isDead()) {
+                  if (entity.isDead()) {
                     entity.destroyed = true;
                     e2.source.kills++;
                   }
                 }
               });
             }
-            if(e1.isDead()) {
+            if (e1.isDead()) {
               e1.destroyed = true;
               e2.source.kills++;
               continue;
             }
             e1.damage(e2.damage);
-            if(e1.isDead()) {
+            if (e1.isDead()) {
               e1.destroyed = true;
               e2.source.kills++;
               continue;
@@ -278,11 +279,11 @@ class Game {
           }
 
           //Troop-Building interaction
-          if(e1 instanceof Building && e2 instanceof Troop) {
+          if (e1 instanceof Building && e2 instanceof Troop) {
             e1 = entities[j];
             e2 = entities[i];
           }
-          if(e1 instanceof Troop && e2 instanceof Building) {
+          if (e1 instanceof Troop && e2 instanceof Building) {
           //Physics stuff
             const vCollision = Vector.sub(e1.position, e2.position);
             const distance = getEuclideanDist2(e1.position, e2.position);
@@ -295,7 +296,7 @@ class Game {
             vRelativeVelocity.y * vCollisionNorm.y;
             const impulse = 2 * speed / (e2.mass + e1.mass);
 
-            if(speed < 0) {
+            if (speed < 0) {
               continue;
             }
 
@@ -304,7 +305,7 @@ class Game {
           }
 
           //Troop-Troop interaction
-          if(e1 instanceof Troop && e2 instanceof Troop) {
+          if (e1 instanceof Troop && e2 instanceof Troop) {
           //Physics stuff
             const vCollision = Vector.sub(e1.position, e2.position);
             const distance = getEuclideanDist2(e1.position, e2.position);
@@ -317,7 +318,7 @@ class Game {
             vRelativeVelocity.y * vCollisionNorm.y;
             const impulse = 2 * speed / (e2.mass + e1.mass);
 
-            if(speed < 0) {
+            if (speed < 0) {
               continue;
             }
 
@@ -328,48 +329,48 @@ class Game {
           }
 
           //Projectile-Projectile interaction
-          if(e1 instanceof Projectile && e2 instanceof Projectile) {
-            if(e1.explodes && e2.explodes) {
+          if (e1 instanceof Projectile && e2 instanceof Projectile) {
+            if (e1.explodes && e2.explodes) {
               const AOE1 = e1.splashDamageRadius;
               const AOE2 = e2.splashDamageRadius;
 
               entities.forEach(entity => {
-                if(inCircle(e1.position, AOE1, entity.position) &&
+                if (inCircle(e1.position, AOE1, entity.position) &&
                 inCircle(e1.position, AOE2, entity.position)
                 ) {
                   const totalDamage = e1.splashDamage + e2.splashDamage;
 
                   entity.damage(totalDamage);
-                  if(entity.isDead()) {
+                  if (entity.isDead()) {
                     entity.destroyed = true;
                     e1.source.kills++;
                     e2.source.kills++;
                   }
                 }
               });
-            } else if(e1.explodes) {
+            } else if (e1.explodes) {
               const AOE = e1.splashDamageRadius;
 
               entities.forEach(entity => {
-                if(inCircle(e1.position, AOE, entity.position)) {
+                if (inCircle(e1.position, AOE, entity.position)) {
                   const totalDamage = e1.splashDamage;
 
                   entity.damage(totalDamage);
-                  if(entity.isDead()) {
+                  if (entity.isDead()) {
                     entity.destroyed = true;
                     e1.source.kills++;
                   }
                 }
               });
-            } else if(e2.explodes) {
+            } else if (e2.explodes) {
               const AOE = e2.splashDamageRadius;
 
               entities.forEach(entity => {
-                if(inCircle(e2.position, AOE, entity.position)) {
+                if (inCircle(e2.position, AOE, entity.position)) {
                   const totalDamage = e2.splashDamage;
 
                   entity.damage(totalDamage);
-                  if(entity.isDead()) {
+                  if (entity.isDead()) {
                     entity.destroyed = true;
                     e2.source.kills++;
                   }
@@ -403,24 +404,37 @@ class Game {
 
     this.clients.forEach((client, socketID) => {
       const currentPlayer = this.players.get(socketID);
+
       const dataToEmit = JSON.stringify({
         securityData: {
           gameToken: this.token
         },
         playerData: {
-          self: currentPlayer,
+          self: getNonCallableProps(currentPlayer),
           // players: players,
           // projectiles: this.projectiles,
-          buildings: this.buildings//,
+          buildings: this.buildings.map(building => {
+            const newProps = getNonCallableProps(building);
+            return newProps;
+          }),
           // troops: this.troops
+          buttons: currentPlayer.buttons.map(button => {
+            const newProps = getNonCallableProps(button);
+            return newProps;
+          }),
+          resourceAmounts: currentPlayer.resources
         },
         otherData: {}
       });
+
       this.numEmits++;
-      if(this.numEmits > 40 * 2 * 20) {
-        console.log(Buffer.from(dataToEmit, "utf-8").byteLength);
+      if (this.numEmits > 40 * 2 * 20) {
+        console.log("Packet size: ",
+          Buffer.from(dataToEmit, "utf-8").byteLength
+        );
         this.numEmits = 0;
       }
+
       this.clients.get(socketID).emit(Constants.SOCKET_UPDATE, dataToEmit);
     });
   }
