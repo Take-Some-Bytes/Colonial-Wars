@@ -68,7 +68,7 @@ class Security {
     * @param {response} res Server response
     */
   enforceHTTPS(req, res) {
-    if(!this.HTTPS || !this.HSTS_PRLD_LIST_SUBM) {
+    if (!this.HTTPS || !this.HSTS_PRLD_LIST_SUBM) {
       throw new Error(
         "Header is only for HTTPS " +
         "servers registered with the HSTS preload list submission."
@@ -89,7 +89,7 @@ class Security {
     */
   checkMethod(req, res) {
     for (let i = 0; i < this.allowed_methods.length; i++) {
-      if(// eslint-disable-next-line eqeqeq
+      if (// eslint-disable-next-line eqeqeq
         req.method != this.allowed_methods[i] &&
         // eslint-disable-next-line eqeqeq
         i == this.allowed_methods.length - 1
@@ -103,7 +103,7 @@ class Security {
         this.status = "error";
         return this.status;
         // eslint-disable-next-line eqeqeq
-      } else if(req.method == this.allowed_methods[i]) {
+      } else if (req.method == this.allowed_methods[i]) {
         this.status = "success";
         return this.status;
       }
@@ -120,8 +120,8 @@ class Security {
     * @returns {String}
     */
   checkRequest(req, res, allowed_paths, reqFile) {
-    for(let i = 0; i < allowed_paths.length; i++) {
-      if(
+    for (let i = 0; i < allowed_paths.length; i++) {
+      if (
         reqFile.indexOf(allowed_paths[i] + path.sep) !== 0 &&
         i === allowed_paths.length - 1
       ) {
@@ -133,7 +133,7 @@ class Security {
           );
         this.status = "error";
         return this.status;
-      } else if(reqFile.indexOf(allowed_paths[i] + path.sep) === 0) {
+      } else if (reqFile.indexOf(allowed_paths[i] + path.sep) === 0) {
         this.status = "success";
         return this.status;
       }
