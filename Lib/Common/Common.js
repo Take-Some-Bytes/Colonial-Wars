@@ -77,7 +77,7 @@ function methodNotAllowed(req, res, next) {
 function handleOther(req, res, next) {
   const reqPath = req.url.toString().split("?")[0];
   const date = new Date();
-  if(reqPath.indexOf(
+  if (reqPath.indexOf(
     "/Public/"
   ) !== 0 && reqPath.indexOf(
     "/Shared/"
@@ -93,7 +93,7 @@ function handleOther(req, res, next) {
         "<h1>Forbidden</h1>\n" +
         "<h3>The file you requested is not for public viewing.</h3>"
       );
-  } else if(reqPath === "/favicon.ico") {
+  } else if (reqPath === "/favicon.ico") {
     const s = fs.createReadStream("Public/Images/favicon.ico");
     s.on("open", () => {
       res.type(path.extname(reqPath).slice(1));
@@ -121,7 +121,7 @@ function logCSPReport(req, res, next) {
   let reqData = null;
   req.on("data", chunk => {
     reqData = chunk;
-    if(reqData.length > 40 * 1000) {
+    if (reqData.length > 40 * 1000) {
       ServerLogger.warning(
         "The CSP sent a POST request that was too large. Please verify it."
       );
