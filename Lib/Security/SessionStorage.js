@@ -40,17 +40,17 @@ class SessionStorage {
    * }} data The data for the new session
    */
   addNewSession(data) {
-    if(!data.token) {
+    if (!data.token) {
       throw new TypeError("No token specified!");
     } else if (!data.id) {
       throw new TypeError("No id specified!");
-    } else if(data.maxAge > this.maxAge) {
+    } else if (data.maxAge > this.maxAge) {
       throw new Error(
         "The requested session's maxAge is greater than the configured maxAge!"
       );
     }
 
-    if(data.serverToken !== this.serverToken) {
+    if (data.serverToken !== this.serverToken) {
       throw new Error("Given server token is not correct!");
     }
     this.storage[data.id] = {
@@ -72,13 +72,13 @@ class SessionStorage {
    */
   addDataToSession(data) {
     const currentSession = this.storage[data.id];
-    if(!currentSession) {
+    if (!currentSession) {
       throw new Error("Session does not exist.");
-    } else if(data.token !== currentSession.token) {
+    } else if (data.token !== currentSession.token) {
       throw new Error("Supplied token does not match expected token.");
     }
 
-    for(const key in data.dataToAdd) {
+    for (const key in data.dataToAdd) {
       currentSession.storedData[key] = data.dataToAdd[key];
     }
   }
@@ -89,7 +89,7 @@ class SessionStorage {
    */
   changeSessionID(newID, oldID) {
     const session = this.storage[oldID];
-    if(!session) {
+    if (!session) {
       throw new Error("Session does not exist");
     }
 
@@ -101,7 +101,7 @@ class SessionStorage {
    * Refreshes all of this object's sessions
    */
   refreshAll() {
-    for(const key in this.storage) {
+    for (const key in this.storage) {
       const currentSession = this.storage[key];
 
       currentSession.token = randomBytes(16).toString("hex");
@@ -114,7 +114,7 @@ class SessionStorage {
    */
   refresh(ID) {
     const session = this.storage[ID];
-    if(!session) {
+    if (!session) {
       throw new ReferenceError("Session does not exist!");
     }
     session.token = randomBytes(16).toString("hex");
@@ -127,7 +127,7 @@ class SessionStorage {
    */
   getSessionInfo(ID) {
     const session = this.storage[ID];
-    if(!session) {
+    if (!session) {
       return null;
     }
     return session;
@@ -139,7 +139,7 @@ class SessionStorage {
    * to call for each session
    */
   forEach(fn) {
-    for(const session in this.storage) {
+    for (const session in this.storage) {
       const sessionInfo = this.storage[session];
       fn(sessionInfo, session);
     }
@@ -150,7 +150,7 @@ class SessionStorage {
    */
   deleteSession(ID) {
     const session = this.storage[ID];
-    if(!session) {
+    if (!session) {
       throw new Error("Session does not exist!");
     }
     delete this.storage[ID];
