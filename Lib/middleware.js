@@ -68,7 +68,7 @@ function startSession(clientToken, clientID, sessionMaxAge, req, res) {
 function checkPoint(storage, serverToken) {
   return function(req, res, next) {
     const cookies = req.signedCookies;
-    if(!cookies.clientID && !cookies.token) {
+    if (!cookies.clientID && !cookies.token) {
       const token = crypto.randomBytes(16).toString("hex");
       const id = makeID(20);
       const startTime = Date.now();
@@ -85,7 +85,7 @@ function checkPoint(storage, serverToken) {
             requestLessStreak: 0
           }
         });
-      } catch(err) {
+      } catch (err) {
         ErrorLogger.error(err);
         ServerLogger.error(err);
         res.set("Content-type", "text/html");
@@ -95,15 +95,15 @@ function checkPoint(storage, serverToken) {
       }
       startSession(token, id, maxAge, req, res);
       next();
-    } else if(!cookies.clientID && cookies.token) {
+    } else if (!cookies.clientID && cookies.token) {
       res.set("Content-type", "text/html");
       res
         .status(401)
         .send("<h1>No client ID specified!</h1>");
-    } else if(cookies.clientID && !cookies.token) {
+    } else if (cookies.clientID && !cookies.token) {
       try {
         storage.refresh(cookies.clientID);
-      } catch(err) {
+      } catch (err) {
         console.error(err);
         res.set("Content-type", "text/html");
         res
@@ -112,14 +112,14 @@ function checkPoint(storage, serverToken) {
       }
     } else {
       const session = storage.getSessionInfo(cookies.clientID);
-      if(!session) {
+      if (!session) {
         res.set("Content-type", "text/html");
         res
           .status(401)
           .send("<h1>Hmm, it looks like your session does not exist.</h1>");
         return;
       }
-      if(cookies.token !== session.token) {
+      if (cookies.token !== session.token) {
         res.set("Content-type", "text/html");
         res
           .status(401)
@@ -161,7 +161,7 @@ function socketNewClientCP(storage, serverToken) {
         startTime: startTime,
         maxAge: maxAge
       });
-    } catch(err) {
+    } catch (err) {
       console.error(err);
       socket.emit(Constants.SOCKET_ERROR, JSON.stringify({
         securityData: {
@@ -203,7 +203,7 @@ function socketEmitCP(serverToken, socket) {
   return function(packet, next) {
     const packetData = JSON.parse(packet[1]);
     const clientData = packetData.securityData.clientData;
-    if(!clientData.id) {
+    if (!clientData.id) {
       socket.emit(Constants.SOCKET_ERROR, JSON.stringify({
         securityData: {
           serverToken
@@ -216,7 +216,7 @@ function socketEmitCP(serverToken, socket) {
       }));
       socket.disconnect(true);
       return;
-    } else if(!clientData.token) {
+    } else if (!clientData.token) {
       socket.emit(Constants.SOCKET_ERROR, JSON.stringify({
         securityData: {
           serverToken
@@ -246,7 +246,7 @@ function nspCheckPoint(storage, manager, serverToken) {
     const prevClientID = socket.handshake.query.prevSocketID;
     const session = storage.getSessionInfo(prevClientID);
     const client = manager.getClient(prevClientID);
-    if(!prevClientID || !session || !client) {
+    if (!prevClientID || !session || !client) {
       socket.emit(Constants.SOCKET_ERROR, JSON.stringify({
         securityData: {
           serverToken
@@ -292,7 +292,7 @@ function nspCheckIsPending(pendingClients, serverToken) {
   return function(socket, next) {
     const prevClientID = socket.handshake.query.prevSocketID;
     const pending = pendingClients[prevClientID];
-    if(!pending) {
+    if (!pending) {
       socket.emit(Constants.SOCKET_ERROR, JSON.stringify({
         securityData: {
           serverToken
