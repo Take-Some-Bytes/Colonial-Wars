@@ -5,6 +5,7 @@
 
 //Dependencies and stuff
 const express = require("express");
+const fs = require("fs");
 const security = require("./Security/Security").create(
   ["GET", "POST", "HEAD"], false, false
 );
@@ -14,7 +15,6 @@ const {
 } = require("./Common/Common");
 const loggers = require("./Common/init");
 const RequestLogger = loggers.get("Request-logger");
-const ErrorLogger = loggers.get("Error-logger");
 const ServerLogger = loggers.get("Server-logger");
 const { manager } = require("./Common/init");
 
@@ -80,6 +80,18 @@ router.route("/version")
   .put((req, res, next) => methodNotImplemented(req, res, next))
   .delete((req, res, next) => methodNotImplemented(req, res, next));
 
+//License Page
+router.route("/license")
+  .get((req, res, next) => {
+    serveFile(req, res, next, "Public/license.html",
+      "<h1>Page Not Found:(</h1>\n" +
+    "<h3>Somehow the license page isn't where it used to be</h3>"
+    );
+  })
+  .post((req, res, next) => methodNotAllowed(req, res, next))
+  .put((req, res, next) => methodNotImplemented(req, res, next))
+  .delete((req, res, next) => methodNotImplemented(req, res, next));
+
 //CSP report uri
 router.route("/logs/CSP-reports.log")
   .get((req, res, next) => methodNotAllowed(req, res, next))
@@ -97,7 +109,7 @@ router.route("/xhr")
     const cookies = req.signedCookies;
 
     //Security
-    if(!query) {
+    if (!query) {
       ServerLogger.notice(
         `Someone tried to get: ${req.url} without a query. ` +
         `Request date: ${date}`
@@ -106,16 +118,7 @@ router.route("/xhr")
         .status(400)
         .send("No query supplied! Cannot process request.");
       return;
-    } else if(!query.token || !query.clientID) {
-      ServerLogger.notice(
-        `Someone tried to get: ${req.url} without a token or ID in the query.` +
-        ` Request date: ${date}`
-      );
-      res
-        .status(401)
-        .send("No token or ID specified in query!");
-      return;
-    } else if(!cookies.token || !cookies.clientID) {
+    } else if (!cookies.token || !cookies.clientID) {
       ServerLogger.notice(
         `Someone tried to get: ${req.url} without a token or ID with their ` +
         `cookies. Request date: ${date}`
@@ -126,7 +129,7 @@ router.route("/xhr")
       return;
     }
 
-    switch(query.for) {
+    switch (query.for) {
     case "games_available": {
       const gamesAvailable = manager.allGames.filter(game => {
         const isGameClosed = !!game.status;
@@ -135,7 +138,7 @@ router.route("/xhr")
       const arrayLength = gamesAvailable.length;
       const dataToSend = {};
 
-      for(let i = 0; i < arrayLength; i++) {
+      for (let i = 0; i < arrayLength; i++) {
         dataToSend[gamesAvailable[i].id] = {
           id: gamesAvailable[i].id,
           mode: gamesAvailable[i].mode,
@@ -149,6 +152,21 @@ router.route("/xhr")
       res
         .status(200)
         .send(stringifiedData);
+      break;
+    }
+    case "license_text.html": {
+      const s = fs.createReadStream("Public/license_text.html");
+      let data = "";
+      s.on("data", chunk => {
+        data += chunk;
+      });
+      s.on("end", () => {
+        const response = JSON.stringify({
+          status: 200,
+          html: data
+        });
+        res.send(response);
+      });
       break;
     }
     default:
