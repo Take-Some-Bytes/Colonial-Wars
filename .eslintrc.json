@@ -117,7 +117,7 @@
       "comma-style": ["warn", "last"],
       "computed-property-spacing": ["warn", "never"],
       "consistent-this": "warn",
-      "eol-last": ["off", "always"],
+      "eol-last": "off",
       "func-call-spacing": ["warn", "never"],
       "func-name-matching": ["warn", "always"],
       "func-names": ["warn", "never"],
@@ -128,7 +128,10 @@
       "key-spacing": ["off", {
          "mode": "strict"
       }],
-      "keyword-spacing": "off",
+      "keyword-spacing": ["warn", {
+         "before": true,
+         "after": true
+      }],
       "line-comment-position": ["off", "above"],
       "linebreak-style": ["off", "unix"],
       "max-len": ["warn", {
@@ -152,7 +155,7 @@
       "no-new-object": "warn",
       "no-tabs": "warn",
       "no-trailing-spaces": "warn",
-      "no-underscore-dangle": "warn",
+      "no-underscore-dangle": "off",
       "no-unneeded-ternary": "warn",
       "no-whitespace-before-property": "warn",
       "object-curly-newline": ["warn", {
