@@ -3,6 +3,16 @@ This is a changelog for the whole web app.
 
 ## Pre-release
 This is the pre-release part of the changelog
+#### 0.8.0
+- Got the game to draw the basic UI
+- Added a function to get all of the non-function properties of an object, to rid
+objects of any properties that are should not be emitted to the client; those properties are
+useless anyway to the client, and just take up bandwidth
+- Changed ```LICENSE``` from a GNU GPL license to a GNU AGPL
+- Updated some client things
+- Added a ```license.html``` file
+- Removed some useless auth
+- Changed stylistic guidelines
 #### 0.7.2
 - Cleaned up some of the code--meaning that I replaced some ```if-else``` statements
 with ternaries
