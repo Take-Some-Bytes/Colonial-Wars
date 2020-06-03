@@ -1,6 +1,6 @@
 {
    "name": "colonial-wars",
-   "version": "0.7.2",
+   "version": "0.8.0",
    "description": "",
    "main": "server.js",
    "scripts": {
@@ -25,5 +25,6 @@
       "winston": "^3.2.1"
    },
    "private": true,
-   "license": "GPL-3.0-or-later"
+   "license": "AGPL-3.0-or-later",
+   "devDependencies": {}
 }
