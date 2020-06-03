@@ -7,6 +7,7 @@
 const Troop = require("./Game/Troop");
 const Building = require("./Game/Building");
 const Projectile = require("./Game/Projectile");
+const Button = require("./UI/Button");
 const Vector = require("./Physics/Vector");
 const Constants = require("../Constants");
 const {
@@ -25,6 +26,11 @@ class Player {
     * @param {String} team The team of the player
     */
   constructor(position, name, socketID, team = "British") {
+    const buttonsLength = Constants.BUTTON_KEYS.length;
+    const buttonKeys = Constants.BUTTON_KEYS;
+    let x = 1100;
+    const y = 570;
+
     this.position = position;
     this.name = name;
     this.socketID = socketID;
@@ -32,18 +38,19 @@ class Player {
 
     this.troops = [];
     this.buildings = [];
+    this.buttons = [];
     this.resources = {
       wood: 0,
       stone: 0,
       food: 0,
-      gold: 0,
+      coins: 0,
       ammo: 0
     }
     this.resourceRate = {
       wood: 0,
       stone: 0,
       food: 0,
-      gold: 0,
+      coins: 0,
       ammo: 0
     }
 
@@ -53,6 +60,31 @@ class Player {
     this.deltaTime = 0;
     this.pastBuildings = null;
     this.pastTroops = null;
+
+    for (let i = 0; i < buttonsLength; i++) {
+      const btn = new Button({
+        width: 60,
+        height: 60,
+        image: buttonKeys[i],
+        position: new Vector(x, y),
+        onClick: () => {
+          btn.clicked = true;
+          btn.lastClickTime = Date.now();
+        },
+        onHover: () => {
+          btn.hovered = true;
+        },
+        onNotHover: () => {
+          btn.hovered = false;
+        },
+        onNotClick: () => {
+          btn.clicked = false;
+          btn.lastClickTime = Date.now();
+        }
+      });
+      this.buttons.push(btn);
+      x += 80;
+    }
   }
   /**
     * Binds this player's position within the world if it is outside of the
@@ -97,14 +129,14 @@ class Player {
       wood: 0,
       stone: 0,
       food: 0,
-      gold: 0,
+      coins: 0,
       ammo: 0
     };
     const baseResourceMinRate = {
       wood: 0,
       stone: 0,
       food: 0,
-      gold: 0,
+      coins: 0,
       ammo: 0
     };
     const resourceMinBuildings = {
@@ -131,8 +163,8 @@ class Player {
     const buildingsLength = buildings.length;
     const troopsLength = troops.length;
 
-    for(let i = 0; i < buildingsLength; i++) {
-      switch(buildings[i].type) {
+    for (let i = 0; i < buildingsLength; i++) {
+      switch (buildings[i].type) {
       case "main_tent":
         resourceGenBuildings.numMainTents++;
         break;
@@ -175,8 +207,8 @@ class Player {
         continue;
       }
     }
-    for(let i = 0; i < troopsLength; i++) {
-      switch(troops[i].type) {
+    for (let i = 0; i < troopsLength; i++) {
+      switch (troops[i].type) {
       case "militia":
         resourceMinTroops.numMilitia++;
         break;
@@ -231,21 +263,21 @@ class Player {
       Constants.TROOP_RESOURCE_CONSUMPTION
     );
     const totalMinTroops = Object.getOwnPropertyNames(resourceMinTroops);
-    for(let i = 0; i < resources.length; i++) {
+    for (let i = 0; i < resources.length; i++) {
       baseResourceRate[resources[i]] =
         resourceGenBuildings.numMainTents *
         Constants.BUILDING_RESOURCE_GEN.main_tent[resources[i]];
-      for(let j = 0; j < resourceBuildings.length; j++) {
+      for (let j = 0; j < resourceBuildings.length; j++) {
         baseResourceRate[resources[i]] +=
           resourceGenBuildings[totalResGenBuildings[i]] *
           Constants.BUILDING_RESOURCE_GEN[resourceBuildings[j]][resources[i]];
       }
-      for(let otherJ = 0; otherJ < minBuildings.length; otherJ++) {
+      for (let otherJ = 0; otherJ < minBuildings.length; otherJ++) {
         baseResourceMinRate[resources[i]] +=
           resourceMinBuildings[totalResMinBuildings[otherJ]] *
           Constants.BUILDING_RESOURCE_MIN[minBuildings[otherJ]][resources[i]];
       }
-      for(let a = 0; a < minTroops.length; a++) {
+      for (let a = 0; a < minTroops.length; a++) {
         baseResourceMinRate[resources[i]] +=
           resourceMinTroops[totalMinTroops[a]] *
           Constants.TROOP_RESOURCE_CONSUMPTION[minTroops[a]][resources[i]];
@@ -266,8 +298,8 @@ class Player {
       resourceBonusBuildings.numMills *
       Constants.BUILDING_RESOURCE_BONUS.mill.foodIncrease
     ])) - baseResourceMinRate.food;
-    totalResourceRate.gold = Math.round(multiplySomething([
-      baseResourceRate.gold,
+    totalResourceRate.coins = Math.round(multiplySomething([
+      baseResourceRate.coins,
       resourceBonusBuildings.numWells *
       Constants.BUILDING_RESOURCE_BONUS.well.goldIncrease
     ])) - baseResourceMinRate.gold;
@@ -276,60 +308,13 @@ class Player {
     return totalResourceRate;
   }
   /**
-   * Adds another building to this player's list of buildings
-   * @param {String} type The type of the building
-   * @param {Vector} position The position of the building
-   */
-  buildBuilding(type, position) {
-    const resourcesMissing = {
-      wood: 0,
-      stone: 0,
-      food: 0,
-      gold: 0,
-      ammo: 0
-    };
-    const resources = [
-      "wood",
-      "stone",
-      "food",
-      "gold",
-      "ammo"
-    ];
-
-    for(let i = 0; i < resources.length; i++) {
-      if(this.resources[resources[i]] <
-        Constants.BUILDING_COST[type][resources[i]]) {
-        resourcesMissing[resources[i]] =
-          Constants.BUILDING_COST[type][resources[i]] -
-          this.resources[resources[i]];
-        continue;
-      }
-      continue;
-    }
-
-    const allIsFalse = checkProperties(resourcesMissing);
-    if(!allIsFalse) {
-      let errorMessage =
-        "Some resources are missing; cannot build building.\n" +
-        "Resources missing:\n";
-      for(let i = 0; i < resources.length; i++) {
-        errorMessage += `\t ${resourcesMissing[resources[i]]}\n`;
-      }
-      throw new Error(errorMessage);
-    }
-
-    delay(Constants.BUILDING_BUILD_TIME[type], () => {
-      this.buildings.push(new Building(position, type, this.team));
-    });
-  }
-  /**
     * Updates this player's resources
     */
   updateResources() {
     const resourceRates = Object.getOwnPropertyNames(this.resourceRate);
     const resource = Object.getOwnPropertyNames(this.resources);
 
-    for(let i = 0; i < resourceRates.length; i++) {
+    for (let i = 0; i < resourceRates.length; i++) {
       const numMore = this.resourceRate[resourceRates[i]];
 
       this.resources[resource] += numMore;
@@ -349,7 +334,7 @@ class Player {
     const newResourceRates = Object.getOwnPropertyNames(amounts);
     const resourceRates = Object.getOwnPropertyNames(this.resourceRate);
 
-    for(let i = 0; i < newResourceRates.length; i++) {
+    for (let i = 0; i < newResourceRates.length; i++) {
       const newResourceRate = amounts[newResourceRates[i]];
       const oldResourceRate = this.resourceRate[resourceRates[i]];
 
@@ -362,21 +347,35 @@ class Player {
     * up: Boolean,
     * down: Boolean,
     * right: Boolean,
-    * left: Boolean
-    * }} data A JSON Object storing the input state
+    * left: Boolean,
+    * mouse: {
+    *  leftMousePressed: Boolean,
+    *  rightMousePressed: Boolean,
+    *  absMouseCoords: Vector,
+    *  rltvMouseCoords: Vector
+    }}} data A JSON Object storing the input state
    */
   updateOnInput(data) {
-    if(data.up) {
+    if (data.up) {
       this.velocity = Vector.fromPolar(this.speed, degreeToRadian(270));
-    } else if(data.down) {
+    } else if (data.down) {
       this.velocity = Vector.fromPolar(this.speed, degreeToRadian(90));
-    } else if(data.right) {
+    } else if (data.right) {
       this.velocity = Vector.fromPolar(this.speed, degreeToRadian(0));
-    } else if(data.left) {
+    } else if (data.left) {
       this.velocity = Vector.fromPolar(this.speed, degreeToRadian(180));
-    } else if(!(data.up ^ data.down) | !(data.right ^ data.left)) {
+    } else if (!(data.up ^ data.down) | !(data.right ^ data.left)) {
       this.velocity = Vector.zero();
     }
+
+    this.buttons.forEach(btn => {
+      const event = {
+        mouseX: data.mouse.rltvMouseCoords.x,
+        mouseY: data.mouse.rltvMouseCoords.y,
+        clicked: data.mouse.leftMousePressed
+      };
+      btn.handleMouseEvent(event);
+    });
   }
   /**
     * Performs an update
@@ -386,7 +385,7 @@ class Player {
   update(lastUpdateTime, deltaTime) {
     this.lastUpdateTime = lastUpdateTime;
     this.position.add(Vector.scale(this.velocity, deltaTime));
-    if(this.pastTroops !== this.troops ||
+    if (this.pastTroops !== this.troops ||
       this.pastBuildings !== this.buildings
     ) {
       const newResourceRates = this.calculateResourceRates();
@@ -394,7 +393,7 @@ class Player {
     }
 
     const allIsTrue = checkProperties(this.resourceRate);
-    if(allIsTrue) {
+    if (allIsTrue) {
       this.updateResources();
     }
     this.bindToWorld();
