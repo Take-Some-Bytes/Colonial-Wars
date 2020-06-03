@@ -79,7 +79,7 @@ io.on("connection", socket => {
       const playData = JSON.parse(data).playerData;
       const gameToJoin = manager.getGame(playData.game);
 
-      if(!gameToJoin) {
+      if (!gameToJoin) {
         err = new Error("Game does not exist.");
         ErrorLogger.error(err);
 
@@ -94,7 +94,7 @@ io.on("connection", socket => {
 
         cb(null);
       }
-    } catch(error) {
+    } catch (error) {
       err = error;
       ErrorLogger.error(error);
 
@@ -102,14 +102,14 @@ io.on("connection", socket => {
     }
   });
   socket.on(Constants.SOCKET_DISCONNECT, () => {
-    if(!pendingClients[socket.id]) {
+    if (!pendingClients[socket.id]) {
       const client = manager.getClient(socket.id);
       const session = wsSessions.getSessionInfo(socket.id);
-      if(client && session) {
+      if (client && session) {
         manager.removeClient(socket.id);
         try {
           wsSessions.deleteSession(socket.id);
-        } catch(err) {
+        } catch (err) {
           ErrorLogger.error(err);
         }
       }
@@ -138,7 +138,7 @@ playIO.use((socket, next) => {
   const prevSocketID = socket.handshake.query.prevSocketID;
   const pending = pendingClients[prevSocketID];
   console.log(pending);
-  if(!pending) {
+  if (!pending) {
     socket.emit(Constants.SOCKET_ERROR);
     return;
   }
@@ -178,11 +178,11 @@ playIO.on("connection", socket => {
     console.log("Client Disconnected!", socket.id);
     const client = manager.getClient(socket.id);
     const session = wsSessions.getSessionInfo(socket.id);
-    if(client && session) {
+    if (client && session) {
       manager.removeClient(socket.id);
       try {
         wsSessions.deleteSession(socket.id);
-      } catch(err) {
+      } catch (err) {
         ErrorLogger.error(err);
       }
     }
@@ -220,10 +220,10 @@ setInterval(() => {
     const requestLessStreak = session.storedData.requestLessStreak;
     const requestsInSession = session.storedData.requestsInSession;
 
-    if(requestsInSession < 1 && requestLessStreak > 3) {
+    if (requestsInSession < 1 && requestLessStreak > 3) {
       try {
         webSessions.deleteSession(ID);
-      } catch(err) {
+      } catch (err) {
         ErrorLogger.error(err);
       }
     }
