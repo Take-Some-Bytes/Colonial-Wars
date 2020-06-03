@@ -53,6 +53,11 @@ const Constants = {
     "supply_depot",
     "main_base"
   ],
+  BUTTON_KEYS: [
+    "civil_button",
+    "defense_button",
+    "military_button"
+  ],
   //Bullet stuff
   BULLET_MAX_RANGE: {
     musket_ball: 90,
@@ -706,7 +711,9 @@ const Constants = {
   SOCKET_SECURITY_DATA: "security-data",
   SOCKET_PROCEED: "proceed",
   //Version
-  VERSION: "0.7.2-ALPHA"
+  VERSION: "0.8.0-ALPHA",
+  //UI things
+  BUTTON_COOLDOWN: 500
 };
 
 deepFreeze(Constants);
