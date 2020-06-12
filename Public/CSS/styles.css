@@ -69,6 +69,17 @@
 #body {
   max-height: 100vh;
 }
+#firstHeader {
+  margin-top: 5vh;
+  text-align: center;
+}
+#firstParagraph {
+  text-align: center;
+}
+#licenseBody {
+  width: 75vw;
+  margin: auto;
+}
 
 /* Tag classes */
 body {
@@ -80,6 +91,12 @@ fieldset {
 img {
   max-width: 160px;
   max-height: 100px;
+}
+p {
+  margin: 2vh;
+}
+h3, h4 {
+  margin: 2vh;
 }
 
 /* Selector classes */
