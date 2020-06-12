@@ -8,12 +8,13 @@ export const Constants = {
   WORLD_MIN: -4500,
   WORLD_MAX: 4500,
   //Version
-  VERSION: "0.7.2-ALPHA",
+  VERSION: "0.8.1-ALPHA",
   //Drawing
   DRAWING_TROOP_BASE_PATH: "/imgs/troops",
   DRAWING_BUILDING_BASE_PATH: "/imgs/buildings",
   DRAWING_OBSTACLE_BASE_PATH: "/imgs/obstacles",
   DRAWING_TILE_BASE_PATH: "/imgs/tiles",
+  DRAWING_UI_BASE_PATH: "/imgs/UI",
   DRAWING_TILE_KEYS: [
     "grass_tile",
     "dirt_tile",
@@ -24,12 +25,29 @@ export const Constants = {
   DRAWING_BUILDING_KEYS: [
     "main_base"
   ],
+  DRAWING_BUTTON_KEYS: [
+    "civil_button",
+    "defense_button",
+    "military_button"
+  ],
+  DRAWING_UI_BACKGROUND_KEYS: [
+    "background_1",
+    "resource_stats_background"
+  ],
+  DRAWING_ICON_KEYS: [
+    "wood",
+    "stone",
+    "food",
+    "coin",
+    "ammo",
+    "people"
+  ],
   DRAWING_TILE_SIZE: 100,
   //Viewport
   VIEWPORT_STICKINESS: 0.004,
   //Viewport
   VIEWPORT_WIDTH: (function() {
-    if(window.innerWidth !== undefined) {
+    if (window.innerWidth !== undefined) {
       const vw = window.innerWidth;
       return vw;
     }
@@ -37,7 +55,7 @@ export const Constants = {
     return vw;
   })(),
   VIEWPORT_HEIGHT: (function() {
-    if(window.innerHeight !== undefined) {
+    if (window.innerHeight !== undefined) {
       const vh = window.innerHeight;
       return vh;
     }
