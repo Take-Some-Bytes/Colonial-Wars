@@ -22,27 +22,25 @@ class Building extends Entity {
     * @param {String} [team="Neutral"] The team of the building
     */
   constructor(position, type = "tent", team = "Neutral") {
+    const stats = Constants.BUILDING_STATS[type];
+
     super(
-      position, Vector.zero(), Vector.zero(), Constants.BUILDING_MASS[type],
-      Constants.BUILDING_HITBOX_SIZE[type]
+      position, Vector.zero(), Vector.zero(),
+      stats.mass,
+      stats.hitbox_size
     );
 
     this.type = type;
     this.team = team;
-    this.health = Constants.BUILDING_MAX_HEALTH[type];
-    this.buildTime = Constants.BUILDING_BUILD_TIME[type];
-    this.spawnedTroops =
-      this.type === "barracks" ||
-      this.type === "recruiting_office" ||
-      this.type === "factory" ?
-        Constants.BUILDINGS_SPAWNED_TROOP[type] :
-        [];
+    this.health = stats.max_health;
+    this.buildTime = stats.build_time;
+    this.spawnedTroops = stats.spawned_troops;
     this.preventsTeamLoss = this.type === "main_base";
     this.preventsPlayerLoss =
       this.type === "main_tent" && !this.preventsTeamLoss;
 
-    if(this.type === "cannon_tower") {
-      this.range = Constants.BUILDING_RANGE[type];
+    if (this.type === "cannon_tower") {
+      this.range = stats.range;
       this.shotCoolDown = Constants.ATTACK_COOLDOWN[type];
       this.firedProjectile = Constants.PROJECTILES[3];
       this.turnRate = 0;
@@ -65,7 +63,7 @@ class Building extends Entity {
    */
   update(lastUpdateTime, deltaTime) {
     this.lastUpdateTime = lastUpdateTime;
-    if(this.type === "cannon_tower") {
+    if (this.type === "cannon_tower") {
       this.turretAngle = Util.normalizeAngle(
         this.turretAngle + this.turnRate * deltaTime
       );
@@ -76,7 +74,7 @@ class Building extends Entity {
     * @param {Object} data The JSON object that is storing the movement data
     */
   updateOnInput(data) {
-    if(data.from === "Player") {
+    if (data.from === "Player") {
       //
     }
   }
@@ -87,7 +85,7 @@ class Building extends Entity {
     * @returns {Boolean}
     */
   canAttack() {
-    if(this.type === "cannon_tower") {
+    if (this.type === "cannon_tower") {
       return this.lastUpdateTime > this.lastShotTime + this.shotCoolDown;
     }
     throw new Error("Building type is not a cannon tower; Cannot attack.");
@@ -98,7 +96,7 @@ class Building extends Entity {
     * @returns {Projectile}
     */
   getProjectileFromShot() {
-    if(this.type === "cannon_tower") {
+    if (this.type === "cannon_tower") {
       const projectile = Projectile.createFromBuilding(this);
       return projectile;
     }
