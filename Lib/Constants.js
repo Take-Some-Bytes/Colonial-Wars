@@ -53,598 +53,780 @@ const Constants = {
     "supply_depot",
     "main_base"
   ],
-  BUTTON_KEYS: [
-    "civil_button",
-    "defense_button",
-    "military_button"
-  ],
   //Bullet stuff
-  BULLET_MAX_RANGE: {
-    musket_ball: 90,
-    pistol_ball: 75,
-    field_artillery: 130,
-    siege_artillery: 125,
-    howitzer_shell: 95,
-    mortar_shell: 100
-  },
-  BULLET_DAMAGE: {
-    musket_ball: 150,
-    pistol_ball: 100,
-    field_artillery: 125,
-    siege_artillery: 400,
-    howitzer_shell: 250,
-    mortar_shell: 160
-  },
-  BULLET_SPEED: {
-    musket_ball: 12,
-    pistol_ball: 10,
-    field_artillery: 20,
-    siege_artillery: 22,
-    howitzer_shell: 21,
-    mortar_shell: 19
-  },
-  BULLET_MASS: {
-    musket_ball: 4.5,
-    pistol_ball: 5,
-    field_artillery: 60,
-    siege_artillery: 240,
-    howitzer_shell: 100,
-    mortar_shell: 40
-  },
-  BULLET_HITBOX: {
-    musket_ball: 3,
-    pistol_ball: 4,
-    field_artillery: 20,
-    siege_artillery: 40,
-    howitzer_shell: 25,
-    mortar_shell: 18
-  },
-  //Splash damage stuff
-  SPLASH_DAMAGE: {
-    musket_ball: 0,
-    pistol_ball: 0,
-    field_artillery: 65,
-    siege_artillery: 0,
-    howitzer_shell: 180,
-    mortar_shell: 90
-  },
-  SPLASH_DAMAGE_RADIUS: {
-    musket_ball: 0,
-    pistol_ball: 0,
-    field_artillery: 23,
-    siege_artillery: 0,
-    howitzer_shell: 18,
-    mortar_shell: 24
-  },
-  //Troop stuff
-  TROOP_RANGE: {
-    militia: 65,
-    light_infantry: 85,
-    line_infantry: 50,
-    captain: 65,
-    medic: 50,
-    pikemen: 2,
-    field_artillery: 120,
-    siege_artillery: 105,
-    howitzer: 90,
-    mortar: 90
-  },
-  TROOP_MAX_HEALTH: {
-    militia: 100,
-    light_infantry: 150,
-    line_infantry: 160,
-    captain: 200,
-    medic: 220,
-    pikemen: 300,
-    field_artillery: 120,
-    siege_artillery: 180,
-    howitzer: 200,
-    mortar: 140
-  },
-  TROOP_SPEED: {
-    militia: 2.9,
-    light_infantry: 2,
-    line_infantry: 1.5,
-    captain: 1.51,
-    medic: 1.85,
-    field_artillery: 1.27,
-    siege_artillery: 0.87,
-    howitzer: 1,
-    mortar: 0.21
-  },
-  TROOP_HITBOX_SIZE: {
-    militia: 2,
-    light_infantry: 2,
-    line_infantry: 2,
-    captain: 2,
-    medic: 2,
-    field_artillery: 4,
-    siege_artillery: 4.7,
-    howitzer: 4,
-    mortar: 3.2
-  },
-  TROOP_MASS: {
-    militia: 200,
-    light_infantry: 240,
-    line_infantry: 300,
-    captain: 270,
-    medic: 310,
-    field_artillery: 400,
-    siege_artillery: 540,
-    howitzer: 420,
-    mortar: 120
-  },
-  TROOP_BUILD_TIME: {
-    militia: 3,
-    light_infantry: 15,
-    line_infantry: 15,
-    captain: 18,
-    medic: 20,
-    field_artillery: 30,
-    siege_artillery: 36,
-    howitzer: 40,
-    mortar: 32
-  },
-  TROOP_COST: {
-    militia: {
-      wood: 0,
-      stone: 0,
-      food: 2,
-      gold: 30
+  BULLET_STATS: {
+    musket_ball: {
+      name: "musket_ball",
+      max_range: 90,
+      damage: 150,
+      speed: 12,
+      mass: 4.5,
+      hitbox:3
     },
-    light_infantry: {
-      wood: 3,
-      stone: 0,
-      food: 3,
-      gold: 50
+    pistol_ball: {
+      name: "pistol_ball",
+      max_range: 75,
+      damage: 100,
+      speed: 10,
+      mass: 5,
+      hitbox: 5
     },
-    line_infantry: {
-      wood: 5,
-      stone: 1,
-      food: 3,
-      gold: 110
+    canister_shot: {
+      name: "canister_shot",
+      max_range: 130,
+      damage: 125,
+      speed: 20,
+      mass: 60,
+      hitbox: 20
     },
-    captain: {
-      wood: 5,
-      stone: 2,
-      food: 4,
-      gold: 130
+    solid_shot: {
+      name: "solid_shot",
+      max_range: 125,
+      damage: 400,
+      speed: 22,
+      mass: 240,
+      hitbox: 40
     },
-    medic: {
-      wood: 5,
-      stone: 2,
-      food: 4,
-      gold: 120
+    howitzer_shell: {
+      name: "howitzer_shell",
+      max_range: 95,
+      damage: 250,
+      speed: 21,
+      mass: 100,
+      hitbox: 25
     },
-    field_artillery: {
-      wood: 20,
-      stone: 10,
-      food: 5,
-      gold: 360
-    },
-    siege_artillery: {
-      wood: 30,
-      stone: 20,
-      food: 8,
-      gold: 460
-    },
-    howitzer: {
-      wood: 32,
-      stone: 26,
-      food: 6,
-      gold: 500
-    },
-    mortar: {
-      wood: 40,
-      stone: 10,
-      food: 6,
-      gold: 300
+    mortar_shell: {
+      name: "mortar_shell",
+      max_range: 100,
+      damage: 160,
+      speed: 19,
+      mass: 40,
+      hitbox: 18
     }
   },
-  TROOP_RESOURCE_CONSUMPTION: {
+  //Splash damage stuff
+  SPLASH_STATS: {
+    musket_ball: {
+      does_splash: false,
+      damage: 0,
+      radius: 0
+    },
+    pistol_ball: {
+      does_splash: false,
+      damage: 0,
+      radius: 0
+    },
+    canister_shot: {
+      does_splash: true,
+      damage: 65,
+      radius: 23
+    },
+    solid_shot: {
+      does_splash: false,
+      damage: 0,
+      radius: 0
+    },
+    howitzer_shell: {
+      does_splash: true,
+      damage: 180,
+      radius: 18
+    },
+    mortar_shell: {
+      does_splash: true,
+      damage: 90,
+      radius: 24
+    }
+  },
+  //Troop stuff
+  TROOP_STATS: {
     militia: {
-      wood: 0,
-      stone: 0,
-      food: 2,
-      gold: 5,
-      ammo: 0
+      range: 65,
+      max_health: 100,
+      speed: 2.9,
+      hitbox_size: 2,
+      mass: 200,
+      build_time: 10,
+      cost: {
+        wood: 0,
+        stone: 0,
+        food: 2,
+        gold: 30,
+        population: 1
+      },
+      resource_min: {
+        wood: 0,
+        stone: 0,
+        food: 1,
+        gold: 2,
+        ammo: 0
+      }
     },
     light_infantry: {
-      wood: 0,
-      stone: 0,
-      food: 3,
-      gold: 20,
-      ammo: 0
+      range: 85,
+      max_health: 150,
+      speed: 2,
+      hitbox_size: 2,
+      mass: 240,
+      build_time: 20,
+      cost: {
+        wood: 3,
+        stone: 0,
+        food: 3,
+        gold: 50,
+        population: 1
+      },
+      resource_min: {
+        wood: 0,
+        stone: 0,
+        food: 2,
+        gold: 5,
+        ammo: 0
+      }
     },
     line_infantry: {
-      wood: 0,
-      stone: 0,
-      food: 3,
-      gold: 30,
-      ammo: 0
+      range: 50,
+      max_health: 160,
+      speed: 1.5,
+      hitbox_size: 2,
+      mass: 300,
+      build_time: 20,
+      cost: {
+        wood: 5,
+        stone: 1,
+        food: 3,
+        gold: 95,
+        population: 2
+      },
+      resource_min: {
+        wood: 0,
+        stone: 0,
+        food: 3,
+        gold: 8,
+        ammo: 0
+      }
     },
     captain: {
-      wood: 0,
-      stone: 0,
-      food: 4,
-      gold: 50,
-      ammo: 0
+      range: 65,
+      max_health: 200,
+      speed: 1.51,
+      hitbox_size: 2,
+      mass: 270,
+      build_time: 32,
+      cost: {
+        wood: 5,
+        stone: 1,
+        food: 5,
+        gold: 120,
+        population: 2
+      },
+      resource_min: {
+        wood: 0,
+        stone: 0,
+        food: 4,
+        gold: 12,
+        ammo: 0
+      }
     },
     medic: {
-      wood: 0,
-      stone: 0,
-      food: 4,
-      gold: 65,
-      ammo: 0
+      range: 50,
+      max_health: 220,
+      speed: 1.85,
+      hitbox_size: 2,
+      mass: 290,
+      build_time: 40,
+      cost: {
+        wood: 5,
+        stone: 2,
+        food: 4,
+        gold: 145,
+        population: 2
+      },
+      resource_min: {
+        wood: 2,
+        stone: 0,
+        food: 4,
+        gold: 10,
+        ammo: 0
+      }
+    },
+    pikemen: {
+      range: 2,
+      max_health: 300,
+      speed: 2,
+      hitbox_size: 2,
+      mass: 240,
+      build_time: 20,
+      cost: {
+        wood: 5,
+        stone: 1,
+        food: 2,
+        gold: 45,
+        population: 1
+      },
+      resource_min: {
+        wood: 0,
+        stone: 0,
+        food: 2,
+        gold: 4,
+        ammo: 0
+      }
     },
     field_artillery: {
-      wood: 0,
-      stone: 2,
-      food: 6,
-      gold: 80,
-      ammo: 0
+      range: 120,
+      max_health: 120,
+      speed: 1.27,
+      hitbox_size: 4,
+      mass: 400,
+      build_time: 50,
+      cost: {
+        wood: 20,
+        stone: 10,
+        food: 6,
+        gold: 225,
+        population: 4
+      },
+      resource_min: {
+        wood: 0,
+        stone: 3,
+        food: 4,
+        gold: 16,
+        ammo: 0
+      }
     },
     siege_artillery: {
-      wood: 0,
-      stone: 5,
-      food: 8,
-      gold: 90,
-      ammo: 0
+      range: 105,
+      max_health: 180,
+      speed: 0.87,
+      hitbox_size: 4.7,
+      mass: 540,
+      build_time: 65,
+      cost: {
+        wood: 30,
+        stone: 15,
+        food: 6,
+        gold: 350,
+        population: 5
+      },
+      resource_min: {
+        wood: 0,
+        stone: 3,
+        food: 6,
+        gold: 25,
+        ammo: 0
+      }
     },
     howitzer: {
-      wood: 0,
-      stone: 6,
-      food: 10,
-      gold: 100,
-      ammo: 0
+      range: 90,
+      max_health: 200,
+      speed: 1,
+      hitbox_size: 4,
+      mass: 420,
+      build_time: 70,
+      cost: {
+        wood: 40,
+        stone: 20,
+        food: 6,
+        gold: 400,
+        population: 5
+      },
+      resource_min: {
+        wood: 0,
+        stone: 6,
+        food: 10,
+        gold: 20,
+        ammo: 0
+      }
     },
     mortar: {
-      wood: 0,
-      stone: 3,
-      food: 5,
-      gold: 45,
-      ammo: 0
+      range: 200,
+      max_health: 140,
+      speed: 0.21,
+      hitbox_size: 3.2,
+      mass: 120,
+      build_time: 45,
+      cost: {
+        wood: 20,
+        stone: 5,
+        food: 3,
+        gold: 165,
+        population: 2
+      },
+      resource_min: {
+        wood: 0,
+        stone: 1,
+        food: 3,
+        gold: 14,
+        ammo: 0
+      }
     }
   },
   //Building stuff
-  BUILDING_RANGE: {
-    cannon_tower: 95
-  },
-  BUILDING_MAX_HEALTH: {
-    main_tent: 2500,
-    tent: 300,
-    house: 950,
-    farm: 150,
-    woodcutter: 900,
-    stone_quarry: 900,
-    mill: 1200,
-    sawmill: 1200,
-    stonemason: 1200,
-    well: 200,
-    barracks: 1150,
-    recruiting_office: 1100,
-    munitions_plant: 1350,
-    factory: 1500,
-    watchtower: 1000,
-    cannon_tower: 2100,
-    tower: 2100,
-    wall: 2000,
-    guard_post: 1100,
-    supply_depot: 3000,
-    main_base: 10000
-  },
-  BUILDING_HITBOX_SIZE: {
-    main_tent: 300,
-    tent: 100,
-    house: 200,
-    farm: 900,
-    woodcutter: 170,
-    stone_quarry: 200,
-    mill: 450,
-    sawmill: 450,
-    stonemason: 450,
-    well: 70,
-    barracks: 1000,
-    recruiting_office: 450,
-    munitions_plant: 1350,
-    factory: 1600,
-    watchtower: 95,
-    cannon_tower: 125,
-    tower: 130,
-    wall: 10,
-    guard_post: 500,
-    supply_depot: 1100,
-    main_base: 300
-  },
-  BUILDINGS_SPAWNED_TROOP: {
-    barracks: [
-      "light_infantry",
-      "line_infantry",
-      "captain",
-      "pikemen",
-      "medic"
-    ],
-    recruiting_office: [
-      "militia"
-    ],
-    factory: [
-      "field_artillery",
-      "siege_artillery",
-      "howitzer",
-      "mortar"
-    ]
-  },
-  BUILDING_BUILD_TIME: {
-    main_tent: 0,
-    tent: 10,
-    house: 30,
-    farm: 12,
-    woodcutter: 15,
-    stone_quarry: 20,
-    mill: 35,
-    sawmill: 35,
-    stonemason: 35,
-    well: 18,
-    barracks: 50,
-    recruiting_office: 30,
-    munitions_plant: 60,
-    factory: 90,
-    watchtower: 15,
-    cannon_tower: 32,
-    tower: 22,
-    wall: 24,
-    guard_post: 26,
-    supply_depot: 40,
-    main_base: 0
-  },
-  BUILDING_COST: {
-    main_tent: {
-      wood: 20,
-      stone: 2,
-      gold: 0
+  BUILDING_STATS: {
+    main_base: {
+      max_health: 10000,
+      hitbox_size: 300,
+      mass: 6000,
+      spawned_troops: [],
+      build_time: 0,
+      can_attack: false,
+      range: 0,
+      cost: {},
+      resource_gen: {},
+      resource_min: {},
+      resource_bonus: {}
     },
-    tent: {
-      wood: 12,
-      stone: 0,
-      gold: 2
+    main_tent: {
+      max_health: 2500,
+      hitbox_size: 300,
+      mass: 500,
+      spawned_troops: [],
+      build_time: 0,
+      can_attack: false,
+      range: 0,
+      cost: {},
+      resource_gen: {
+        wood: 10,
+        stone: 5,
+        food: 10,
+        gold: 10,
+        ammo: 6
+      },
+      resource_min: {},
+      resource_bonus: {}
     },
     house: {
-      wood: 30,
-      stone: 5,
-      gold: 0
+      max_health: 950,
+      hitbox_size: 150,
+      mass: 1500,
+      spawned_troops: [],
+      build_time: 36,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 30,
+        stone: 8,
+        gold: 5,
+        population: 0
+      },
+      resource_gen: {
+        wood: 0,
+        stone: 0,
+        food: 0,
+        gold: 25,
+        ammo: 0
+      },
+      resource_min: {
+        wood: 1,
+        stone: 0,
+        food: 1,
+        gold: 0,
+        ammo: 0
+      },
+      resource_bonus: {}
     },
     farm: {
-      wood: 5,
-      stone: 2,
-      gold: 0
+      max_health: 150,
+      hitbox_size: 350,
+      mass: 2000,
+      spawned_troops: [],
+      build_time: 18,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 15,
+        stone: 5,
+        gold: 2,
+        population: 3
+      },
+      resource_gen: {
+        wood: 0,
+        stone: 0,
+        food: 20,
+        gold: 0,
+        ammo: 0
+      },
+      resource_min: {
+        wood: 1,
+        stone: 1,
+        food: 0,
+        gold: 1,
+        ammo: 0
+      },
+      resource_bonus: {}
     },
     woodcutter: {
-      wood: 26,
-      stone: 10,
-      gold: 0
+      max_health: 900,
+      hitbox_size: 180,
+      mass: 2250,
+      spawned_troops: [],
+      build_time: 28,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 26,
+        stone: 10,
+        gold: 2,
+        population: 2
+      },
+      resource_gen: {
+        wood: 16,
+        stone: 0,
+        food: 0,
+        gold: 0,
+        ammo: 0
+      },
+      resource_min: {
+        wood: 0,
+        stone: 1,
+        food: 0,
+        gold: 1,
+        ammo: 0
+      },
+      resource_bonus: {}
     },
     stone_quarry: {
-      wood: 20,
-      stone: 0,
-      gold: 0
+      max_health: 900,
+      hitbox_size: 200,
+      mass: 2250,
+      spawned_troops: [],
+      build_time: 32,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 20,
+        stone: 2,
+        gold: 5,
+        population: 2
+      },
+      resource_gen: {
+        wood: 0,
+        stone: 16,
+        food: 0,
+        gold: 0,
+        ammo: 0
+      },
+      resource_min: {
+        wood: 1,
+        stone: 0,
+        food: 0,
+        gold: 1,
+        ammo: 0
+      },
+      resource_bonus: {}
+    },
+    munitions_plant: {
+      max_health: 1350,
+      hitbox_size: 250,
+      mass: 2600,
+      spawned_troops: [],
+      build_time: 60,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 65,
+        stone: 40,
+        gold: 25,
+        population: 2
+      },
+      resource_gen: {
+        wood: 0,
+        stone: 0,
+        food: 0,
+        gold: 0,
+        ammo: 20
+      },
+      resource_min: {
+        wood: 1,
+        stone: 4,
+        food: 0,
+        gold: 3,
+        ammo: 0
+      },
+      resource_bonus: {}
     },
     mill: {
-      wood: 50,
-      stone: 20,
-      gold: 12
+      max_health: 1200,
+      hitbox_size: 300,
+      mass: 2250,
+      spawned_troops: [],
+      build_time: 40,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 100,
+        stone: 40,
+        gold: 20,
+        population: 2
+      },
+      resource_gen: {},
+      resource_min: {
+        wood: 1,
+        stone: 1,
+        food: 0,
+        gold: 2,
+        ammo: 0
+      },
+      resource_bonus: {
+        woodIncrease: 0,
+        stoneIncrease: 0,
+        foodIncrease: 1.5,
+        goldIncrease: 0,
+        ammoIncrease: 0
+      }
     },
     sawmill: {
-      wood: 40,
-      stone: 12,
-      gold: 5
+      max_health: 1200,
+      hitbox_size: 300,
+      mass: 2250,
+      spawned_troops: [],
+      build_time: 40,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 95,
+        stone: 25,
+        gold: 12,
+        population: 2
+      },
+      resource_gen: {},
+      resource_min: {
+        wood: 0,
+        stone: 1,
+        food: 0,
+        gold: 2,
+        ammo: 0
+      },
+      resource_bonus: {
+        woodIncrease: 1.5,
+        stoneIncrease: 0,
+        foodIncrease: 0,
+        goldIncrease: 0,
+        ammoIncrease: 0
+      }
     },
     stonemason: {
-      wood: 30,
-      stone: 20,
-      gold: 5
+      max_health: 1200,
+      hitbox_size: 300,
+      mass: 2250,
+      spawned_troops: [],
+      build_time: 40,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 40,
+        stone: 60,
+        gold: 16,
+        population: 2
+      },
+      resource_gen: {},
+      resource_min: {
+        wood: 0,
+        stone: 1,
+        food: 0,
+        gold: 3,
+        ammo: 0
+      },
+      resource_bonus: {
+        woodIncrease: 0,
+        stoneIncrease: 1.5,
+        foodIncrease: 0,
+        goldIncrease: 0,
+        ammoIncrease: 0
+      }
     },
     well: {
-      wood: 6,
-      stone: 30,
-      gold: 0
+      max_health: 200,
+      hitbox_size: 80,
+      mass: 600,
+      spawned_troops: [],
+      build_time: 24,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 15,
+        stone: 30,
+        gold: 10,
+        population: 0
+      },
+      resource_gen: {},
+      resource_min: {},
+      resource_bonus: {
+        woodIncrease: 0,
+        stoneIncrease: 0,
+        foodIncrease: 0,
+        goldIncrease: 1.5,
+        ammoIncrease: 0
+      }
     },
     barracks: {
-      wood: 70,
-      stone: 120,
-      gold: 40
+      max_health: 1150,
+      hitbox_size: 350,
+      mass: 2800,
+      spawned_troops: [
+        "light_infantry",
+        "line_infantry",
+        "captain",
+        "pikemen",
+        "medic"
+      ],
+      build_time: 60,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 70,
+        stone: 80,
+        gold: 40,
+        population: 1
+      },
+      resource_gen: {},
+      resource_min: {},
+      resource_bonus: {}
     },
     recruiting_office: {
-      wood: 50,
-      stone: 12,
-      gold: 20
-    },
-    munitions_plant: {
-      wood: 65,
-      stone: 40,
-      gold: 25
+      max_health: 1000,
+      hitbox_size: 200,
+      mass: 500,
+      spawned_troops: [
+        "militia"
+      ],
+      build_time: 34,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 30,
+        stone: 15,
+        gold: 20,
+        population: 1
+      },
+      resource_gen: {},
+      resource_min: {},
+      resource_bonus: {}
     },
     factory: {
-      wood: 55,
-      stone: 260,
-      gold: 40
+      max_health: 1500,
+      hitbox_size: 400,
+      mass: 3200,
+      spawned_troops: [
+        "field_artillery",
+        "siege_artillery",
+        "howitzer",
+        "mortar"
+      ],
+      build_time: 90,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 65,
+        stone: 110,
+        gold: 60,
+        population: 4
+      },
+      resource_gen: {},
+      resource_min: {},
+      resource_bonus: {}
     },
     watchtower: {
-      wood: 15,
-      stone: 2,
-      gold: 0
+      max_health: 1000,
+      hitbox_size: 85,
+      mass: 750,
+      spawned_troops: [],
+      build_time: 28,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 15,
+        stone: 2,
+        gold: 0,
+        population: 0
+      },
+      resource_gen: {},
+      resource_min: {},
+      resource_bonus: {}
     },
     cannon_tower: {
-      wood: 40,
-      stone: 60,
-      gold: 15
+      max_health: 2100,
+      hitbox_size: 100,
+      mass: 1200,
+      spawned_troops: [],
+      build_time: 46,
+      can_attack: true,
+      range: 95,
+      cost: {
+        wood: 50,
+        stone: 80,
+        gold: 30,
+        population: 1
+      },
+      resource_gen: {},
+      resource_min: {
+        wood: 2,
+        stone: 1,
+        food: 0,
+        gold: 3,
+        ammo: 1
+      },
+      resource_bonus: {}
     },
     tower: {
-      wood: 30,
-      stone: 15,
-      gold: 0
+      max_health: 2100,
+      hitbox_size: 100,
+      mass: 900,
+      spawned_troops: [],
+      build_time: 46,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 20,
+        stone: 80,
+        gold: 20,
+        population: 0
+      },
+      resource_gen: {},
+      resource_min: {
+        wood: 2,
+        stone: 1,
+        food: 0,
+        gold: 3,
+        ammo: 1
+      },
+      resource_bonus: {}
     },
     wall: {
-      wood: 30,
-      stone: 0,
-      gold: 0
-    },
-    guard_post: {
-      wood: 45,
-      stone: 15,
-      food: 30,
-      gold: 30
+      max_health: 2000,
+      hitbox_size: 30,
+      mass: 1000,
+      spawned_troops: [],
+      build_time: 38,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 20,
+        stone: 30,
+        gold: 8,
+        population: 0
+      },
+      resource_gen: {},
+      resource_min: {},
+      resource_bonus: {}
     },
     supply_depot: {
-      wood: 36,
-      stone: 16,
-      gold: 20
-    },
-    main_base: {
-      wood: 0,
-      stone: 0,
-      gold: 0
+      max_health: 3000,
+      hitbox_size: 300,
+      mass: 1000,
+      spawned_troops: [],
+      build_time: 56,
+      can_attack: false,
+      range: 0,
+      cost: {
+        wood: 40,
+        stone: 30,
+        gold: 20,
+        population: 0
+      },
+      resource_gen: {},
+      resource_min: {},
+      resource_bonus: {}
     }
-  },
-  BUILDING_RESOURCE_GEN: {
-    main_tent: {
-      wood: 10,
-      stone: 5,
-      food: 10,
-      gold: 10,
-      ammo: 6
-    },
-    house: {
-      wood: 0,
-      stone: 0,
-      food: 0,
-      gold: 12,
-      ammo: 0
-    },
-    farm: {
-      wood: 0,
-      stone: 0,
-      food: 12,
-      gold: 0,
-      ammo: 0
-    },
-    woodcutter: {
-      wood: 18,
-      stone: 0,
-      food: 0,
-      gold: 0,
-      ammo: 0
-    },
-    stone_quarry: {
-      wood: 0,
-      stone: 10,
-      food: 0,
-      gold: 0,
-      ammo: 0
-    },
-    munitions_plant: {
-      wood: 0,
-      stone: 0,
-      food: 0,
-      gold: 0,
-      ammo: 12
-    }
-  },
-  BUILDING_RESOURCE_BONUS: {
-    mill: {
-      woodIncrease: 0,
-      stoneIncrease: 0,
-      foodIncrease: 1.5,
-      goldIncrease: 0,
-      ammoIncrease: 0
-    },
-    sawmill: {
-      woodIncrease: 1.5,
-      stoneIncrease: 0,
-      foodIncrease: 0,
-      goldIncrease: 0,
-      ammoIncrease: 0
-    },
-    stonemason: {
-      woodIncrease: 0,
-      stoneIncrease: 1.5,
-      foodIncrease: 0,
-      goldIncrease: 0,
-      ammoIncrease: 0
-    },
-    well: {
-      woodIncrease: 0,
-      stoneIncrease: 0,
-      foodIncrease: 0,
-      goldIncrease: 1.5,
-      ammoIncrease: 0
-    }
-  },
-  BUILDING_RESOURCE_MIN: {
-    cannon_tower: {
-      wood: 2,
-      stone: 0,
-      food: 0,
-      gold: 5,
-      ammo: 1
-    },
-    house: {
-      wood: 1,
-      stone: 0,
-      food: 2,
-      gold: 0,
-      ammo: 0
-    },
-    munitions_plant: {
-      wood: 2,
-      stone: 6,
-      food: 0,
-      gold: 10,
-      ammo: 0
-    },
-    mill: {
-      wood: 3,
-      stone: 0,
-      food: 0,
-      gold: 7,
-      ammo: 0
-    },
-    sawmill: {
-      wood: 0,
-      stone: 1,
-      food: 0,
-      gold: 8,
-      ammo: 0
-    },
-    stonemason: {
-      wood: 1,
-      stone: 0,
-      food: 0,
-      gold: 8,
-      ammo: 0
-    }
-  },
-  BUILDING_MASS: {
-    main_tent: 500,
-    tent: 300,
-    house: 1500,
-    farm: 2000,
-    woodcutter: 2250,
-    stone_quarry: 2300,
-    mill: 6000,
-    sawmill: 4700,
-    stonemason: 4500,
-    well: 600,
-    barracks: 5200,
-    recruiting_office: 2000,
-    munitions_plant: 5900,
-    factory: 10000,
-    watchtower: 950,
-    cannon_tower: 1700,
-    tower: 1600,
-    wall: 1200,
-    guard_post: 2100,
-    supply_depot: 4500,
-    main_base: 6000
   },
   //Weapons stuff
   MELEE_WEAPONS: {
@@ -713,7 +895,30 @@ const Constants = {
   //Version
   VERSION: "0.8.0-ALPHA",
   //UI things
-  BUTTON_COOLDOWN: 500
+  BUTTON_COOLDOWN: 500,
+  BUTTON_KEYS: [
+    "civil_button",
+    "defense_button",
+    "military_button"
+  ],
+  ICON_KEYS: [
+    "wood",
+    "stone",
+    "food",
+    "coin",
+    "ammo",
+    "people"
+  ],
+  ICON_INFO_TEXT: {
+    wood: "The amount of wood you have.",
+    stone: "The amount of stone you have.",
+    food: "The amount of food you have to feed your people.",
+    coin: "The amount of coins you have",
+    ammo: "The amount of ammo your troops can use",
+    people: "Your population. The left number is about how many " +
+      "people you you are using, the right number is " +
+      "about how many people you have in total"
+  }
 };
 
 deepFreeze(Constants);
