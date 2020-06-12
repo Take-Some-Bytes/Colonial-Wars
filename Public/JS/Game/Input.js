@@ -26,7 +26,7 @@ export class Input {
    * @param {KeyboardEvent} event The event to handle
    */
   onKeyDown(event) {
-    switch(event.key) {
+    switch (event.key) {
     case "a":
     case "ArrowLeft":
       this.left = true;
@@ -50,7 +50,7 @@ export class Input {
    * @param {KeyboardEvent} event The event to handle
    */
   onKeyUp(event) {
-    switch(event.key) {
+    switch (event.key) {
     case "a":
     case "ArrowLeft":
       this.left = false;
@@ -74,20 +74,22 @@ export class Input {
    * @param {MouseEvent} event The Mouse event to handle
    */
   onMouseDown(event) {
-    if(event.button === 0) {
+    if (event.button === 0) {
       this.leftMouseDown = true;
-    } else if(event.button === 1) {
+    }
+    if (event.button === 1) {
       this.rightMouseDown = true;
     }
   }
   /**
-   * Handles a `mousedown` event
+   * Handles a `mouseup` event
    * @param {MouseEvent} event The Mouse event to handle
    */
   onMouseUp(event) {
-    if(event.button === 0) {
+    if (event.button === 0) {
       this.leftMouseDown = false;
-    } else if(event.button === 1) {
+    }
+    if (event.button === 1) {
       this.rightMouseDown = false;
     }
   }
