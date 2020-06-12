@@ -3,6 +3,14 @@ This is a changelog for the whole web app.
 
 ## Pre-release
 This is the pre-release part of the changelog
+#### 0.8.1
+- Added a ```UIElement``` base class for the UI elements to further use the OOP nature of
+JavaScript
+- Changed the UI layout a bit on the client side
+- Changed the layout of constants in ```Constants.js```
+- Changed the way the client draws the stat board
+- Added some more constants to ```Constants.js```
+- Adjusted the game classes to work with the new constants layout
 #### 0.8.0
 - Got the game to draw the basic UI
 - Added a function to get all of the non-function properties of an object, to rid
