@@ -28,16 +28,18 @@ class Projectile extends Entity {
     * @param {String} type The type of projectile
     */
   constructor(position, velocity, mass, hitbox, angle, source, type) {
+    const stats = Constants.BULLET_STATS[type];
+    const splashStats = Constants.SPLASH_STATS[type];
     super(position, velocity, Vector.zero(), mass, hitbox);
 
     this.angle = angle;
     this.source = source;
 
     this.type = type;
-    this.damage = Constants.BULLET_DAMAGE[type];
-    this.splashDamage = Constants.SPLASH_DAMAGE[type];
-    this.splashDamageRadius = Constants.SPLASH_DAMAGE_RADIUS[type];
-    this.maxDistance = Constants.BULLET_MAX_RANGE[type];
+    this.damage = stats.damage;
+    this.splashDamage = splashStats.damage;
+    this.splashDamageRadius = splashStats.radius;
+    this.maxDistance = stats.max_range;
     this.explodes = !!this.splashDamage;
 
     this.distanceTraveled = 0;
@@ -55,13 +57,13 @@ class Projectile extends Entity {
     this.position.add(distanceStep);
     this.distanceTraveled += distanceStep.mag2;
 
-    if(this.type === "mortar_shell") {
+    if (this.type === "mortar_shell") {
       this.velocity.y -= 0.0015;
     }
-    if(this.distanceTraveled >= this.maxDistance - 90) {
+    if (this.distanceTraveled >= this.maxDistance - 90) {
       this.velocity.x -= 0.0002;
     }
-    if(this.distanceTraveled > this.maxDistance || !this.inWorld()) {
+    if (this.distanceTraveled > this.maxDistance || !this.inWorld()) {
       this.destroyed = true;
     }
   }
@@ -75,11 +77,12 @@ class Projectile extends Entity {
   static createFromTroop(troop, angleDeviation = 0) {
     const angle = Util.degreeToRadian(troop.angle + angleDeviation);
     const firedProjectile = troop.firedProjectile;
+    const stats = Constants.BULLET_STATS[firedProjectile]
     return new Projectile(
       troop.position.copy(),
-      Vector.fromPolar(Constants.BULLET_SPEED, angle),
-      Constants.BULLET_MASS[firedProjectile],
-      Constants.BULLET_HITBOX[firedProjectile],
+      Vector.fromPolar(stats.speed, angle),
+      stats.mass,
+      stats.hitbox,
       angle,
       troop,
       firedProjectile
@@ -96,11 +99,12 @@ class Projectile extends Entity {
   static createFromBuilding(building, angleDeviation = 0) {
     const angle = Util.degreeToRadian(building.turretAngle + angleDeviation);
     const firedProjectile = building.firedProjectile;
+    const stats = Constants.BULLET_STATS[firedProjectile]
     return new Projectile(
       building.position.copy(),
-      Vector.fromPolar(Constants.BULLET_SPEED, angle),
-      Constants.BULLET_MASS[firedProjectile],
-      Constants.BULLET_HITBOX[firedProjectile],
+      Vector.fromPolar(stats.speed, angle),
+      stats.mass,
+      stats.hitbox,
       angle,
       building,
       firedProjectile
