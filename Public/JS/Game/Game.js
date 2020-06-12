@@ -36,6 +36,11 @@ export class Game {
     this.projectiles = [];
     this.troops = [];
     this.buildings = [];
+
+    this.buttons = [];
+    this.icons = [];
+    this.resources = {};
+    this.uiBackgrounds = [...Constants.DRAWING_UI_BACKGROUND_KEYS];
     //this.obstacles = [];
 
     this.self = null;
@@ -76,7 +81,7 @@ export class Game {
    * @param {String} token The token of the client.
    */
   update(token) {
-    if(this.self) {
+    if (this.self) {
       this.viewport.update(this.deltaTime);
 
       const absoluteMouseCoords = this.viewport.toWorld(
@@ -96,7 +101,13 @@ export class Game {
             up: this.input.up,
             down: this.input.down,
             left: this.input.left,
-            right: this.input.right
+            right: this.input.right,
+            mouse: {
+              leftMousePressed: this.input.leftMouseDown,
+              rightMousePressed: this.input.rightMouseDown,
+              absMouseCoords: absoluteMouseCoords,
+              rltvMouseCoords: Vector.fromArray(this.input.mousePosition)
+            }
           },
           game: this.id
         },
@@ -109,11 +120,25 @@ export class Game {
    * Draws the state of the game to the canvas.
    */
   draw() {
-    if(this.self) {
+    if (this.self) {
       this.drawing.clear();
 
       this.drawing.drawTiles();
       this.buildings.forEach(this.drawing.drawBuilding.bind(this.drawing));
+      this.uiBackgrounds.forEach(
+        this.drawing.drawUIBackground.bind(this.drawing)
+      );
+      this.buttons.forEach(this.drawing.drawButton.bind(this.drawing));
+      this.icons.forEach(this.drawing.drawIcon.bind(this.drawing));
+      this.drawing.drawStats(this.resources || {
+        wood: 1210,
+        stone: 1320,
+        food: 2120,
+        coin: 5430,
+        ammo: 1203,
+        peopleMax: 10,
+        peopleUsed: 5
+      });
     }
   }
   /**
@@ -123,7 +148,7 @@ export class Game {
   onReceiveGameState(data) {
     const parsedData = JSON.parse(data);
 
-    if(this.expectedToken !== parsedData.securityData.gameToken) {
+    if (this.expectedToken !== parsedData.securityData.gameToken) {
       const body = document.body;
       body.innerHTML = "";
       body.innerHTML =
@@ -138,6 +163,10 @@ export class Game {
     // this.projectiles = state.projectiles;
     this.buildings = parsedData.playerData.buildings;
     // this.troops = state.troops;
+    this.buttons = parsedData.playerData.ui.buttons;
+    this.icons = parsedData.playerData.ui.icons;
+    this.resources = parsedData.playerData.resources;
+
 
     this.viewport.updateTrackingPosition(parsedData.playerData.self);
   }
