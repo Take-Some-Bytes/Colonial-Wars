@@ -135,6 +135,7 @@ class Game {
     if (this.closed) {
       throw new Error("Max number of players reached; game is closed.")
     }
+
     const startPosition = this.startPositions[team].copy();
     this.clients.set(socket.id, socket);
     this.players.set(socket.id, new Player(
@@ -142,8 +143,9 @@ class Game {
       name,
       socket.id,
       team
-    ));
+    ).init());
     this.numPlayers++;
+
     if (this.numPlayers === this.maxPlayers) {
       this.closed = true;
     }
@@ -417,12 +419,18 @@ class Game {
             const newProps = getNonCallableProps(building);
             return newProps;
           }),
+          resources: currentPlayer.resources,
           // troops: this.troops
-          buttons: currentPlayer.buttons.map(button => {
-            const newProps = getNonCallableProps(button);
-            return newProps;
-          }),
-          resourceAmounts: currentPlayer.resources
+          ui: {
+            buttons: currentPlayer.buttons.map(button => {
+              const newProps = getNonCallableProps(button);
+              return newProps;
+            }),
+            icons: currentPlayer.icons.map(icon => {
+              const newProps = getNonCallableProps(icon);
+              return newProps;
+            })
+          }
         },
         otherData: {}
       });
