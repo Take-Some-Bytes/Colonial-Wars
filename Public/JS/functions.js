@@ -14,7 +14,7 @@
  * @returns {Boolean}
  */
 export function inBound(val, min, max) {
-  if(min > max) { return val >= max && val <= min; }
+  if (min > max) { return val >= max && val <= min; }
   return val >= min && val <= max;
 }
 /**
@@ -46,13 +46,13 @@ export function degreeToRadian(degree) {
  * @returns {Number}
  */
 export function normalizeAngle(angle, isDegree = false) {
-  if(isDegree) {
+  if (isDegree) {
     angle = degreeToRadian(angle);
   }
 
-  if(angle < 0.7853981633974483 && angle > 0) {
+  if (angle < 0.7853981633974483 && angle > 0) {
     return 0;
-  } else if(angle > 0.7853981633974483 && angle < 2.356194490192345) {
+  } else if (angle > 0.7853981633974483 && angle < 2.356194490192345) {
     return 1.5707963267948966;
   }
 }
@@ -70,11 +70,11 @@ export async function init(cb) {
   }
   let err = null;
 
-  if(!data.name || data.name.length > 22) {
+  if (!data.name || data.name.length > 22) {
     err = new Error("Name is too long or blank!");
     cb(err, data);
     return;
-  } else if(!data.game) {
+  } else if (!data.game) {
     err = new Error("Game not selected!");
     cb(err, data);
     return;
