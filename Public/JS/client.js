@@ -14,7 +14,7 @@ let dialog = null;
 
 let securityData = {};
 
-if(pathname === "/play") {
+if (pathname === "/play") {
   $(document).on("contextmenu", e => {
     e.preventDefault();
     return false;
@@ -55,7 +55,7 @@ if(pathname === "/play") {
       game.run();
     });
   });
-} else if(pathname === "/") {
+} else if (pathname === "/") {
   $(document).ready(() => {
     //Socket.io stuff
     const socket = io();
@@ -65,8 +65,6 @@ if(pathname === "/play") {
       securityData = JSON.parse(data).securityData;
       //XHR
       const params = {
-        clientID: securityData.clientData.id,
-        token: securityData.clientData.token,
         "for": "games_available"
       }
       $.get("/xhr", params, data2 => {
@@ -74,7 +72,7 @@ if(pathname === "/play") {
         const parsedData = JSON.parse(data2);
         const dataKeys = Object.getOwnPropertyNames(parsedData);
         const arrayLength = dataKeys.length;
-        for(let i = 0; i < arrayLength; i++) {
+        for (let i = 0; i < arrayLength; i++) {
           const game = parsedData[dataKeys[i]];
           const htmlToAdd =
             `<label for="game-opt-${game.id}">Game ${i + 1}` +
@@ -94,8 +92,8 @@ if(pathname === "/play") {
     });
     //Version display
     $("#version").html(
-      `Version ${Constants.VERSION}. Licensed under the GPL-3.0 license.` +
-      "<a href=\"/version\">View all versions</a>"
+      `<a href="/version">Version ${Constants.VERSION}</a>. ` +
+      "Licensed under the <a href=\"/license\">AGPL-3.0 license.</a>"
     );
 
     //Dialog
@@ -108,7 +106,7 @@ if(pathname === "/play") {
         buttons: {
           Play: () => {
             init((err, data) => {
-              if(err) {
+              if (err) {
                 $("#error-span")
                   .addClass("error")
                   .text(`${err}`);
@@ -124,7 +122,7 @@ if(pathname === "/play") {
                 playerData: data,
                 otherData: {}
               }), error => {
-                if(error) {
+                if (error) {
                   $("#error-span")
                     .addClass("error")
                     .text(`${error}`);
@@ -163,7 +161,7 @@ if(pathname === "/play") {
     $("#dialog-form").submit(e => {
       e.preventDefault();
       init((err, data) => {
-        if(err) {
+        if (err) {
           $("#error-span")
             .addClass("error")
             .text(`${err}`);
@@ -179,7 +177,7 @@ if(pathname === "/play") {
           playerData: data,
           otherData: {}
         }), error => {
-          if(error) {
+          if (error) {
             $("#error-span")
               .addClass("error")
               .text(`${error}`);
@@ -195,6 +193,16 @@ if(pathname === "/play") {
             `${window.location.hostname}/play`;
         });
       });
+    });
+  });
+} else if (pathname === "/license") {
+  $(document).ready(() => {
+    const params = {
+      "for": "license_text.html"
+    }
+    $.get("/xhr", params, data => {
+      const parsedData = JSON.parse(data);
+      document.body.innerHTML = parsedData.html;
     });
   });
 }
