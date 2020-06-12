@@ -8,6 +8,7 @@ const Troop = require("./Game/Troop");
 const Building = require("./Game/Building");
 const Projectile = require("./Game/Projectile");
 const Button = require("./UI/Button");
+const Icon = require("./UI/Icon");
 const Vector = require("./Physics/Vector");
 const Constants = require("../Constants");
 const {
@@ -26,11 +27,6 @@ class Player {
     * @param {String} team The team of the player
     */
   constructor(position, name, socketID, team = "British") {
-    const buttonsLength = Constants.BUTTON_KEYS.length;
-    const buttonKeys = Constants.BUTTON_KEYS;
-    let x = 1100;
-    const y = 570;
-
     this.position = position;
     this.name = name;
     this.socketID = socketID;
@@ -39,12 +35,15 @@ class Player {
     this.troops = [];
     this.buildings = [];
     this.buttons = [];
+    this.icons = [];
     this.resources = {
       wood: 0,
       stone: 0,
       food: 0,
       coins: 0,
-      ammo: 0
+      ammo: 0,
+      peopleMax: 0,
+      peopleUsed: 0
     }
     this.resourceRate = {
       wood: 0,
@@ -60,13 +59,29 @@ class Player {
     this.deltaTime = 0;
     this.pastBuildings = null;
     this.pastTroops = null;
+  }
+  /**
+   * Adds the UI elements this player is going to interact with
+   */
+  addUIElements() {
+    //Declaration stuff
+    const buttonsLength = Constants.BUTTON_KEYS.length;
+    const buttonKeys = Constants.BUTTON_KEYS;
+    const buttonY = 570;
+    let buttonX = 1100;
+    const iconLength = Constants.ICON_KEYS.length - 1;
+    const iconKeys = Constants.ICON_KEYS;
+    const iconsY = 15;
+    const textOffset = new Vector(50, 30);
+    let iconsX = 685;
 
+    //Add buttons
     for (let i = 0; i < buttonsLength; i++) {
       const btn = new Button({
         width: 60,
         height: 60,
         image: buttonKeys[i],
-        position: new Vector(x, y),
+        position: new Vector(buttonX, buttonY),
         onClick: () => {
           btn.clicked = true;
           btn.lastClickTime = Date.now();
@@ -83,8 +98,53 @@ class Player {
         }
       });
       this.buttons.push(btn);
-      x += 80;
+      buttonX += 80;
     }
+    //Add icons
+    for (let i = 0; i < iconLength; i++) {
+      const infoText = Constants.ICON_INFO_TEXT[iconKeys[i]];
+
+      const icon = new Icon({
+        image: iconKeys[i],
+        position: new Vector(iconsX, iconsY),
+        infoText: infoText,
+        value: 0,
+        name: iconKeys[i],
+        textOffset: textOffset,
+        clickable: false,
+        onHover: function() {
+          icon.hovered = true;
+          icon.displayInfoText = true
+        },
+        onNotHover: function() {
+          icon.hovered = false;
+          icon.displayInfoText = false;
+        }
+      });
+
+      this.icons.push(icon);
+      iconsX += 110;
+    }
+
+    const icon = new Icon({
+      image: "people",
+      position: new Vector(iconsX, iconsY),
+      infoText: Constants.ICON_INFO_TEXT.people,
+      value: `${this.resources.peopleUsed} / ${this.resources.peopleMax}`,
+      name: "people",
+      textOffset: textOffset,
+      clickable: false,
+      onHover: function() {
+        icon.hovered = true;
+        icon.displayInfoText = true
+      },
+      onNotHover: function() {
+        icon.hovered = false;
+        icon.displayInfoText = false;
+      }
+    });
+
+    this.icons.push(icon);
   }
   /**
     * Binds this player's position within the world if it is outside of the
@@ -111,199 +171,74 @@ class Player {
   calculateResourceRates() {
     const buildings = this.buildings;
     const troops = this.troops;
-    const resourceGenBuildings = {
-      numMainTents: 0,
-      numWoodcutters: 0,
-      numStoneQuarries: 0,
-      numFarms: 0,
-      numHouses: 0,
-      numMunitionPlants: 0
-    };
-    const resourceBonusBuildings = {
-      numMills: 0,
-      numSawmills: 0,
-      numStonemasons: 0,
-      numWells: 0
-    };
-    const baseResourceRate = {
-      wood: 0,
-      stone: 0,
-      food: 0,
-      coins: 0,
-      ammo: 0
-    };
-    const baseResourceMinRate = {
-      wood: 0,
-      stone: 0,
-      food: 0,
-      coins: 0,
-      ammo: 0
-    };
-    const resourceMinBuildings = {
-      numCannonTowers: 0,
-      numHouses: 0,
-      numMunitionPlants: 0,
-      numMills: 0,
-      numSawmills: 0,
-      numStonemasons: 0
-    };
-    const resourceMinTroops = {
-      numMilitia: 0,
-      numLightInfantry: 0,
-      numLineInfantry: 0,
-      numCaptains: 0,
-      numPikemen: 0,
-      numMedics: 0,
-      numFieldArtillery: 0,
-      numSiegeArtillery:0,
-      numHowitzers: 0,
-      numMortars: 0
-    };
+
     const totalResourceRate = {};
-    const buildingsLength = buildings.length;
-    const troopsLength = troops.length;
 
-    for (let i = 0; i < buildingsLength; i++) {
-      switch (buildings[i].type) {
-      case "main_tent":
-        resourceGenBuildings.numMainTents++;
-        break;
-      case "house":
-        resourceGenBuildings.numHouses++;
-        resourceMinBuildings.numHouses++;
-        break;
-      case "farm":
-        resourceGenBuildings.numFarms++;
-        break;
-      case "woodcutter":
-        resourceGenBuildings.numWoodcutters++;
-        break;
-      case "stone_quarry":
-        resourceGenBuildings.numStoneQuarries++;
-        break;
-      case "munitions_plant":
-        resourceGenBuildings.numMunitionPlants++;
-        resourceMinBuildings.numMunitionPlants++;
-        break;
-      case "mill":
-        resourceBonusBuildings.numMills++;
-        resourceMinBuildings.numMills++;
-        break;
-      case "sawmill":
-        resourceBonusBuildings.numSawmills++;
-        resourceMinBuildings.numSawmills++;
-        break;
-      case "stonemason":
-        resourceBonusBuildings.numStonemasons++;
-        resourceMinBuildings.numStonemasons++;
-        break;
-      case "well":
-        resourceBonusBuildings.numWells++;
-        break;
-      case "cannon_tower":
-        resourceMinBuildings.numCannonTowers++;
-        break;
-      default:
-        continue;
-      }
-    }
-    for (let i = 0; i < troopsLength; i++) {
-      switch (troops[i].type) {
-      case "militia":
-        resourceMinTroops.numMilitia++;
-        break;
-      case "light_infantry":
-        resourceMinTroops.numLightInfantry++;
-        break;
-      case "line_infantry":
-        resourceMinTroops.numLineInfantry++;
-        break;
-      case "captain":
-        resourceMinTroops.numCaptains++;
-        break;
-      case "pikemen":
-        resourceMinTroops.numPikemen++;
-        break;
-      case "medic":
-        resourceMinTroops.numMedics++;
-        break;
-      case "field_artillery":
-        resourceMinTroops.numFieldArtillery++;
-        break;
-      case "siege_artillery":
-        resourceMinTroops.numSiegeArtillery++;
-        break;
-      case "howitzer":
-        resourceMinTroops.numHowitzers++;
-        break;
-      case "mortar":
-        resourceMinTroops.numMortars++;
-        break;
-      default:
-        throw new TypeError(
-          "Troop type does not match any of the default troop types!"
-        );
-      }
-    }
+    const resourceMin = {
+      wood: 0,
+      stone: 0,
+      food: 0,
+      gold: 0,
+      ammo: 0
+    };
+    const resourceGen = {
+      wood: 0,
+      stone: 0,
+      food: 0,
+      gold: 0,
+      ammo: 0
+    };
+    const resourceBonus = {
+      woodIncrease: 0,
+      stoneIncrease: 0,
+      foodIncrease: 0,
+      goldIncrease: 0,
+      ammoIncrease: 0
+    };
 
-    const totalResGenBuildings =
-      Object.getOwnPropertyNames(resourceGenBuildings);
-    totalResGenBuildings.shift();
-    const resources = Object.getOwnPropertyNames(baseResourceRate);
-    const resourceBuildings =
-      Object.getOwnPropertyNames(Constants.BUILDING_RESOURCE_GEN);
-    resourceBuildings.shift();
-    const minBuildings = Object.getOwnPropertyNames(
-      Constants.BUILDING_RESOURCE_MIN
-    );
-    const totalResMinBuildings = Object.getOwnPropertyNames(
-      resourceMinBuildings
-    );
-    const minTroops = Object.getOwnPropertyNames(
-      Constants.TROOP_RESOURCE_CONSUMPTION
-    );
-    const totalMinTroops = Object.getOwnPropertyNames(resourceMinTroops);
-    for (let i = 0; i < resources.length; i++) {
-      baseResourceRate[resources[i]] =
-        resourceGenBuildings.numMainTents *
-        Constants.BUILDING_RESOURCE_GEN.main_tent[resources[i]];
-      for (let j = 0; j < resourceBuildings.length; j++) {
-        baseResourceRate[resources[i]] +=
-          resourceGenBuildings[totalResGenBuildings[i]] *
-          Constants.BUILDING_RESOURCE_GEN[resourceBuildings[j]][resources[i]];
+    buildings.forEach(building => {
+      const stats = Constants.BUILDING_STATS[building.type];
+
+      for (const resource in stats.resource_gen) {
+        resourceGen[resource] += stats.resource_gen[resource] || 0;
+        resourceMin[resource] += stats.resource_min[resource] || 0;
       }
-      for (let otherJ = 0; otherJ < minBuildings.length; otherJ++) {
-        baseResourceMinRate[resources[i]] +=
-          resourceMinBuildings[totalResMinBuildings[otherJ]] *
-          Constants.BUILDING_RESOURCE_MIN[minBuildings[otherJ]][resources[i]];
+
+      for (const resource in stats.resource_bonus) {
+        resourceBonus[resource] += stats.resource_bonus[resource] || 0;
       }
-      for (let a = 0; a < minTroops.length; a++) {
-        baseResourceMinRate[resources[i]] +=
-          resourceMinTroops[totalMinTroops[a]] *
-          Constants.TROOP_RESOURCE_CONSUMPTION[minTroops[a]][resources[i]];
+    });
+
+    troops.forEach(troop => {
+      const stats = Constants.TROOP_STATS[troop.type];
+
+      for (const resource in stats.resource_min) {
+        resourceMin[resource] += stats.resource_min[resource] || 0;
       }
-    }
-    totalResourceRate.wood = Math.round(multiplySomething([
-      baseResourceRate.wood,
-      resourceBonusBuildings.numSawmills *
-      Constants.BUILDING_RESOURCE_BONUS.sawmill.woodIncrease
-    ])) - baseResourceMinRate.wood;
-    totalResourceRate.stone = Math.round(multiplySomething([
-      baseResourceRate.stone,
-      resourceBonusBuildings.numStonemasons *
-      Constants.BUILDING_RESOURCE_BONUS.stonemason.stoneIncrease
-    ])) - baseResourceMinRate.stone;
-    totalResourceRate.food = Math.round(multiplySomething([
-      baseResourceRate.food,
-      resourceBonusBuildings.numMills *
-      Constants.BUILDING_RESOURCE_BONUS.mill.foodIncrease
-    ])) - baseResourceMinRate.food;
-    totalResourceRate.coins = Math.round(multiplySomething([
-      baseResourceRate.coins,
-      resourceBonusBuildings.numWells *
-      Constants.BUILDING_RESOURCE_BONUS.well.goldIncrease
-    ])) - baseResourceMinRate.gold;
-    totalResourceRate.ammo = baseResourceRate.ammo - baseResourceMinRate.ammo;
+    });
+
+    totalResourceRate.wood = multiplySomething([
+      resourceGen.wood, resourceBonus.woodIncrease
+    ]) - resourceMin.wood;
+    totalResourceRate.stone = multiplySomething([
+      resourceGen.stone, resourceBonus.stoneIncrease
+    ]) - resourceMin.stone;
+    totalResourceRate.food = multiplySomething([
+      resourceGen.food, resourceBonus.foodIncrease
+    ]) - resourceMin.food;
+    totalResourceRate.gold = multiplySomething([
+      resourceGen.gold, resourceBonus.goldIncrease
+    ]) - resourceMin.gold;
+    totalResourceRate.ammo = multiplySomething([
+      resourceGen.ammo, resourceBonus.ammoIncrease
+    ]) - resourceMin.ammo;
+
+    console.log("Resource Gen");
+    console.table(resourceGen);
+    console.log("Resource Min");
+    console.table(resourceMin);
+    console.log("Resource Bonus");
+    console.table(resourceBonus);
 
     return totalResourceRate;
   }
@@ -403,14 +338,19 @@ class Player {
   }
   /**
    * Initializes the player
+   * @returns {Player}
    */
   init() {
     this.troops = [];
     this.buildings = [];
+    this.buttons = [];
+    this.icons = [];
     this.lastUpdateTime = Date.now();
     this.velocity = Vector.zero();
 
+    this.addUIElements();
     this.update(this.lastUpdateTime, this.lastUpdateTime);
+    return this;
   }
 }
 /**
