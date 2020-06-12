@@ -104,7 +104,7 @@ function checkPoint(storage, serverToken) {
       try {
         storage.refresh(cookies.clientID);
       } catch (err) {
-        console.error(err);
+        ErrorLogger.error(err);
         res.set("Content-type", "text/html");
         res
           .status(401)
@@ -162,7 +162,7 @@ function socketNewClientCP(storage, serverToken) {
         maxAge: maxAge
       });
     } catch (err) {
-      console.error(err);
+      ErrorLogger.error(err);
       socket.emit(Constants.SOCKET_ERROR, JSON.stringify({
         securityData: {
           serverToken
