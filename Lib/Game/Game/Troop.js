@@ -21,15 +21,15 @@ class Troop extends Entity {
   /**
     * Troop constructor
     * @param {Vector} position The current position of the Troop
-    * @param {Number} mass The mass of the Troop
     * @param {String} [type="light_infantry"] The type of the Troop
     * @param {Boolean} [isHuman=true] Is the troop human?
     * @param {String} [team="Neutral"] The troop's team
     */
-  constructor(position, mass, type = "light_infantry",
+  constructor(position, type = "light_infantry",
     isHuman = true, team = "Neutral"
   ) {
-    super(position, Vector.zero(), mass, Constants.TROOP_HITBOX_SIZE[type]);
+    const stats = Constants.TROOP_STATS[type];
+    super(position, Vector.zero(), stats.mass, stats.hitbox_size);
 
     this.type = type;
     this.team = team;
@@ -37,13 +37,13 @@ class Troop extends Entity {
     this.isMechanical = !isHuman;
     this.canGetRepaired = !isHuman;
     this.attackCooldown = Constants.ATTACK_COOLDOWN[type];
-    this.attackRange = Constants.TROOP_RANGE[type];
-    this.health = Constants.TROOP_MAX_HEALTH[type];
-    this.movementSpeed = Constants.TROOP_SPEED[type];
+    this.attackRange = stats.range;
+    this.health = stats.max_health;
+    this.movementSpeed = stats.speed;
     this.shotCoolDown = Constants.ATTACK_COOLDOWN[type];
-    this.buildTime = Constants.TROOP_BUILD_TIME[type];
+    this.buildTime = stats.build_time;
 
-    switch(this.type) {
+    switch (this.type) {
     case Constants.TROOPS[0]:
     case Constants.TROOPS[1]:
     case Constants.TROOPS[2]:
@@ -117,23 +117,23 @@ class Troop extends Entity {
     * }} data A JSON object containing the movement data
     */
   updateOnInput(data) {
-    if(data.up) {
+    if (data.up) {
       this.velocity = Vector.fromPolar(
         this.movementSpeed, Util.degreeToRadian(this.angle)
       );
-    } else if(data.down) {
+    } else if (data.down) {
       this.velocity = Vector.fromPolar(
         this.movementSpeed, Util.degreeToRadian(this.angle)
       );
-    } else if(!(data.up ^ data.down)) {
+    } else if (!(data.up ^ data.down)) {
       this.velocity = Vector.zero();
     }
 
-    if(data.right) {
+    if (data.right) {
       this.turnRate = Constants.TROOP_TURN_SPEED;
-    } else if(data.left) {
+    } else if (data.left) {
       this.turnRate = -Constants.TROOP_TURN_SPEED;
-    } else if(!(data.left ^ data.right)) {
+    } else if (!(data.left ^ data.right)) {
       this.turnRate = 0;
     }
 
@@ -172,25 +172,25 @@ class Troop extends Entity {
     const buildingSpawnedTroops = building.spawnedTroops;
     let isHuman = null;
 
-    if(buildingSpawnedTroopLength < 1) {
+    if (buildingSpawnedTroopLength < 1) {
       throw new Error("The specified building cannot spawn troops!");
     }
 
-    for(i = 0; i < buildingSpawnedTroopLength; i++) {
-      if(type !== buildingSpawnedTroops[i] &&
+    for (i = 0; i < buildingSpawnedTroopLength; i++) {
+      if (type !== buildingSpawnedTroops[i] &&
         i === buildingSpawnedTroopLength - 1
       ) {
         throw new Error(
           "Troop type cannot be spawned from specified building!"
         );
-      } else if(type === buildingSpawnedTroops[i]) {
+      } else if (type === buildingSpawnedTroops[i]) {
         break;
       }
     }
-    for(i = 0; i < Constants.TROOPS.length - 4; i++) {
-      if(type !== Constants.TROOPS[i] && i === Constants.TROOPS.length - 1) {
+    for (i = 0; i < Constants.TROOPS.length - 4; i++) {
+      if (type !== Constants.TROOPS[i] && i === Constants.TROOPS.length - 1) {
         isHuman = false;
-      } else if(type === Constants.TROOPS[i]) {
+      } else if (type === Constants.TROOPS[i]) {
         isHuman = true;
       }
     }
