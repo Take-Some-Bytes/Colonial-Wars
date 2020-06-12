@@ -70,12 +70,11 @@ io.use((socket, next) => {
   next();
 });
 io.on("connection", socket => {
-  socket.emit("welcome", "Welcome to the site!");
+  console.log("Connection!", socket.id);
   socket.use(middleware.socketEmitCP(serverToken, socket));
   socket.on(Constants.SOCKET_NEW_PLAYER, (data, cb) => {
     let err = null;
     try {
-      console.log(JSON.parse(data));
       const playData = JSON.parse(data).playerData;
       const gameToJoin = manager.getGame(playData.game);
 
@@ -90,7 +89,6 @@ io.on("connection", socket => {
           gameID: playData.game,
           clientTeam: playData.team
         };
-        console.log(pendingClients);
 
         cb(null);
       }
@@ -102,6 +100,7 @@ io.on("connection", socket => {
     }
   });
   socket.on(Constants.SOCKET_DISCONNECT, () => {
+    console.log("Client Disconnected!", socket.id);
     if (!pendingClients[socket.id]) {
       const client = manager.getClient(socket.id);
       const session = wsSessions.getSessionInfo(socket.id);
@@ -137,7 +136,6 @@ playIO.use((socket, next) => {
   }));
   const prevSocketID = socket.handshake.query.prevSocketID;
   const pending = pendingClients[prevSocketID];
-  console.log(pending);
   if (!pending) {
     socket.emit(Constants.SOCKET_ERROR);
     return;
