@@ -55,13 +55,16 @@ function methodNotImplemented(req, res, next) {
  * @param {express.request} req Client Request
  * @param {express.response} res Server Response
  * @param {express.NextFunction} next Next function
+ * @param {Array<string>} allowedMethods The methods that are
+ * allowed on this resource
  */
-function methodNotAllowed(req, res, next) {
+function methodNotAllowed(req, res, next, allowedMethods) {
   const date = new Date();
   ServerLogger.notice(
     `Someone used a method that is not allowed at ${req.url} at: ${date}.`
   );
   res.type("html");
+  res.header("Allow", allowedMethods);
   res.status(405)
     .send(
       "<h1>Not Allowed</h1>\n<h3>That method is not allowed on this page.</h3>"
@@ -75,26 +78,16 @@ function methodNotAllowed(req, res, next) {
  * @param {express.NextFunction} next Next function
  */
 function handleOther(req, res, next) {
-  const reqPath = req.url.toString().split("?")[0];
   const date = new Date();
-  if (reqPath.indexOf(
-    "/Public/"
-  ) !== 0 && reqPath.indexOf(
-    "/Shared/"
-  ) !== 0 && reqPath.indexOf(
-    "/favicon.ico"
-  )) {
-    ServerLogger.notice(
-      `Someone tried to access ${reqPath} at ${date}. The request was blocked`
+  let reqPath = req.url.toString().split("?")[0];
+
+  if (reqPath === "/favicon.ico") {
+    const s = fs.createReadStream(
+      path.join(
+        __dirname, "../../",
+        "Public/Images/favicon.ico"
+      )
     );
-    res.type("html");
-    res.status(403)
-      .send(
-        "<h1>Forbidden</h1>\n" +
-        "<h3>The file you requested is not for public viewing.</h3>"
-      );
-  } else if (reqPath === "/favicon.ico") {
-    const s = fs.createReadStream("Public/Images/favicon.ico");
     s.on("open", () => {
       res.type(path.extname(reqPath).slice(1));
       s.pipe(res);
@@ -108,6 +101,42 @@ function handleOther(req, res, next) {
           "<h1>File Not Found</h1>\n" +
           "<h3>The file you requested was not found</h3>"
         );
+    });
+  } else {
+    fs.stat(reqPath, (err, stats) => {
+      if (err) {
+        reqPath = path.join(
+          __dirname, "../../",
+          "Public", reqPath
+        );
+
+        const s = fs.createReadStream(reqPath);
+        s.on("open", () => {
+          res.type(path.extname(reqPath).slice(1));
+          s.pipe(res);
+        });
+        s.on("error", er => {
+          ErrorLogger.error(er);
+          ServerLogger.error(er);
+          res.type("html");
+          res.status(404)
+            .send(
+              "<h1>File Not Found</h1>\n" +
+              "<h3>The file you requested was not found</h3>"
+            );
+        });
+      } else {
+        ServerLogger.notice(
+          `Someone tried to access ${reqPath} at ` +
+          `${date}. The request was blocked`
+        );
+        res.type("html");
+        res.status(403)
+          .send(
+            "<h1>Forbidden</h1>\n" +
+              "<h3>The file you requested is not for public viewing.</h3>"
+          );
+      }
     });
   }
 }
