@@ -64,7 +64,23 @@ export class Drawing {
     this.context.save();
     const canvasPosition = this.viewport.toCanvas(building.position);
     this.context.translate(canvasPosition.x, canvasPosition.y);
-    this.drawCenteredImage(this.images[building.type]);
+
+    const framePosition = [
+      Constants.DRAWING_TEAM_COLUMNS[building.team],
+      0
+    ];
+    this.drawCenteredImage(
+      this.images[building.type],
+      true,
+      {
+        framePosition: framePosition,
+        size: {
+          width: building.hitbox,
+          height: building.hitbox
+        }
+      }
+    );
+
     this.context.restore();
   }
   /**
@@ -72,41 +88,57 @@ export class Drawing {
    * @param {Button} button The button to draw
    */
   drawButton(button) {
-    if (!button.hovered && !button.clicked) {
-      const canvasPosition = button.position;
-      const framePosition = [0, 0];
+    const canvasPosition = button.position;
+    const buttonRow = Constants.DRAWING_BUTTON_ROWS[button.image];
+    let framePosition = [];
 
-      this.context.drawImage(
-        this.images[button.image],
-        framePosition[0] * button.width,
-        framePosition[1] * button.height,
-        button.width, button.height,
-        canvasPosition.x, canvasPosition.y,
-        button.width, button.height
+    if (!button.hovered && !button.clicked) {
+      framePosition = [0, buttonRow];
+
+      this.drawImageSection(
+        this.images.all_buttons,
+        framePosition,
+        {
+          width: button.width,
+          height: button.height
+        },
+        {
+          width: button.width,
+          height: button.height
+        },
+        canvasPosition
       );
     } else if (button.hovered) {
-      const canvasPosition = button.position;
-      const framePosition = [1, 0];
+      framePosition = [1, buttonRow];
 
-      this.context.drawImage(
-        this.images[button.image],
-        framePosition[0] * button.width,
-        framePosition[1] * button.height,
-        button.width, button.height,
-        canvasPosition.x, canvasPosition.y,
-        button.width, button.height
+      this.drawImageSection(
+        this.images.all_buttons,
+        framePosition,
+        {
+          width: button.width,
+          height: button.height
+        },
+        {
+          width: button.width,
+          height: button.height
+        },
+        canvasPosition
       );
     } else if (button.clicked) {
-      const canvasPosition = button.position;
-      const framePosition = [1, 0];
+      framePosition = [1, buttonRow];
 
-      this.context.drawImage(
-        this.images[button.image],
-        framePosition[0] * button.width,
-        framePosition[1] * button.height,
-        button.width, button.height,
-        canvasPosition.x, canvasPosition.y,
-        button.width, button.height
+      this.drawImageSection(
+        this.images.all_buttons,
+        framePosition,
+        {
+          width: button.width,
+          height: button.height
+        },
+        {
+          width: button.width,
+          height: button.height
+        },
+        canvasPosition
       );
     }
   }
@@ -149,11 +181,20 @@ export class Drawing {
    */
   drawIcon(icon) {
     const position = icon.position;
+    const framePosition = Constants.DRAWING_ICON_POSITIONS[icon.image];
 
-    this.context.drawImage(
-      this.images[icon.image],
-      position.x, position.y,
-      40, 40
+    this.drawImageSection(
+      this.images.all_icons,
+      framePosition,
+      {
+        width: icon.width,
+        height: icon.height
+      },
+      {
+        width: 50,
+        height: 50
+      },
+      position
     );
   }
   /**
@@ -162,7 +203,8 @@ export class Drawing {
    * wood: Number,
    * stone: Number,
    * food: Number,
-   * coin: Number,
+   * coins: Number,
+   * ammo: Number,
    * peopleMax: Number,
    * peopleUsed: Number
    * }} stats The stats to draw
@@ -192,11 +234,118 @@ export class Drawing {
     }
   }
   /**
+   * Draws a stat to the canvas
+   * @param {Icon} icon The icon to draw
+   */
+  drawStat(icon) {
+    const iconPosition = icon.position;
+    const framePosition = Constants.DRAWING_ICON_POSITIONS[icon.name];
+    const textPosition =
+      Vector.fromObject(icon.position)
+        .add(
+          Vector.fromObject(icon.textOffset)
+        );
+    const textPosition2 = textPosition
+      .copy()
+      .sub(
+        Vector.fromObject(icon.textOffset2)
+      );
+
+    this.context.font = "20px system-ui";
+    this.context.fillStyle = "black";
+
+    this.drawImageSection(
+      this.images.all_icons,
+      framePosition,
+      {
+        width: icon.width,
+        height: icon.height
+      },
+      {
+        width: 50,
+        height: 50
+      },
+      iconPosition
+    );
+    this.context.fillText(icon.value, textPosition.x, textPosition.y);
+
+
+    if (icon.name === "people") {
+      return;
+    }
+
+    this.context.font = "13px system-ui";
+
+    if (icon.valueIncrease < 0) {
+      this.context.fillStyle = "red";
+      this.context.fillText(
+        `-${icon.valueIncrease}`,
+        textPosition2.x, textPosition2.y
+      );
+    } else if (icon.valueIncrease > 0) {
+      this.context.fillStyle = "green";
+      this.context.fillText(
+        `+${icon.valueIncrease}`,
+        textPosition2.x, textPosition2.y
+      );
+    } else {
+      this.context.fillText(
+        `+${icon.valueIncrease}`,
+        textPosition2.x, textPosition2.y
+      );
+    }
+  }
+  /**
    * Draws a centered image
    * @param {Image} image The image to draw
+   * @param {Boolean} [isSection] Is the image you want to draw
+   * a section of a sprite sheet?
+   * @param {{
+   * framePosition: Array<number>,
+   * size: {
+   *  width: Number,
+   *  height: Number
+   * }
+   * }} [config] The configurations if the image you
+   * want to draw is a section of a sprite sheet
    */
-  drawCenteredImage(image) {
+  drawCenteredImage(image, isSection = false, config = {}) {
+    if (isSection) {
+      this.context.drawImage(
+        image,
+        config.framePosition[0] * config.size.width,
+        config.framePosition[1] * config.size.height,
+        config.size.width, config.size.height,
+        -config.size.width / 2, -config.size.height / 2,
+        config.size.width, config.size.height
+      );
+      return;
+    }
     this.context.drawImage(image, -image.width / 2, -image.height / 2);
+  }
+  /**
+   * Draws a section of an image
+   * @param {Image} image The image to draw
+   * @param {Array<number>} framePosition The frame position to draw from
+   * @param {{
+   * width: Number,
+   * height: Number
+   * }} dsize The size to draw the image
+   * @param {{
+   * width: Number,
+   * height: Number
+   * }} ssize The size to cut the image
+   * @param {Vector} drawingPosition The position to draw the image
+   */
+  drawImageSection(image, framePosition, dsize, ssize, drawingPosition) {
+    this.context.drawImage(
+      image,
+      framePosition[0] * ssize.width,
+      framePosition[1] * ssize.height,
+      ssize.width, ssize.height,
+      drawingPosition.x, drawingPosition.y,
+      dsize.width, dsize.height
+    );
   }
   /**
    * Creates a Drawing class
@@ -210,20 +359,16 @@ export class Drawing {
     const context = canvas.getContext("2d");
     const images = {};
     //Add UI elements
-    for (const btn of Constants.DRAWING_BUTTON_KEYS) {
-      images[btn] = new Image();
-      images[btn].src =
-        `${Constants.DRAWING_UI_BASE_PATH}/buttons/${btn}.png`;
+    for (const ui of Constants.DRAWING_UI_KEYS) {
+      images[ui] = new Image();
+      images[ui].src =
+        `${Constants.DRAWING_UI_BASE_PATH}/${ui}.png`
     }
+
     for (const bg of Constants.DRAWING_UI_BACKGROUND_KEYS) {
       images[bg] = new Image();
       images[bg].src =
         `${Constants.DRAWING_UI_BASE_PATH}/backgrounds/${bg}.png`
-    }
-    for (const icon of Constants.DRAWING_ICON_KEYS) {
-      images[icon] = new Image();
-      images[icon].src =
-        `${Constants.DRAWING_UI_BASE_PATH}/icons/${icon}_icon.png`
     }
     //Add tiles
     if (mapName === "testing") {
