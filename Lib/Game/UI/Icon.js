@@ -1,5 +1,5 @@
 /**
- * @fileoverviewIcon element class for handling icons
+ * @fileoverview Icon element class for handling icons
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
@@ -19,8 +19,11 @@ class Icon extends UIElement {
    * position: Vector,
    * infoText: String,
    * value: any,
+   * valueIncrease: Number,
    * name: String,
    * clickable: Boolean,
+   * textOffset: Vector,
+   * textOffset2: Vector,
    * onClick: function():void,
    * onHover: function():void,
    * onNotClick: function():void,
@@ -41,6 +44,9 @@ class Icon extends UIElement {
 
     this.name = config.name;
     this.infoText = config.infoText;
+    this.textOffset = config.textOffset;
+    this.textOffset2 = config.textOffset2;
+    this.valueIncrease = config.valueIncrease;
     this.onClick = config.onClick;
     this.onNotClick = config.onNotClick;
 
@@ -55,8 +61,23 @@ class Icon extends UIElement {
    */
   canClick() {
     const canClick =
-      Date.now() > this.lastClickTime + Constants.BUTTON_COOLDOWN
+      Date.now() > this.lastClickTime + Constants.BUTTON_COOLDOWN;
     return canClick;
+  }
+  /**
+   * Updates this icon's ```value``` property
+   */
+  updateValue() {
+    let parsedValue = typeof this.value === "number" ?
+      this.value :
+      parseInt(this.value, 10);
+    if (isNaN(this.value)) {
+      throw new TypeError(
+        "Value is not a number; cannot update value property"
+      );
+    }
+    parsedValue += this.valueIncrease;
+    this.value = parsedValue;
   }
   /**
    * Handles a mouse event
