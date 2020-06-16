@@ -319,4 +319,4 @@ module.exports = {
   nspCheckPoint,
   nspChangeStats,
   nspCheckIsPending
-}
+};
