@@ -61,28 +61,7 @@ if (pathname === "/play") {
     const socket = io();
 
     socket.on(Constants.SOCKET_SECURITY_DATA, data => {
-      console.log(JSON.stringify(JSON.parse(data), null, 3));
       securityData = JSON.parse(data).securityData;
-      //XHR
-      const params = {
-        "for": "games_available"
-      }
-      $.get("/xhr", params, data2 => {
-        console.log(JSON.stringify(JSON.parse(data2), null, 2));
-        const parsedData = JSON.parse(data2);
-        const dataKeys = Object.getOwnPropertyNames(parsedData);
-        const arrayLength = dataKeys.length;
-        for (let i = 0; i < arrayLength; i++) {
-          const game = parsedData[dataKeys[i]];
-          const htmlToAdd =
-            `<label for="game-opt-${game.id}">Game ${i + 1}` +
-            `<img src="imgs/Game_map_previews/${game.map}.png">` +
-            `<label/><input type="radio" id="game-opt-${game.id}" ` +
-            `name="game" value="${game.id}">`
-          $("#game-select")
-            .append(htmlToAdd);
-        }
-      });
     });
     socket.on(Constants.SOCKET_ERROR, err => {
       console.error(JSON.stringify(JSON.parse(err)));
@@ -90,10 +69,31 @@ if (pathname === "/play") {
         .addClass("error")
         .text(`${JSON.parse(err).otherData.msg}`);
     });
+
+    //XHR
+    const params = {
+      "for": "games_available"
+    }
+    $.get("/xhr", params, data2 => {
+      const parsedData = JSON.parse(data2);
+      const dataKeys = Object.getOwnPropertyNames(parsedData);
+      const arrayLength = dataKeys.length;
+      for (let i = 0; i < arrayLength; i++) {
+        const game = parsedData[dataKeys[i]];
+        const htmlToAdd =
+            `<label for="game-opt-${game.id}">Game ${i + 1}
+            <img src="imgs/Game_map_previews/${game.map}.png">
+            <label/><input type="radio" id="game-opt-${game.id}"
+            name="game" value="${game.id}">`
+        $("#game-select")
+          .append(htmlToAdd);
+      }
+    });
+
     //Version display
     $("#version").html(
-      `<a href="/version">Version ${Constants.VERSION}</a>. ` +
-      "Licensed under the <a href=\"/license\">AGPL-3.0 license.</a>"
+      `<a href="/version">Version ${Constants.VERSION}</a>.
+      Licensed under the <a href="/license">AGPL-3.0 license.</a>`
     );
 
     //Dialog
@@ -189,8 +189,8 @@ if (pathname === "/play") {
           );
           dialog.dialog("close");
           window.location.href =
-            `${window.location.protocol}//` +
-            `${window.location.hostname}/play`;
+            `${window.location.protocol}//
+            ${window.location.hostname}/play`;
         });
       });
     });
