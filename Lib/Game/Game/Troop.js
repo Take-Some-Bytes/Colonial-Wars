@@ -197,7 +197,6 @@ class Troop extends Entity {
 
     return new Troop(
       spawnPoint,
-      Constants.TROOP_MASS[type],
       type,
       isHuman,
       building.team
