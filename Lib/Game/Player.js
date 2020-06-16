@@ -41,16 +41,18 @@ class Player {
       stone: 0,
       food: 0,
       coins: 0,
-      ammo: 0,
-      peopleMax: 0,
-      peopleUsed: 0
-    }
+      ammo: 0
+    };
     this.resourceRate = {
       wood: 0,
       stone: 0,
       food: 0,
       coins: 0,
       ammo: 0
+    };
+    this.population = {
+      used: 0,
+      max: 0
     }
 
     this.velocity = Vector.zero();
@@ -73,6 +75,7 @@ class Player {
     const iconKeys = Constants.ICON_KEYS;
     const iconsY = 15;
     const textOffset = new Vector(50, 30);
+    const textOffsetHeight = new Vector(-28, 20);
     let iconsX = 685;
 
     //Add buttons
@@ -103,14 +106,18 @@ class Player {
     //Add icons
     for (let i = 0; i < iconLength; i++) {
       const infoText = Constants.ICON_INFO_TEXT[iconKeys[i]];
+      const value = this.resources[iconKeys[i]];
 
       const icon = new Icon({
         image: iconKeys[i],
         position: new Vector(iconsX, iconsY),
         infoText: infoText,
-        value: 0,
+        value:
+          `${value}`,
+        valueIncrease: this.resourceRate[iconKeys[i]],
         name: iconKeys[i],
         textOffset: textOffset,
+        textOffset2: textOffsetHeight,
         clickable: false,
         onHover: function() {
           icon.hovered = true;
@@ -130,13 +137,15 @@ class Player {
       image: "people",
       position: new Vector(iconsX, iconsY),
       infoText: Constants.ICON_INFO_TEXT.people,
-      value: `${this.resources.peopleUsed} / ${this.resources.peopleMax}`,
+      value:
+        `${this.population.used} / ${this.population.max}`,
       name: "people",
       textOffset: textOffset,
+      textOffset2: textOffsetHeight,
       clickable: false,
       onHover: function() {
         icon.hovered = true;
-        icon.displayInfoText = true
+        icon.displayInfoText = true;
       },
       onNotHover: function() {
         icon.hovered = false;
@@ -233,12 +242,12 @@ class Player {
       resourceGen.ammo, resourceBonus.ammoIncrease
     ]) - resourceMin.ammo;
 
-    console.log("Resource Gen");
-    console.table(resourceGen);
-    console.log("Resource Min");
-    console.table(resourceMin);
-    console.log("Resource Bonus");
-    console.table(resourceBonus);
+    // console.log("Resource Gen");
+    // console.table(resourceGen);
+    // console.log("Resource Min");
+    // console.table(resourceMin);
+    // console.log("Resource Bonus");
+    // console.table(resourceBonus);
 
     return totalResourceRate;
   }
@@ -253,6 +262,12 @@ class Player {
       const numMore = this.resourceRate[resourceRates[i]];
 
       this.resources[resource] += numMore;
+      if (this.resources[resource] > this.maxResources[resource]) {
+        const resourcesToMin =
+          this.maxResources[resource] - this.resources[resource];
+
+        this.resources[resource] -= resourcesToMin;
+      }
     }
   }
   /**
@@ -263,17 +278,15 @@ class Player {
     * food: Number,
     * gold: Number,
     * ammo: Number
-      }} amounts The amounts to increase this player's resource rates by
+    * }} amounts The amounts to increase this player's resource rates by
     */
   updateResourceRate(amounts) {
     const newResourceRates = Object.getOwnPropertyNames(amounts);
     const resourceRates = Object.getOwnPropertyNames(this.resourceRate);
+    const newResourceRatesLength = newResourceRates.length
 
-    for (let i = 0; i < newResourceRates.length; i++) {
-      const newResourceRate = amounts[newResourceRates[i]];
-      const oldResourceRate = this.resourceRate[resourceRates[i]];
-
-      this.resourceRate[oldResourceRate] = newResourceRate;
+    for (let i = 0; i < newResourceRatesLength; i++) {
+      this.resourceRate[resourceRates[i]] = amounts[newResourceRates[i]];
     }
   }
   /**
@@ -325,11 +338,18 @@ class Player {
     ) {
       const newResourceRates = this.calculateResourceRates();
       this.updateResourceRate(newResourceRates);
+
+      for (let i = 0; i < this.icons.length - 1; i++) {
+        this.icons[i].valueIncrease = this.resourceRate[this.icons[i].name];
+      }
     }
 
     const allIsTrue = checkProperties(this.resourceRate);
     if (allIsTrue) {
       this.updateResources();
+      for (let i = 0; i < this.icons.length - 1; i++) {
+        this.icons[i].updateValue();
+      }
     }
     this.bindToWorld();
 
