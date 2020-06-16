@@ -8,7 +8,7 @@ export const Constants = {
   WORLD_MIN: -4500,
   WORLD_MAX: 4500,
   //Version
-  VERSION: "0.8.1-ALPHA",
+  VERSION: "0.8.2-ALPHA",
   //Drawing
   DRAWING_TROOP_BASE_PATH: "/imgs/troops",
   DRAWING_BUILDING_BASE_PATH: "/imgs/buildings",
@@ -25,24 +25,36 @@ export const Constants = {
   DRAWING_BUILDING_KEYS: [
     "main_base"
   ],
-  DRAWING_BUTTON_KEYS: [
-    "civil_button",
-    "defense_button",
-    "military_button"
+  DRAWING_UI_KEYS: [
+    "all_buttons",
+    "all_icons"
   ],
   DRAWING_UI_BACKGROUND_KEYS: [
     "background_1",
     "resource_stats_background"
   ],
-  DRAWING_ICON_KEYS: [
-    "wood",
-    "stone",
-    "food",
-    "coin",
-    "ammo",
-    "people"
-  ],
   DRAWING_TILE_SIZE: 100,
+  DRAWING_TEAM_COLUMNS: {
+    British: 0,
+    French: 1,
+    Russian: 2,
+    Prussian: 3,
+    American: 4,
+    Italian: 5
+  },
+  DRAWING_BUTTON_ROWS: {
+    civil_button: 0,
+    defense_button: 1,
+    military_button: 2
+  },
+  DRAWING_ICON_POSITIONS: {
+    wood: [2, 1],
+    stone: [1, 1],
+    food: [2, 0],
+    coins: [1, 0],
+    ammo: [0, 0],
+    people: [0, 1]
+  },
   //Viewport
   VIEWPORT_STICKINESS: 0.004,
   //Viewport
