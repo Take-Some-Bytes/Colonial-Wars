@@ -40,6 +40,8 @@ export class Game {
     this.buttons = [];
     this.icons = [];
     this.resources = {};
+    this.resourceRates = {};
+    this.population = {};
     this.uiBackgrounds = [...Constants.DRAWING_UI_BACKGROUND_KEYS];
     //this.obstacles = [];
 
@@ -129,16 +131,7 @@ export class Game {
         this.drawing.drawUIBackground.bind(this.drawing)
       );
       this.buttons.forEach(this.drawing.drawButton.bind(this.drawing));
-      this.icons.forEach(this.drawing.drawIcon.bind(this.drawing));
-      this.drawing.drawStats(this.resources || {
-        wood: 1210,
-        stone: 1320,
-        food: 2120,
-        coin: 5430,
-        ammo: 1203,
-        peopleMax: 10,
-        peopleUsed: 5
-      });
+      this.icons.forEach(this.drawing.drawStat.bind(this.drawing));
     }
   }
   /**
@@ -166,6 +159,8 @@ export class Game {
     this.buttons = parsedData.playerData.ui.buttons;
     this.icons = parsedData.playerData.ui.icons;
     this.resources = parsedData.playerData.resources;
+    this.resourceRates = parsedData.playerData.resourceRates;
+    this.population = parsedData.playerData.population;
 
 
     this.viewport.updateTrackingPosition(parsedData.playerData.self);
