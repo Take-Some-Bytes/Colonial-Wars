@@ -150,14 +150,14 @@ const Constants = {
         wood: 0,
         stone: 0,
         food: 2,
-        gold: 30,
-        population: 1
+        coins: 30,
+        people: 1
       },
       resource_min: {
         wood: 0,
         stone: 0,
         food: 1,
-        gold: 2,
+        coins: 2,
         ammo: 0
       }
     },
@@ -172,14 +172,14 @@ const Constants = {
         wood: 3,
         stone: 0,
         food: 3,
-        gold: 50,
-        population: 1
+        coins: 50,
+        people: 1
       },
       resource_min: {
         wood: 0,
         stone: 0,
         food: 2,
-        gold: 5,
+        coins: 5,
         ammo: 0
       }
     },
@@ -194,14 +194,14 @@ const Constants = {
         wood: 5,
         stone: 1,
         food: 3,
-        gold: 95,
-        population: 2
+        coins: 95,
+        people: 2
       },
       resource_min: {
         wood: 0,
         stone: 0,
         food: 3,
-        gold: 8,
+        coins: 8,
         ammo: 0
       }
     },
@@ -216,14 +216,14 @@ const Constants = {
         wood: 5,
         stone: 1,
         food: 5,
-        gold: 120,
-        population: 2
+        coins: 120,
+        people: 2
       },
       resource_min: {
         wood: 0,
         stone: 0,
         food: 4,
-        gold: 12,
+        coins: 12,
         ammo: 0
       }
     },
@@ -238,14 +238,14 @@ const Constants = {
         wood: 5,
         stone: 2,
         food: 4,
-        gold: 145,
-        population: 2
+        coins: 145,
+        people: 2
       },
       resource_min: {
         wood: 2,
         stone: 0,
         food: 4,
-        gold: 10,
+        coins: 10,
         ammo: 0
       }
     },
@@ -260,14 +260,14 @@ const Constants = {
         wood: 5,
         stone: 1,
         food: 2,
-        gold: 45,
-        population: 1
+        coins: 45,
+        people: 1
       },
       resource_min: {
         wood: 0,
         stone: 0,
         food: 2,
-        gold: 4,
+        coins: 4,
         ammo: 0
       }
     },
@@ -282,14 +282,14 @@ const Constants = {
         wood: 20,
         stone: 10,
         food: 6,
-        gold: 225,
-        population: 4
+        coins: 225,
+        people: 4
       },
       resource_min: {
         wood: 0,
         stone: 3,
         food: 4,
-        gold: 16,
+        coins: 16,
         ammo: 0
       }
     },
@@ -304,14 +304,14 @@ const Constants = {
         wood: 30,
         stone: 15,
         food: 6,
-        gold: 350,
-        population: 5
+        coins: 350,
+        people: 5
       },
       resource_min: {
         wood: 0,
         stone: 3,
         food: 6,
-        gold: 25,
+        coins: 25,
         ammo: 0
       }
     },
@@ -326,14 +326,14 @@ const Constants = {
         wood: 40,
         stone: 20,
         food: 6,
-        gold: 400,
-        population: 5
+        coins: 400,
+        people: 5
       },
       resource_min: {
         wood: 0,
         stone: 6,
         food: 10,
-        gold: 20,
+        coins: 20,
         ammo: 0
       }
     },
@@ -348,14 +348,14 @@ const Constants = {
         wood: 20,
         stone: 5,
         food: 3,
-        gold: 165,
-        population: 2
+        coins: 165,
+        people: 2
       },
       resource_min: {
         wood: 0,
         stone: 1,
         food: 3,
-        gold: 14,
+        coins: 14,
         ammo: 0
       }
     }
@@ -370,6 +370,8 @@ const Constants = {
       build_time: 0,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 0,
       cost: {},
       resource_gen: {},
       resource_min: {},
@@ -383,12 +385,14 @@ const Constants = {
       build_time: 0,
       can_attack: false,
       range: 0,
+      populationIncrease: 20,
+      populationCost: 0,
       cost: {},
       resource_gen: {
         wood: 10,
         stone: 5,
         food: 10,
-        gold: 10,
+        coins: 10,
         ammo: 6
       },
       resource_min: {},
@@ -402,24 +406,25 @@ const Constants = {
       build_time: 36,
       can_attack: false,
       range: 0,
+      populationIncrease: 15,
+      populationCost: 0,
       cost: {
         wood: 30,
         stone: 8,
-        gold: 5,
-        population: 0
+        coins: 5
       },
       resource_gen: {
         wood: 0,
         stone: 0,
         food: 0,
-        gold: 25,
+        coins: 25,
         ammo: 0
       },
       resource_min: {
         wood: 1,
         stone: 0,
         food: 1,
-        gold: 0,
+        coins: 0,
         ammo: 0
       },
       resource_bonus: {}
@@ -432,24 +437,25 @@ const Constants = {
       build_time: 18,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 3,
       cost: {
         wood: 15,
         stone: 5,
-        gold: 2,
-        population: 3
+        coins: 2
       },
       resource_gen: {
         wood: 0,
         stone: 0,
         food: 20,
-        gold: 0,
+        coins: 0,
         ammo: 0
       },
       resource_min: {
         wood: 1,
         stone: 1,
         food: 0,
-        gold: 1,
+        coins: 1,
         ammo: 0
       },
       resource_bonus: {}
@@ -462,24 +468,25 @@ const Constants = {
       build_time: 28,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 2,
       cost: {
         wood: 26,
         stone: 10,
-        gold: 2,
-        population: 2
+        coins: 2
       },
       resource_gen: {
         wood: 16,
         stone: 0,
         food: 0,
-        gold: 0,
+        coins: 0,
         ammo: 0
       },
       resource_min: {
         wood: 0,
         stone: 1,
         food: 0,
-        gold: 1,
+        coins: 1,
         ammo: 0
       },
       resource_bonus: {}
@@ -492,24 +499,25 @@ const Constants = {
       build_time: 32,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 2,
       cost: {
         wood: 20,
         stone: 2,
-        gold: 5,
-        population: 2
+        coins: 5
       },
       resource_gen: {
         wood: 0,
         stone: 16,
         food: 0,
-        gold: 0,
+        coins: 0,
         ammo: 0
       },
       resource_min: {
         wood: 1,
         stone: 0,
         food: 0,
-        gold: 1,
+        coins: 1,
         ammo: 0
       },
       resource_bonus: {}
@@ -522,24 +530,25 @@ const Constants = {
       build_time: 60,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 2,
       cost: {
         wood: 65,
         stone: 40,
-        gold: 25,
-        population: 2
+        coins: 25
       },
       resource_gen: {
         wood: 0,
         stone: 0,
         food: 0,
-        gold: 0,
+        coins: 0,
         ammo: 20
       },
       resource_min: {
         wood: 1,
         stone: 4,
         food: 0,
-        gold: 3,
+        coins: 3,
         ammo: 0
       },
       resource_bonus: {}
@@ -552,25 +561,26 @@ const Constants = {
       build_time: 40,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 2,
       cost: {
         wood: 100,
         stone: 40,
-        gold: 20,
-        population: 2
+        coins: 20
       },
       resource_gen: {},
       resource_min: {
         wood: 1,
         stone: 1,
         food: 0,
-        gold: 2,
+        coins: 2,
         ammo: 0
       },
       resource_bonus: {
         woodIncrease: 0,
         stoneIncrease: 0,
         foodIncrease: 1.5,
-        goldIncrease: 0,
+        coinsIncrease: 0,
         ammoIncrease: 0
       }
     },
@@ -582,25 +592,26 @@ const Constants = {
       build_time: 40,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 2,
       cost: {
         wood: 95,
         stone: 25,
-        gold: 12,
-        population: 2
+        coins: 12
       },
       resource_gen: {},
       resource_min: {
         wood: 0,
         stone: 1,
         food: 0,
-        gold: 2,
+        coins: 2,
         ammo: 0
       },
       resource_bonus: {
         woodIncrease: 1.5,
         stoneIncrease: 0,
         foodIncrease: 0,
-        goldIncrease: 0,
+        coinsIncrease: 0,
         ammoIncrease: 0
       }
     },
@@ -612,25 +623,26 @@ const Constants = {
       build_time: 40,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 2,
       cost: {
         wood: 40,
         stone: 60,
-        gold: 16,
-        population: 2
+        coins: 16
       },
       resource_gen: {},
       resource_min: {
         wood: 0,
         stone: 1,
         food: 0,
-        gold: 3,
+        coins: 3,
         ammo: 0
       },
       resource_bonus: {
         woodIncrease: 0,
         stoneIncrease: 1.5,
         foodIncrease: 0,
-        goldIncrease: 0,
+        coinsIncrease: 0,
         ammoIncrease: 0
       }
     },
@@ -642,11 +654,12 @@ const Constants = {
       build_time: 24,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 0,
       cost: {
         wood: 15,
         stone: 30,
-        gold: 10,
-        population: 0
+        coins: 10
       },
       resource_gen: {},
       resource_min: {},
@@ -654,7 +667,7 @@ const Constants = {
         woodIncrease: 0,
         stoneIncrease: 0,
         foodIncrease: 0,
-        goldIncrease: 1.5,
+        coinsIncrease: 1.5,
         ammoIncrease: 0
       }
     },
@@ -672,11 +685,12 @@ const Constants = {
       build_time: 60,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 1,
       cost: {
         wood: 70,
         stone: 80,
-        gold: 40,
-        population: 1
+        coins: 40
       },
       resource_gen: {},
       resource_min: {},
@@ -692,11 +706,12 @@ const Constants = {
       build_time: 34,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 1,
       cost: {
         wood: 30,
         stone: 15,
-        gold: 20,
-        population: 1
+        coins: 20
       },
       resource_gen: {},
       resource_min: {},
@@ -715,11 +730,12 @@ const Constants = {
       build_time: 90,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 4,
       cost: {
         wood: 65,
         stone: 110,
-        gold: 60,
-        population: 4
+        coins: 60
       },
       resource_gen: {},
       resource_min: {},
@@ -733,11 +749,12 @@ const Constants = {
       build_time: 28,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 1,
       cost: {
         wood: 15,
         stone: 2,
-        gold: 0,
-        population: 0
+        coins: 0
       },
       resource_gen: {},
       resource_min: {},
@@ -751,18 +768,19 @@ const Constants = {
       build_time: 46,
       can_attack: true,
       range: 95,
+      populationIncrease: 0,
+      populationCost: 1,
       cost: {
         wood: 50,
         stone: 80,
-        gold: 30,
-        population: 1
+        coins: 30
       },
       resource_gen: {},
       resource_min: {
         wood: 2,
         stone: 1,
         food: 0,
-        gold: 3,
+        coins: 3,
         ammo: 1
       },
       resource_bonus: {}
@@ -775,18 +793,19 @@ const Constants = {
       build_time: 46,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 0,
       cost: {
         wood: 20,
         stone: 80,
-        gold: 20,
-        population: 0
+        coins: 20
       },
       resource_gen: {},
       resource_min: {
         wood: 2,
         stone: 1,
         food: 0,
-        gold: 3,
+        coins: 3,
         ammo: 1
       },
       resource_bonus: {}
@@ -799,11 +818,12 @@ const Constants = {
       build_time: 38,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 0,
       cost: {
         wood: 20,
         stone: 30,
-        gold: 8,
-        population: 0
+        coins: 8
       },
       resource_gen: {},
       resource_min: {},
@@ -811,17 +831,18 @@ const Constants = {
     },
     supply_depot: {
       max_health: 3000,
-      hitbox_size: 300,
-      mass: 1000,
+      hitbox_size: 400,
+      mass: 3000,
       spawned_troops: [],
       build_time: 56,
       can_attack: false,
       range: 0,
+      populationIncrease: 0,
+      populationCost: 0,
       cost: {
         wood: 40,
-        stone: 30,
-        gold: 20,
-        population: 0
+        stone: 90,
+        coins: 40
       },
       resource_gen: {},
       resource_min: {},
@@ -874,7 +895,7 @@ const Constants = {
     British: new Vector(-3800, -3220),
     French: new Vector(-2200, -2800),
     Russian: new Vector(-1100, -1100),
-    German: new Vector(3800, 3220),
+    Prussian: new Vector(3800, 3220),
     American: new Vector(0, 0),
     Italian: new Vector(2300, 1900)
   },
@@ -893,7 +914,7 @@ const Constants = {
   SOCKET_SECURITY_DATA: "security-data",
   SOCKET_PROCEED: "proceed",
   //Version
-  VERSION: "0.8.0-ALPHA",
+  VERSION: "0.8.2-ALPHA",
   //UI things
   BUTTON_COOLDOWN: 500,
   BUTTON_KEYS: [
@@ -905,7 +926,7 @@ const Constants = {
     "wood",
     "stone",
     "food",
-    "coin",
+    "coins",
     "ammo",
     "people"
   ],
@@ -913,9 +934,9 @@ const Constants = {
     wood: "The amount of wood you have.",
     stone: "The amount of stone you have.",
     food: "The amount of food you have to feed your people.",
-    coin: "The amount of coins you have",
+    coins: "The amount of coins you have",
     ammo: "The amount of ammo your troops can use",
-    people: "Your population. The left number is about how many " +
+    people: "Your people. The left number is about how many " +
       "people you you are using, the right number is " +
       "about how many people you have in total"
   }
