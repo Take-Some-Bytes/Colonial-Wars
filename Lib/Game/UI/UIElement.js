@@ -26,7 +26,7 @@ class UIElement {
     this.width = config.width || 133;
     this.height = config.height || 25;
     this.image = config.image || undefined;
-    this.value = config.value || undefined;
+    this.value = config.value;
 
     this.position = config.position || Vector.zero();
     this.onHover = config.onHover || function() { return false; };
