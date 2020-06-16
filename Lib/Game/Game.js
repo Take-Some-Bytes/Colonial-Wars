@@ -29,7 +29,7 @@ class Game {
     * British: Vector,
     * French: Vector,
     * Russian: Vector,
-    * German: Vector,
+    * Prussian: Vector,
     * American: Vector,
     * Italian: Vector
     * }} startPositions The start positions of the players
@@ -61,7 +61,7 @@ class Game {
       this.teams.set("British", new Map());
       this.teams.set("French", new Map());
       this.teams.set("Russian", new Map());
-      this.teams.set("German", new Map());
+      this.teams.set("Prussian", new Map());
       this.teams.set("American", new Map());
       this.teams.set("Italian", new Map());
       this.teams.set("Neutral", []);
@@ -420,6 +420,8 @@ class Game {
             return newProps;
           }),
           resources: currentPlayer.resources,
+          resourceRate: currentPlayer.resourceRate,
+          population: currentPlayer.population,
           // troops: this.troops
           ui: {
             buttons: currentPlayer.buttons.map(button => {
@@ -457,7 +459,7 @@ class Game {
     * British: Vector,
     * French: Vector,
     * Russian: Vector,
-    * German: Vector,
+    * Prussian: Vector,
     * American: Vector,
     * Italian: Vector
     * }} startPositions The start positions of the players
