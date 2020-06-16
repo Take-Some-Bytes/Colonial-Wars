@@ -102,7 +102,7 @@
       "no-new-require": "warn",
       "no-path-concat": "warn",
       "no-process-exit": "warn",
-      "no-sync": "off",
+      "no-sync": "warn",
  
       // Stylistic Issues
       "array-bracket-spacing": ["warn", "never"],
@@ -117,7 +117,7 @@
       "comma-style": ["warn", "last"],
       "computed-property-spacing": ["warn", "never"],
       "consistent-this": "warn",
-      "eol-last": "off",
+      "eol-last": "warn",
       "func-call-spacing": ["warn", "never"],
       "func-name-matching": ["warn", "always"],
       "func-names": ["warn", "never"],
