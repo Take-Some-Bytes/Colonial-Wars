@@ -6,6 +6,7 @@
 //Dependencies and stuff
 const express = require("express");
 const fs = require("fs");
+const path = require("path");
 const security = require("./Security/Security").create(
   ["GET", "POST", "HEAD"], false, false
 );
@@ -35,66 +36,91 @@ router.use((req, res, next) => {
 //Homepage
 router.route("/")
   .get((req, res, next) => {
-    serveFile(req, res, next, "Public/index.html",
+    const filePath = path.join(
+      __dirname, "../",
+      "Public/index.html"
+    );
+
+    serveFile(req, res, next, filePath,
       "<h1>Page Not Found:(</h1>\n" +
       "<h3>Somehow the home page isn't where it used to be</h3>"
     );
   })
-  .post((req, res, next) => methodNotAllowed(req, res, next))
+  .post((req, res, next) => methodNotAllowed(req, res, next, ["GET"]))
   .put((req, res, next) => methodNotImplemented(req, res, next))
   .delete((req, res, next) => methodNotImplemented(req, res, next));
 
 //Game page
 router.route("/play")
   .get((req, res, next) => {
-    serveFile(req, res, next, "Public/play.html",
+    const filePath = path.join(
+      __dirname, "../",
+      "Public/play.html"
+    );
+
+    serveFile(req, res, next, filePath,
       "<h1>Page Not Found:(</h1>\n" +
       "<h3>Somehow the play page isn't where it used to be</h3>"
     );
   })
-  .post((req, res, next) => methodNotAllowed(req, res, next))
+  .post((req, res, next) => methodNotAllowed(req, res, next, ["GET"]))
   .put((req, res, next) => methodNotImplemented(req, res, next))
   .delete((req, res, next) => methodNotImplemented(req, res, next));
 
 //About page
 router.route("/about")
   .get((req, res, next) => {
-    serveFile(req, res, next, "Public/about.html",
+    const filePath = path.join(
+      __dirname, "../",
+      "Public/about.html"
+    );
+
+    serveFile(req, res, next, filePath,
       "<h1>Page Not Found:(</h1>\n" +
       "<h3>Somehow the about page isn't where it used to be</h3>"
     );
   })
-  .post((req, res, next) => methodNotAllowed(req, res, next))
+  .post((req, res, next) => methodNotAllowed(req, res, next, ["GET"]))
   .put((req, res, next) => methodNotImplemented(req, res, next))
   .delete((req, res, next) => methodNotImplemented(req, res, next));
 
 //Version page
 router.route("/version")
   .get((req, res, next) => {
-    serveFile(req, res, next, "Public/version.html",
+    const filePath = path.join(
+      __dirname, "../",
+      "Public/version.html"
+    );
+
+    serveFile(req, res, next, filePath,
       "<h1>Page Not Found:(</h1>\n" +
       "<h3>Somehow the version page isn't where it used to be</h3>"
     );
   })
-  .post((req, res, next) => methodNotAllowed(req, res, next))
+  .post((req, res, next) => methodNotAllowed(req, res, next, ["GET"]))
   .put((req, res, next) => methodNotImplemented(req, res, next))
   .delete((req, res, next) => methodNotImplemented(req, res, next));
 
 //License Page
 router.route("/license")
   .get((req, res, next) => {
-    serveFile(req, res, next, "Public/license.html",
+    const filePath = path.join(
+      __dirname, "../",
+      "Public/license.html"
+    );
+
+    serveFile(req, res, next, filePath,
       "<h1>Page Not Found:(</h1>\n" +
     "<h3>Somehow the license page isn't where it used to be</h3>"
     );
   })
-  .post((req, res, next) => methodNotAllowed(req, res, next))
+  .post((req, res, next) => methodNotAllowed(req, res, next, ["GET"]))
   .put((req, res, next) => methodNotImplemented(req, res, next))
   .delete((req, res, next) => methodNotImplemented(req, res, next));
 
 //CSP report uri
-router.route("/logs/CSP-reports.log")
-  .get((req, res, next) => methodNotAllowed(req, res, next))
+router.route("/CSP-report")
+  .get((req, res, next) => methodNotAllowed(req, res, next, ["POST"]))
   .post((req, res, next) => {
     logCSPReport(req, res, next);
   })
@@ -155,7 +181,12 @@ router.route("/xhr")
       break;
     }
     case "license_text.html": {
-      const s = fs.createReadStream("Public/license_text.html");
+      const s = fs.createReadStream(
+        path.join(
+          __dirname, "../",
+          "Public/license_text.html"
+        )
+      );
       let data = "";
       s.on("data", chunk => {
         data += chunk;
@@ -171,15 +202,15 @@ router.route("/xhr")
     }
     default:
       ServerLogger.notice(
-        `Someone tried to get: ${req.url} without a for field. ` +
+        `Someone tried to get: ${req.url} with an unrecognized for field. ` +
         `Request date: ${date}`
       );
       res
         .status(400)
-        .send("No for field! Cannot process request");
+        .send("Unrecognized for field! Cannot process request");
     }
   })
-  .post((req, res, next) => methodNotAllowed(req, res, next))
+  .post((req, res, next) => methodNotAllowed(req, res, next, ["GET"]))
   .put((req, res, next) => methodNotImplemented(req, res, next))
   .delete((req, res, next) => methodNotImplemented(req, res, next));
 
@@ -188,7 +219,7 @@ router.route("*")
   .get((req, res, next) => {
     handleOther(req, res, next);
   })
-  .post((req, res, next) => methodNotAllowed(req, res, next))
+  .post((req, res, next) => methodNotAllowed(req, res, next, ["GET"]))
   .put((req, res, next) => methodNotImplemented(req, res, next))
   .delete((req, res, next) => methodNotImplemented(req, res, next));
 /**
