@@ -3,6 +3,16 @@ This is a changelog for the whole web app.
 
 ## Pre-release
 This is the pre-release part of the changelog
+#### 0.8.2
+- Changed ```German``` team into ```Prussian``` team
+- Started using sprite sheets more
+- Updated ```handleOther``` method
+- Updated how the router handles requests; now the ```fs.createReadStream``` use absolute paths
+- Added a line in the ```methodNotAllowed``` function to send an ```Allow``` header
+- Added support for the new ```report-to``` CSP directive
+- Added a some scripts in package.json
+- Re-thought how the game is going to work
+- Finished the resource stat display for the game
 #### 0.8.1
 - Added a ```UIElement``` base class for the UI elements to further use the OOP nature of
 JavaScript
