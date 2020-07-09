@@ -3,15 +3,16 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-const {
-  deepClear, getEuclideanDist2, inCircle, getNonCallableProps
-} = require("../Util");
 const Player = require("./Player");
 const Vector = require("./Physics/Vector");
 const Projectile = require("./Game/Projectile");
 const Building = require("./Game/Building");
 const Troop = require("./Game/Troop");
-const Constants = require("../Constants");
+const Constants = require("../common/constants");
+const {
+  deepClear, getEuclideanDist2, inCircle, getNonCallableProps
+} = require("../common/util");
+const debug = require("../common/debug");
 
 const socketIO = require("socket.io");
 /**
@@ -133,7 +134,7 @@ class Game {
     */
   addNewPlayer(socket, name, team) {
     if (this.closed) {
-      throw new Error("Max number of players reached; game is closed.")
+      throw new Error("Max number of players reached; game is closed.");
     }
 
     const startPosition = this.startPositions[team].copy();
@@ -438,8 +439,8 @@ class Game {
       });
 
       this.numEmits++;
-      if (this.numEmits > 40 * 2 * 20) {
-        console.log("Packet size: ",
+      if (this.numEmits > 25 * 30) {
+        debug("Packet size: ",
           Buffer.from(dataToEmit, "utf-8").byteLength
         );
         this.numEmits = 0;
