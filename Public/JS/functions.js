@@ -67,7 +67,7 @@ export async function init(cb) {
     name: $("#name-input").val(),
     game: $("input[name='game']:checked", "#game-select").val(),
     team: $("select#teams option:checked").val()
-  }
+  };
   let err = null;
 
   if (!data.name || data.name.length > 22) {
