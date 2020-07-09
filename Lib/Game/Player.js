@@ -4,16 +4,16 @@
  */
 
 //Imports
-const Troop = require("./Game/Troop");
-const Building = require("./Game/Building");
-const Projectile = require("./Game/Projectile");
+// const Troop = require("./Game/Troop");
+// const Building = require("./Game/Building");
+// const Projectile = require("./Game/Projectile");
 const Button = require("./UI/Button");
 const Icon = require("./UI/Icon");
 const Vector = require("./Physics/Vector");
-const Constants = require("../Constants");
+const Constants = require("../common/constants");
 const {
-  degreeToRadian, bind, multiplySomething, checkProperties, delay
-} = require("../Util");
+  degreeToRadian, bind, multiplySomething, checkProperties
+} = require("../common/util");
 
 /**
  * Player class
@@ -53,7 +53,7 @@ class Player {
     this.population = {
       used: 0,
       max: 0
-    }
+    };
 
     this.velocity = Vector.zero();
     this.speed = Constants.PLAYER_DEFAULT_SPEED;
@@ -121,7 +121,7 @@ class Player {
         clickable: false,
         onHover: function() {
           icon.hovered = true;
-          icon.displayInfoText = true
+          icon.displayInfoText = true;
         },
         onNotHover: function() {
           icon.hovered = false;
@@ -242,11 +242,11 @@ class Player {
       resourceGen.ammo, resourceBonus.ammoIncrease
     ]) - resourceMin.ammo;
 
-    // console.log("Resource Gen");
+    // debug("Resource Gen");
     // console.table(resourceGen);
-    // console.log("Resource Min");
+    // debug("Resource Min");
     // console.table(resourceMin);
-    // console.log("Resource Bonus");
+    // debug("Resource Bonus");
     // console.table(resourceBonus);
 
     return totalResourceRate;
@@ -283,7 +283,7 @@ class Player {
   updateResourceRate(amounts) {
     const newResourceRates = Object.getOwnPropertyNames(amounts);
     const resourceRates = Object.getOwnPropertyNames(this.resourceRate);
-    const newResourceRatesLength = newResourceRates.length
+    const newResourceRatesLength = newResourceRates.length;
 
     for (let i = 0; i < newResourceRatesLength; i++) {
       this.resourceRate[resourceRates[i]] = amounts[newResourceRates[i]];
