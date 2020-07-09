@@ -3,12 +3,14 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-const Game = require("./Game");
-const Vector = require("./Physics/Vector");
-const Constants = require("../Constants");
+//Imports
 const crypto = require("crypto");
 const socketIO = require("socket.io");
-const { deepClear } = require("../Util");
+
+const Game = require("./Game");
+const Vector = require("./Physics/Vector");
+const Constants = require("../common/constants");
+const { deepClear } = require("../common/util");
 
 /**
  * Manager class
@@ -100,7 +102,7 @@ class Manager {
       clientID: newStats.id,
       clientToken: newStats.token,
       socket: newStats.socket
-    }
+    };
     this.clients.delete(ID);
     this.clients.set(newStats.id, client);
   }
@@ -150,7 +152,7 @@ class Manager {
       const game = this.games.get(gameID);
       return game;
     }
-    throw new Error("Game does not exist; cannot get game.")
+    throw new Error("Game does not exist; cannot get game.");
   }
   /**
    * Performs a game update
