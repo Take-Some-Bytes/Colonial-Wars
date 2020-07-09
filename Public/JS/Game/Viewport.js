@@ -71,6 +71,6 @@ export class Viewport extends Entity {
     return new Viewport(
       Vector.zero(), Vector.zero(),
       canvas.width, canvas.height
-    )
+    );
   }
 }
