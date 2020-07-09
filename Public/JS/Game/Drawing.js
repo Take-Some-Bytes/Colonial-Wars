@@ -51,7 +51,7 @@ export class Drawing {
         { x: Constants.WORLD_MAX, y: Constants.WORLD_MAX });
       for (let x = start.x; x < end.x; x += Constants.DRAWING_TILE_SIZE) {
         for (let y = start.y; y < end.y; y += Constants.DRAWING_TILE_SIZE) {
-          this.context.drawImage(this.images[this.tilesCanDraw[0]], x, y)
+          this.context.drawImage(this.images[this.tilesCanDraw[0]], x, y);
         }
       }
     }
@@ -362,13 +362,13 @@ export class Drawing {
     for (const ui of Constants.DRAWING_UI_KEYS) {
       images[ui] = new Image();
       images[ui].src =
-        `${Constants.DRAWING_UI_BASE_PATH}/${ui}.png`
+        `${Constants.DRAWING_UI_BASE_PATH}/${ui}.png`;
     }
 
     for (const bg of Constants.DRAWING_UI_BACKGROUND_KEYS) {
       images[bg] = new Image();
       images[bg].src =
-        `${Constants.DRAWING_UI_BASE_PATH}/backgrounds/${bg}.png`
+        `${Constants.DRAWING_UI_BASE_PATH}/backgrounds/${bg}.png`;
     }
     //Add tiles
     if (mapName === "testing") {
