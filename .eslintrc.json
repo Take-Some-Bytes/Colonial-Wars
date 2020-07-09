@@ -180,7 +180,7 @@
             "ArrowFunctionExpression": true
          }
       }],
-      "semi": ["off", "never"],
+      "semi": ["warn", "always"],
       "semi-spacing": "warn",
       "semi-style": ["warn", "last"],
       "space-before-blocks": ["warn", "always"],
