@@ -3,51 +3,46 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
+//Define process.env.NODE_ENV
+process.env.NODE_ENV = process.env.NODE_ENV || "development";
+
 //Dependencies
 const http = require("http");
 const path = require("path");
 const express = require("express");
 const socketIO = require("socket.io");
-const crypto = require("crypto");
 
 //Variables
 const PROTOCOL = "http";
-const PORT = PROTOCOL === "http" ? 80 : 443;
+const PORT = PROTOCOL === "http" ? 8000 : 4430;
 const HOST = "localhost";
 
 //Custom modules
-const router = require("./Lib/Router");
-const loggers = require("./Lib/Common/init");
-const manager = loggers.manager;
-const ErrorLogger = loggers.get("Error-logger");
-const SessionStorage = require("./Lib/Security/SessionStorage");
+const router = require("./Lib/router");
 const middleware = require("./Lib/middleware");
-const Constants = require("./Lib/Constants");
-const { logMemoryUsage } = require("./Lib/Util");
+const init = require("./Lib/common/init");
+const Constants = require("./Lib/common/constants");
+const { logMemoryUsage } = require("./Lib/common/util");
+const debug = require("./Lib/common/debug");
 
 //Initialization
-const serverToken = crypto.randomBytes(32).toString("hex");
+const serverToken = init.serverToken;
+const wsSessions = init.sessionStorages.wsSessions;
+const webSessions = init.sessionStorages.webSessions;
+const secret = init.cookieSecret;
+const manager = init.manager;
+
+const ServerLogger = init.winstonLoggers.get("Server-logger");
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 const playIO = io.of("/play");
-const wsSessions = new SessionStorage(
-  crypto.randomBytes(16).toString("hex"),
-  serverToken,
-  8 * 60 * 1000
-);
-const webSessions = new SessionStorage(
-  crypto.randomBytes(16).toString("hex"),
-  serverToken,
-  8 * 60 * 1000
-);
 
 const pendingClients = {};
-const secret = crypto.randomBytes(16).toString("hex");
 
 //Settings
 app.set("query parser", middleware.parseURL);
-
 app.disable("x-powered-by");
 
 //Middleware
@@ -70,7 +65,7 @@ io.use((socket, next) => {
   next();
 });
 io.on("connection", socket => {
-  console.log("Connection!", socket.id);
+  debug("Connection!", socket.id);
   socket.use(middleware.socketEmitCP(serverToken, socket));
   socket.on(Constants.SOCKET_NEW_PLAYER, (data, cb) => {
     let err = null;
@@ -80,7 +75,7 @@ io.on("connection", socket => {
 
       if (!gameToJoin) {
         err = new Error("Game does not exist.");
-        ErrorLogger.error(err);
+        ServerLogger.error(err);
 
         cb("Selected game does not exist.");
       } else {
@@ -94,13 +89,13 @@ io.on("connection", socket => {
       }
     } catch (error) {
       err = error;
-      ErrorLogger.error(error);
+      ServerLogger.error(error);
 
       cb("Something went wrong. Please try again later.");
     }
   });
   socket.on(Constants.SOCKET_DISCONNECT, () => {
-    console.log("Client Disconnected!", socket.id);
+    debug("Client Disconnected!", socket.id);
     if (!pendingClients[socket.id]) {
       const client = manager.getClient(socket.id);
       const session = wsSessions.getSessionInfo(socket.id);
@@ -109,7 +104,7 @@ io.on("connection", socket => {
         try {
           wsSessions.deleteSession(socket.id);
         } catch (err) {
-          ErrorLogger.error(err);
+          ServerLogger.error(err);
         }
       }
     }
@@ -165,7 +160,7 @@ playIO.use((socket, next) => {
 playIO.on("connection", socket => {
   const gameID = pendingClients[socket.handshake.query.prevSocketID].gameID;
   delete pendingClients[socket.handshake.query.prevSocketID];
-  console.log("Connection!", socket.id);
+  debug("Connection!", socket.id);
   logMemoryUsage();
   socket.on(Constants.SOCKET_PLAYER_ACTION, data => {
     const parsedData = JSON.parse(data);
@@ -173,7 +168,7 @@ playIO.on("connection", socket => {
     game.updatePlayerOnInput(socket.id, parsedData.playerData.actionData);
   });
   socket.on(Constants.SOCKET_DISCONNECT, () => {
-    console.log("Client Disconnected!", socket.id);
+    debug("Client Disconnected!", socket.id);
     const client = manager.getClient(socket.id);
     const session = wsSessions.getSessionInfo(socket.id);
     if (client && session) {
@@ -181,7 +176,7 @@ playIO.on("connection", socket => {
       try {
         wsSessions.deleteSession(socket.id);
       } catch (err) {
-        ErrorLogger.error(err);
+        ServerLogger.error(err);
       }
     }
     manager.removeClientFromGame(gameID, socket);
@@ -189,8 +184,8 @@ playIO.on("connection", socket => {
 });
 
 server.listen(PORT, HOST, 20, () => {
-  console.log(`Server started on port ${PORT}, http://${HOST}.`);
-  console.log(`Protocol is: ${PROTOCOL}.`);
+  debug(`Server started on port ${PORT}, http://${HOST}.`);
+  debug(`Protocol is: ${PROTOCOL}.`);
   logMemoryUsage();
 });
 
@@ -222,7 +217,7 @@ setInterval(() => {
       try {
         webSessions.deleteSession(ID);
       } catch (err) {
-        ErrorLogger.error(err);
+        ServerLogger.error(err);
       }
     }
   });
