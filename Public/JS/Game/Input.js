@@ -18,7 +18,7 @@ export class Input {
 
     this.leftMouseDown = false;
     this.rightMouseDown = false;
-    this.mousePosition = [0, 0]
+    this.mousePosition = [0, 0];
     this.pastMousePosition = [0, 0];
   }
   /**
