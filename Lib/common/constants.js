@@ -3,8 +3,8 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-const { deepFreeze } = require("./Util");
-const Vector = require("./Game/Physics/Vector");
+const { deepFreeze } = require("./util");
+const Vector = require("../Game/Physics/Vector");
 
 const Constants = {
   //World max and min
@@ -914,7 +914,7 @@ const Constants = {
   SOCKET_SECURITY_DATA: "security-data",
   SOCKET_PROCEED: "proceed",
   //Version
-  VERSION: "0.8.2-ALPHA",
+  VERSION: "0.8.3-ALPHA",
   //UI things
   BUTTON_COOLDOWN: 500,
   BUTTON_KEYS: [
@@ -939,7 +939,36 @@ const Constants = {
     people: "Your people. The left number is about how many " +
       "people you you are using, the right number is " +
       "about how many people you have in total"
-  }
+  },
+  //Logging things
+  WINSTON_LOGGING_LEVELS: {
+    levels: {
+      fatal: 0,
+      error: 1,
+      warning: 2,
+      notice: 3,
+      info: 4,
+      debug: 5,
+      trace: 6
+    },
+    colors: {
+      fatal: "red",
+      error: "red",
+      warning: "yellow",
+      notice: "blue",
+      info: "green",
+      debug: "white",
+      trace: "grey"
+    }
+  },
+  WINSTON_LOGGING_TIMESTAMP_FORMAT: "ddd[,] DD MMM YYYY HH:mm:ss Z",
+  MORGAN_LOGGING_FORMAT: ":date[web]: Request received at :reqPath, " +
+    "with method :method. Request full url: :url",
+  //Other stuff
+  SEC_ALLOWED_METHODS: [
+    "GET", "POST", "HEAD"
+  ],
+  REQ_URL_MAX_LEN: 150
 };
 
 deepFreeze(Constants);
