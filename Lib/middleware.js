@@ -9,19 +9,22 @@ const crypto = require("crypto");
 const cookieParser = require("cookie-parser");
 const express = require("express");
 const socketIO = require("socket.io");
+
 const SessionStorage = require("./Security/SessionStorage");
 const Manager = require("./Game/Manager");
-const Constants = require("./Constants");
-const { makeID } = require("./Util");
-const loggers = require("./Common/init");
+const init = require("./common/init");
+const Constants = require("./common/constants");
+const { makeID } = require("./common/util");
+
+const loggers = init.winstonLoggers;
 const ErrorLogger = loggers.get("Error-logger");
 const ServerLogger = loggers.get("Server-logger");
 
 /**
  * Parses the request url query.
  * @param {String} str Client request
- * @returns {Object}
- * @api public
+ * @returns {qs.ParsedUrlQuery}
+ * @access public
  */
 function parseURL(str) {
   const parsedQuery = qs.parse(str);
@@ -31,7 +34,7 @@ function parseURL(str) {
  * Parses cookies
  * @param {String} secret The secret to parse signed cookies with
  * @returns {Function}
- * @api public
+ * @access public
  */
 function parseCookies(secret) {
   const fn = cookieParser(secret);
@@ -44,7 +47,7 @@ function parseCookies(secret) {
  * @param {Number} sessionMaxAge The client's session's max age
  * @param {express.request} req Client request
  * @param {express.response} res Server response
- * @api private
+ * @access private
  */
 function startSession(clientToken, clientID, sessionMaxAge, req, res) {
   const token = clientToken;
@@ -63,10 +66,19 @@ function startSession(clientToken, clientID, sessionMaxAge, req, res) {
  * @param {SessionStorage} storage The session storage to work with
  * @param {String} serverToken The server's token
  * @returns {Function}
- * @api public
+ * @access public
  */
 function checkPoint(storage, serverToken) {
   return function(req, res, next) {
+    const reqUrlLength = req.url.length;
+    if (reqUrlLength > Constants.REQ_URL_MAX_LEN) {
+      res.type("html");
+      res
+        .status(414)
+        .send("<h1>Request URI too long!</h1>");
+      return;
+    }
+
     const cookies = req.signedCookies;
     if (!cookies.clientID && !cookies.token) {
       const token = crypto.randomBytes(16).toString("hex");
@@ -88,7 +100,7 @@ function checkPoint(storage, serverToken) {
       } catch (err) {
         ErrorLogger.error(err);
         ServerLogger.error(err);
-        res.set("Content-type", "text/html");
+        res.type("html");
         res
           .status(500)
           .send("<h1>Uh, something went wrong...</h1>");
@@ -96,7 +108,7 @@ function checkPoint(storage, serverToken) {
       startSession(token, id, maxAge, req, res);
       next();
     } else if (!cookies.clientID && cookies.token) {
-      res.set("Content-type", "text/html");
+      res.type("html");
       res
         .status(401)
         .send("<h1>No client ID specified!</h1>");
@@ -105,7 +117,7 @@ function checkPoint(storage, serverToken) {
         storage.refresh(cookies.clientID);
       } catch (err) {
         ErrorLogger.error(err);
-        res.set("Content-type", "text/html");
+        res.type("html");
         res
           .status(401)
           .send("<h1>Hmm, it looks like your session does not exist.</h1>");
@@ -113,14 +125,14 @@ function checkPoint(storage, serverToken) {
     } else {
       const session = storage.getSessionInfo(cookies.clientID);
       if (!session) {
-        res.set("Content-type", "text/html");
+        res.type("html");
         res
           .status(401)
           .send("<h1>Hmm, it looks like your session does not exist.</h1>");
         return;
       }
       if (cookies.token !== session.token) {
-        res.set("Content-type", "text/html");
+        res.type("html");
         res
           .status(401)
           .send("<h1>Hmm, it looks like your token is invalid.</h1>");
@@ -138,7 +150,7 @@ function checkPoint(storage, serverToken) {
       });
       next();
     }
-  }
+  };
 }
 
 /**
@@ -190,7 +202,7 @@ function socketNewClientCP(storage, serverToken) {
       }
     }));
     next();
-  }
+  };
 }
 /**
  * Socket.io client emit checkpoint
@@ -231,7 +243,7 @@ function socketEmitCP(serverToken, socket) {
       return;
     }
     next();
-  }
+  };
 }
 /**
  * Checkpoint for the socket.io namespaces
@@ -261,7 +273,7 @@ function nspCheckPoint(storage, manager, serverToken) {
       return;
     }
     next();
-  }
+  };
 }
 /**
  * Changes a client's stats
@@ -279,7 +291,7 @@ function nspChangeStats(storage, manager) {
       socket: socket
     }, query.prevSocketID);
     next();
-  }
+  };
 }
 /**
  * Checks if the client is in the pendingClients object
@@ -307,10 +319,13 @@ function nspCheckIsPending(pendingClients, serverToken) {
       return;
     }
     next();
-  }
+  };
 }
 
-module.exports = {
+/**
+ * Module exports
+ */
+module.exports = exports = {
   parseURL,
   parseCookies,
   checkPoint,
