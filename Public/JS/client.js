@@ -73,7 +73,7 @@ if (pathname === "/play") {
     //XHR
     const params = {
       "for": "games_available"
-    }
+    };
     $.get("/xhr", params, data2 => {
       const parsedData = JSON.parse(data2);
       const dataKeys = Object.getOwnPropertyNames(parsedData);
@@ -84,7 +84,7 @@ if (pathname === "/play") {
             `<label for="game-opt-${game.id}">Game ${i + 1}
             <img src="imgs/Game_map_previews/${game.map}.png">
             <label/><input type="radio" id="game-opt-${game.id}"
-            name="game" value="${game.id}">`
+            name="game" value="${game.id}">`;
         $("#game-select")
           .append(htmlToAdd);
       }
@@ -135,7 +135,8 @@ if (pathname === "/play") {
                 dialog.dialog("close");
                 window.location.href =
                   `${window.location.protocol}//` +
-                  `${window.location.hostname}/play`;
+                  `${window.location.hostname}` +
+                  `:${window.location.port}/play`;
               });
             });
           },
@@ -199,7 +200,7 @@ if (pathname === "/play") {
   $(document).ready(() => {
     const params = {
       "for": "license_text.html"
-    }
+    };
     $.get("/xhr", params, data => {
       const parsedData = JSON.parse(data);
       document.body.innerHTML = parsedData.html;
