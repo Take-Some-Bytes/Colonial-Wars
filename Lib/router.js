@@ -7,29 +7,24 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const security = require("./Security/Security").create(
-  ["GET", "POST", "HEAD"], false, false
-);
-const router = express.Router();
+const init = require("./common/init");
 const {
   serveFile, methodNotImplemented, handleOther, logCSPReport, methodNotAllowed
-} = require("./Common/Common");
-const loggers = require("./Common/init");
-const RequestLogger = loggers.get("Request-logger");
+} = require("./common/common");
+
+const router = express.Router();
+
+const security = init.security;
+const manager = init.manager;
+const loggers = init.winstonLoggers;
+const morganLoggers = init.morganLoggers;
 const ServerLogger = loggers.get("Server-logger");
-const { manager } = require("./Common/init");
 
 //Route logger and security thing
+router.use(morganLoggers.consoleLogger, morganLoggers.fileLogger);
 router.use((req, res, next) => {
-  const reqPath = req.url.toString().split("?")[0];
   //Security
   security.setDefaultHeaders(req, res);
-  //Logging
-  const date = new Date();
-  RequestLogger.info(
-    `Request method: ${req.method}; ` +
-    `Request Path: ${reqPath}; Request full URL: ${req.url}`
-  );
   next();
 });
 
@@ -171,7 +166,7 @@ router.route("/xhr")
           numPlayers: gamesAvailable[i].numPlayers,
           gameToken: gamesAvailable[i].token,
           map: gamesAvailable[i].mapName
-        }
+        };
       }
 
       const stringifiedData = JSON.stringify(dataToSend);
