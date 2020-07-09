@@ -8,8 +8,8 @@
 const Projectile = require("./Projectile");
 const Entity = require("../Physics/Entity");
 const Vector = require("../Physics/Vector");
-const Constants = require("../../Constants");
-const Util = require("../../Util");
+const Util = require("../../common/util");
+const Constants = require("../../common/constants");
 
 /**
  * Building class
