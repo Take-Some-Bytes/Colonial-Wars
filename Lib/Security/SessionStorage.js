@@ -1,12 +1,19 @@
 /**
- * @fileoverview Session class to handle sessions
+ * @fileoverview SessionStorage class to handle sessions
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
 const { randomBytes } = require("crypto");
 
 /**
- * Session class
+ * @callback fn
+ * @param {{}} session The session
+ * @param {String} ID The session ID
+ * @returns {void}
+ */
+
+/**
+ * SessionStorage class
  */
 class SessionStorage {
   /**
@@ -19,7 +26,7 @@ class SessionStorage {
     this.token = token;
     this.serverToken = serverToken;
     this.maxAge = maxAge;
-    this.storage = {};
+    this.storage = new Map();
   }
   /**
    * Gets all sessions in this storage
@@ -53,13 +60,13 @@ class SessionStorage {
     if (data.serverToken !== this.serverToken) {
       throw new Error("Given server token is not correct!");
     }
-    this.storage[data.id] = {
+    this.storage.set(data.id, {
       id: data.id,
       token: data.token,
       startTime: data.startTime,
       maxAge: data.maxAge,
       storedData: data.otherData
-    };
+    });
   }
   /**
    * Adds data to a session. Please use this method because it always
@@ -71,7 +78,7 @@ class SessionStorage {
    * }} data The data to add
    */
   addDataToSession(data) {
-    const currentSession = this.storage[data.id];
+    const currentSession = this.storage.get(data.id);
     if (!currentSession) {
       throw new Error("Session does not exist.");
     } else if (data.token !== currentSession.token) {
@@ -88,24 +95,26 @@ class SessionStorage {
    * @param {String} oldID The old ID of the session
    */
   changeSessionID(newID, oldID) {
-    const session = this.storage[oldID];
+    const session = this.storage.get(oldID);
     if (!session) {
       throw new Error("Session does not exist");
     }
 
     session.id = newID;
-    this.storage[newID] = session;
-    delete this.storage[oldID];
+    this.storage.set(newID, session);
+    this.storage.delete(oldID);
   }
   /**
    * Refreshes all of this object's sessions
    */
   refreshAll() {
-    for (const key in this.storage) {
-      const currentSession = this.storage[key];
+    for (const key of this.storage.keys()) {
+      const currentSession = this.storage.get(key);
 
       currentSession.token = randomBytes(16).toString("hex");
       currentSession.startTime = Date.now();
+
+      this.storage.set(key, currentSession);
     }
   }
   /**
@@ -113,9 +122,9 @@ class SessionStorage {
    * @param {String} ID The ID of the client
    */
   refresh(ID) {
-    const session = this.storage[ID];
+    const session = this.storage.get(ID);
     if (!session) {
-      throw new ReferenceError("Session does not exist!");
+      throw new Error("Session does not exist!");
     }
     session.token = randomBytes(16).toString("hex");
     session.startTime = Date.now();
@@ -126,22 +135,23 @@ class SessionStorage {
    * @returns {{}}
    */
   getSessionInfo(ID) {
-    const session = this.storage[ID];
+    const session = this.storage.get(ID);
     if (!session) {
-      return null;
+      return {};
     }
     return session;
   }
   /**
    * Calls a function for each of the sessions in the
    * session storage
-   * @param {function({}, String):void} fn The function
+   * @param {fn} fn The function
    * to call for each session
    */
   forEach(fn) {
-    for (const session in this.storage) {
-      const sessionInfo = this.storage[session];
-      fn(sessionInfo, session);
+    for (const ID in this.storage.keys()) {
+      const session = this.storage.get(ID);
+
+      fn(session, ID);
     }
   }
   /**
@@ -149,12 +159,15 @@ class SessionStorage {
    * @param {String} ID The ID associated with the session
    */
   deleteSession(ID) {
-    const session = this.storage[ID];
+    const session = this.storage.get(ID);
     if (!session) {
       throw new Error("Session does not exist!");
     }
-    delete this.storage[ID];
+    this.storage.delete(ID);
   }
 }
 
+/**
+ * Module exports
+ */
 module.exports = exports = SessionStorage;
