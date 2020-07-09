@@ -34,6 +34,18 @@ class Security {
     * @param {response} res Server response
     */
   setDefaultHeaders(req, res) {
+    const reportTo = [
+      {
+        endpoints: [
+          {
+            url: "https://localhost/CSP-report"
+          }
+        ],
+        include_subdomains: true,
+        group: "colonialwars-local-report",
+        max_age: 31536000
+      }
+    ];
     res.set({
       "Content-Security-Policy":
         "default-src 'self'; script-src 'self' https://ajax.googleapis.com/; " +
@@ -41,12 +53,14 @@ class Security {
         "font-src https://*.googleapis.com/ https://*.gstatic.com/; " +
         "img-src 'self' data: ; child-src 'self'; media-src 'none'; " +
         "object-src 'none'; base-uri 'self'; " +
-        "connect-src 'self' https://*.googleapis.com/ " +
-        "https://*.gstatic.com/; report-uri logs/CSP-reports.log; " +
-        "frame-ancestors 'none'; form-action 'self'",
+        "connect-src 'self'; report-uri logs/CSP-reports.log; " +
+        "frame-ancestors 'none'; form-action 'self'; " +
+        "report-to colonialwars-local-report",
       "X-XSS-Protection": "1; mode=block",
       "X-Content-Type-Options": "nosniff"
     });
+    //Uncomment the next line for production
+    // res.set("Report-to", reportTo.map(JSON.stringify).join(", "));
   }
   /**
     * Sets strict headers for confidental data control
