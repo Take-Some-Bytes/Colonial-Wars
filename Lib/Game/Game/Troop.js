@@ -9,9 +9,8 @@ const Projectile = require("./Projectile");
 const Entity = require("../Physics/Entity");
 const Vector = require("../Physics/Vector");
 const Building = require("./Building");
-const Constants = require("../../Constants");
-const Util = require("../../Util");
-let i = 0;
+const Util = require("../../common/util");
+const Constants = require("../../common/constants");
 
 /**
  * Troop class
@@ -176,7 +175,7 @@ class Troop extends Entity {
       throw new Error("The specified building cannot spawn troops!");
     }
 
-    for (i = 0; i < buildingSpawnedTroopLength; i++) {
+    for (let i = 0; i < buildingSpawnedTroopLength; i++) {
       if (type !== buildingSpawnedTroops[i] &&
         i === buildingSpawnedTroopLength - 1
       ) {
@@ -187,7 +186,7 @@ class Troop extends Entity {
         break;
       }
     }
-    for (i = 0; i < Constants.TROOPS.length - 4; i++) {
+    for (let i = 0; i < Constants.TROOPS.length - 4; i++) {
       if (type !== Constants.TROOPS[i] && i === Constants.TROOPS.length - 1) {
         isHuman = false;
       } else if (type === Constants.TROOPS[i]) {
