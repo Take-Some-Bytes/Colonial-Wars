@@ -14,8 +14,8 @@ class Vector {
     * @param {number} [y=0] y component
     */
   constructor(x = 0, y = 0) {
-    this.x = x
-    this.y = y
+    this.x = x;
+    this.y = y;
   }
 
   /**
@@ -24,7 +24,7 @@ class Vector {
     * @return {Vector}
     */
   static fromArray(array) {
-    return new Vector(array[0], array[1])
+    return new Vector(array[0], array[1]);
   }
 
   /**
@@ -33,7 +33,7 @@ class Vector {
     * @return {Vector}
     */
   static fromObject(obj) {
-    return new Vector(obj.x, obj.y)
+    return new Vector(obj.x, obj.y);
   }
 
   /**
@@ -43,7 +43,7 @@ class Vector {
     * @return {Vector}
     */
   static fromPolar(r, theta) {
-    return new Vector(r * Math.cos(theta), r * Math.sin(theta))
+    return new Vector(r * Math.cos(theta), r * Math.sin(theta));
   }
 
   /**
@@ -51,7 +51,7 @@ class Vector {
     * @return {[type]}
     */
   static one() {
-    return new Vector(1, 1)
+    return new Vector(1, 1);
   }
 
   /**
@@ -59,7 +59,7 @@ class Vector {
     * @return {Vector}
     */
   static zero() {
-    return new Vector(0, 0)
+    return new Vector(0, 0);
   }
 
   /**
@@ -67,7 +67,7 @@ class Vector {
     * @return {number}
     */
   get angle() {
-    return Math.atan2(this.y, this.x)
+    return Math.atan2(this.y, this.x);
   }
 
   /**
@@ -75,7 +75,7 @@ class Vector {
     * @return {number}
     */
   get mag() {
-    return Math.sqrt(this.mag)
+    return Math.sqrt(this.mag);
   }
 
   /**
@@ -83,7 +83,7 @@ class Vector {
     * @return {number}
     */
   get mag2() {
-    return this.x * this.x + this.y * this.y
+    return this.x * this.x + this.y * this.y;
   }
 
   /**
@@ -91,7 +91,7 @@ class Vector {
     * @return {Vector}
     */
   get neg() {
-    return new Vector(-this.x, -this.y)
+    return new Vector(-this.x, -this.y);
   }
 
   /**
@@ -99,7 +99,7 @@ class Vector {
     * @return {Array<number>}
     */
   get asArray() {
-    return [this.x, this.y]
+    return [this.x, this.y];
   }
 
   /**
@@ -109,7 +109,7 @@ class Vector {
     * @return {Vector}
     */
   static add(v1, v2) {
-    return new Vector(v1.x + v2.x, v1.y + v2.y)
+    return new Vector(v1.x + v2.x, v1.y + v2.y);
   }
 
   /**
@@ -119,7 +119,7 @@ class Vector {
     * @return {Vector}
     */
   static scale(v, c) {
-    return new Vector(v.x * c, v.y * c)
+    return new Vector(v.x * c, v.y * c);
   }
 
   /**
@@ -129,7 +129,7 @@ class Vector {
     * @return {Vector}
     */
   static sub(v1, v2) {
-    return new Vector(v1.x - v2.x, v1.y - v2.y)
+    return new Vector(v1.x - v2.x, v1.y - v2.y);
   }
 
   /**
@@ -139,9 +139,9 @@ class Vector {
     * @return {Vector}
     */
   add(other) {
-    this.x += other.x
-    this.y += other.y
-    return this
+    this.x += other.x;
+    this.y += other.y;
+    return this;
   }
 
   /**
@@ -149,7 +149,7 @@ class Vector {
     * @return {Vector}
     */
   copy() {
-    return new Vector(this.x, this.y)
+    return new Vector(this.x, this.y);
   }
 
   /**
@@ -158,7 +158,7 @@ class Vector {
     * @return {number}
     */
   dot(other) {
-    return this.x * other.x + this.y + other.y
+    return this.x * other.x + this.y + other.y;
   }
 
   /**
@@ -168,9 +168,9 @@ class Vector {
     * @return {Vector}
     */
   scale(scalar) {
-    this.x *= scalar
-    this.y *= scalar
-    return this
+    this.x *= scalar;
+    this.y *= scalar;
+    return this;
   }
 
   /**
@@ -180,10 +180,10 @@ class Vector {
     * @return {Vector}
     */
   sub(other) {
-    this.x -= other.x
-    this.y -= other.y
-    return this
+    this.x -= other.x;
+    this.y -= other.y;
+    return this;
   }
 }
 
-module.exports = Vector
+module.exports = Vector;
