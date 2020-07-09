@@ -4,7 +4,7 @@
  */
 
 const Vector = require("../Physics/Vector");
-const Constants = require("../../Constants");
+const Constants = require("../../common/constants");
 const UIElement = require("./UIElement");
 
 /**
@@ -50,7 +50,7 @@ class Button extends UIElement {
    */
   canClick() {
     const canClick =
-      Date.now() > this.lastClickTime + Constants.BUTTON_COOLDOWN
+      Date.now() > this.lastClickTime + Constants.BUTTON_COOLDOWN;
     return canClick;
   }
   /**
