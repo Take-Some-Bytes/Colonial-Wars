@@ -3,6 +3,13 @@ This is a changelog for the whole web app.
 
 ## Pre-release
 This is the pre-release part of the changelog
+#### 0.8.3
+- Updated .eslintrc.json because of style changes
+- Started using ```morgan``` and ```debug``` modules for logging stuff debugging
+messages and requests
+- Moved all of the common methods and stuff (e.g, common methods, manager
+instance, Constants, etc) into a folder called common.
+- Updated the ``SessionStorage`` class to use ``Map``s
 #### 0.8.2
 - Changed ```German``` team into ```Prussian``` team
 - Started using sprite sheets more
