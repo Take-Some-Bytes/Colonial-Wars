@@ -5,7 +5,7 @@
 
 const UIElement = require("./UIElement");
 const Vector = require("../Physics/Vector");
-const Constants = require("../../Constants");
+const Constants = require("../../common/constants");
 
 /**
  * Icon class
