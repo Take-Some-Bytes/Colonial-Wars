@@ -7,10 +7,10 @@
 //Imports
 const Entity = require("../Physics/Entity");
 const Vector = require("../Physics/Vector");
-const Constants = require("../../Constants");
 const Building = require("./Building");
 const Troop = require("./Troop");
-const Util = require("../../Util");
+const Util = require("../../common/util");
+const Constants = require("../../common/constants");
 
 /**
  * Projectile class to control projectile physics
@@ -77,7 +77,7 @@ class Projectile extends Entity {
   static createFromTroop(troop, angleDeviation = 0) {
     const angle = Util.degreeToRadian(troop.angle + angleDeviation);
     const firedProjectile = troop.firedProjectile;
-    const stats = Constants.BULLET_STATS[firedProjectile]
+    const stats = Constants.BULLET_STATS[firedProjectile];
     return new Projectile(
       troop.position.copy(),
       Vector.fromPolar(stats.speed, angle),
@@ -99,7 +99,7 @@ class Projectile extends Entity {
   static createFromBuilding(building, angleDeviation = 0) {
     const angle = Util.degreeToRadian(building.turretAngle + angleDeviation);
     const firedProjectile = building.firedProjectile;
-    const stats = Constants.BULLET_STATS[firedProjectile]
+    const stats = Constants.BULLET_STATS[firedProjectile];
     return new Projectile(
       building.position.copy(),
       Vector.fromPolar(stats.speed, angle),
