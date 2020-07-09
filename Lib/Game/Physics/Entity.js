@@ -4,8 +4,8 @@
  */
 
 const Vector = require("./Vector");
-const Util = require("../../Util");
-const Constants = require("../../Constants");
+const Util = require("../../common/util");
+const Constants = require("../../common/constants");
 
 /**
  * Entity class
