@@ -93,7 +93,7 @@
  
       // Node.js and CommonJS
       "global-require": "warn",
-      "handle-callback-err": "error",
+      "handle-callback-err": ["error", "^.*(e|E)rr"],
       "no-buffer-constructor": "off",
       "no-mixed-requires": ["warn", {
          "grouping": true,
@@ -133,7 +133,7 @@
          "after": true
       }],
       "line-comment-position": ["off", "above"],
-      "linebreak-style": ["off", "unix"],
+      "linebreak-style": ["warn", "windows"],
       "max-len": ["warn", {
          "code": 80
       }],
