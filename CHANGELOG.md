@@ -11,6 +11,7 @@ values into ``Map``s.
 - Started logging process information--when the server starts up, when it crashes, etc.
 - Put in some handlers in case the client isn't able to connect to the server
 on the play page.
+- Update ``mixUp`` method in ``util.js``.
 ### v0.8.3
 - Updated .eslintrc.json because of style changes.
 - Started using ``morgan`` and ``debug`` modules for logging stuff debugging
