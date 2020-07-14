@@ -5,6 +5,10 @@
 
 //Define process.env.NODE_ENV
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
+//Import debugger
+const debug = require("./Lib/common/debug");
+
+debug("Starting colonialwars app!");
 
 //Dependencies
 const http = require("http");
@@ -16,6 +20,7 @@ const socketIO = require("socket.io");
 const PROTOCOL = "http";
 const PORT = PROTOCOL === "http" ? 8000 : 4430;
 const HOST = "localhost";
+const pendingClients = {};
 
 //Custom modules
 const router = require("./Lib/router");
@@ -23,7 +28,6 @@ const middleware = require("./Lib/middleware");
 const init = require("./Lib/common/init");
 const Constants = require("./Lib/common/constants");
 const { logMemoryUsage } = require("./Lib/common/util");
-const debug = require("./Lib/common/debug");
 
 //Initialization
 const serverToken = init.serverToken;
@@ -33,13 +37,15 @@ const secret = init.cookieSecret;
 const manager = init.manager;
 
 const ServerLogger = init.winstonLoggers.get("Server-logger");
+const ProcessLogger = init.winstonLoggers.get("Process-logger");
+
+ProcessLogger.info("Imports done, starting server.");
+debug("Done imports, starting server.");
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 const playIO = io.of("/play");
-
-const pendingClients = {};
 
 //Settings
 app.set("query parser", middleware.parseURL);
@@ -66,7 +72,7 @@ io.use((socket, next) => {
 });
 io.on("connection", socket => {
   debug("Connection!", socket.id);
-  socket.use(middleware.socketEmitCP(serverToken, socket));
+  socket.use(middleware.socketEmitCP());
   socket.on(Constants.SOCKET_NEW_PLAYER, (data, cb) => {
     let err = null;
     try {
@@ -89,7 +95,7 @@ io.on("connection", socket => {
       }
     } catch (error) {
       err = error;
-      ServerLogger.error(error);
+      ServerLogger.error(err);
 
       cb("Something went wrong. Please try again later.");
     }
@@ -111,9 +117,9 @@ io.on("connection", socket => {
   });
 });
 
-playIO.use(middleware.nspCheckPoint(wsSessions, manager, serverToken));
+playIO.use(middleware.nspCheckPoint(wsSessions, manager));
+playIO.use(middleware.nspCheckIsPending(pendingClients));
 playIO.use(middleware.nspChangeStats(wsSessions, manager));
-playIO.use(middleware.nspCheckIsPending(pendingClients, serverToken));
 playIO.use((socket, next) => {
   const session = wsSessions.getSessionInfo(socket.id);
   socket.emit(Constants.SOCKET_SECURITY_DATA, JSON.stringify({
@@ -132,15 +138,20 @@ playIO.use((socket, next) => {
   const prevSocketID = socket.handshake.query.prevSocketID;
   const pending = pendingClients[prevSocketID];
   if (!pending) {
-    socket.emit(Constants.SOCKET_ERROR);
+    next(new Error("Client does not exist."));
     return;
   }
-  manager.addClientToGame(
-    pending.gameID,
-    socket,
-    pending.clientName,
-    pending.clientTeam
-  );
+  try {
+    manager.addClientToGame(
+      pending.gameID,
+      socket,
+      pending.clientName,
+      pending.clientTeam,
+      pending.screen_size
+    );
+  } catch (err) {
+    next(new Error(err));
+  }
   const game = manager.getGame(pending.gameID);
   socket.emit(Constants.SOCKET_PROCEED, JSON.stringify({
     securityData: {
@@ -158,6 +169,7 @@ playIO.use((socket, next) => {
   next();
 });
 playIO.on("connection", socket => {
+  const pending = pendingClients[socket.handshake.query.prevSocketID];
   const gameID = pendingClients[socket.handshake.query.prevSocketID].gameID;
   delete pendingClients[socket.handshake.query.prevSocketID];
   debug("Connection!", socket.id);
@@ -167,23 +179,42 @@ playIO.on("connection", socket => {
     const game = manager.getGame(gameID);
     game.updatePlayerOnInput(socket.id, parsedData.playerData.actionData);
   });
-  socket.on(Constants.SOCKET_DISCONNECT, () => {
-    debug("Client Disconnected!", socket.id);
-    const client = manager.getClient(socket.id);
-    const session = wsSessions.getSessionInfo(socket.id);
-    if (client && session) {
-      manager.removeClient(socket.id);
-      try {
-        wsSessions.deleteSession(socket.id);
-      } catch (err) {
-        ServerLogger.error(err);
+  socket.on(Constants.SOCKET_DISCONNECT, reason => {
+    debug("Client disconnected!", socket.id);
+    if (reason !== "server namespace disconnect") {
+      const client = manager.getClient(socket.id);
+      const session = wsSessions.getSessionInfo(socket.id);
+      if (client && session) {
+        manager.removeClient(socket.id);
+        try {
+          wsSessions.deleteSession(socket.id);
+        } catch (err) {
+          ServerLogger.error(err);
+        }
       }
+      manager.removeClientFromGame(gameID, socket);
+    } else {
+      pendingClients[socket.handshake.query.prevSocketID] = pending;
+      manager.removeClientFromGame(gameID, socket);
     }
-    manager.removeClientFromGame(gameID, socket);
   });
 });
 
-server.listen(PORT, HOST, 20, () => {
+server.listen(PORT, HOST, 20, err => {
+  if (err) {
+    ProcessLogger.fatal("Failed to start server. Error is:");
+    ProcessLogger.fatal(err);
+    debug("Failed to start server. Error is: ");
+    debug(err);
+    //Allow the async functions to finish
+    setTimeout(() => {
+      // eslint-disable-next-line no-process-exit
+      process.exit(1);
+    }, 600);
+  }
+  ProcessLogger.info(
+    `Server started successfully on port ${PORT}, address http://${HOST}`
+  );
   debug(`Server started on port ${PORT}, http://${HOST}.`);
   debug(`Protocol is: ${PROTOCOL}.`);
   logMemoryUsage();
@@ -227,3 +258,28 @@ setInterval(() => {
   manager.update();
   manager.sendState();
 }, Constants.GAME_UPDATE_SPEED);
+
+process.on("SIGINT", signal => {
+  //Let us know that the user terminated the process
+  debug(`Received signal ${signal}.`);
+  debug("Exiting...");
+  ProcessLogger.info(`Received signal ${signal} from user. Exiting...`);
+  //Allow the async functions to finish
+  setTimeout(() => {
+    // eslint-disable-next-line no-process-exit
+    process.exit(0);
+  }, 600);
+});
+process.on("uncaughtException", err => {
+  ProcessLogger.fatal("Server crashed. Error is:");
+  ProcessLogger.fatal(err);
+  ProcessLogger.fatal("Exiting...");
+  debug("Server crashed. Error is:");
+  debug(err);
+  debug("Exiting...");
+  //Allow the async functions to finish
+  setTimeout(() => {
+    // eslint-disable-next-line no-process-exit
+    process.exit(1);
+  }, 600);
+});
