@@ -6,62 +6,19 @@
 /* eslint-disable no-undef */
 
 import { Constants } from "./Constants-client.js";
-import { Game } from "./Game/Game.js";
 import { init } from "./functions.js";
-const url = window.location.href;
-const pathname = url.substr(url.lastIndexOf("/"));
+const pathname = window.location.pathname;
 let dialog = null;
 
-let securityData = {};
+window.securityData = {};
 
-if (pathname === "/play") {
-  $(document).on("contextmenu", e => {
-    e.preventDefault();
-    return false;
-  });
-  $(document).ready(() => {
-    const socket = io("/play", {
-      query: {
-        prevSocketID:
-          localStorage.getItem("prevSocketID")
-      }
-    });
-    $("body")
-      .height(Constants.VIEWPORT_HEIGHT)
-      .width(Constants.VIEWPORT_WIDTH);
-    $("main")
-      .height(Constants.VIEWPORT_HEIGHT)
-      .width(Constants.VIEWPORT_WIDTH);
-
-    socket.on(Constants.SOCKET_SECURITY_DATA, data => {
-      console.log(JSON.stringify(JSON.parse(data)));
-      securityData = JSON.parse(data).securityData;
-    });
-    socket.on(Constants.SOCKET_ERROR, data => {
-      console.log(data);
-      console.log(JSON.stringify(JSON.parse(data)));
-    });
-    socket.on(Constants.SOCKET_PROCEED, data => {
-      const parsedData = JSON.parse(data);
-      console.log(parsedData);
-      const gameID = parsedData.playerData.gameID;
-      const map = parsedData.playerData.gameMap;
-      const game = Game.create(
-        socket, "game-board", map,
-        parsedData.securityData.gameToken,
-        securityData.clientData.token,
-        gameID
-      );
-      game.run();
-    });
-  });
-} else if (pathname === "/") {
+if (pathname === "/") {
   $(document).ready(() => {
     //Socket.io stuff
     const socket = io();
 
     socket.on(Constants.SOCKET_SECURITY_DATA, data => {
-      securityData = JSON.parse(data).securityData;
+      window.securityData = JSON.parse(data).securityData;
     });
     socket.on(Constants.SOCKET_ERROR, err => {
       console.error(JSON.stringify(JSON.parse(err)));
@@ -115,8 +72,8 @@ if (pathname === "/play") {
               socket.emit(Constants.SOCKET_NEW_PLAYER, JSON.stringify({
                 securityData: {
                   clientData: {
-                    id: securityData.clientData.id,
-                    token: securityData.clientData.token
+                    id: window.securityData.clientData.id,
+                    token: window.securityData.clientData.token
                   }
                 },
                 playerData: data,
@@ -171,8 +128,8 @@ if (pathname === "/play") {
         socket.emit(Constants.SOCKET_NEW_PLAYER, JSON.stringify({
           securityData: {
             clientData: {
-              id: securityData.clientData.id,
-              token: securityData.clientData.token
+              id: window.securityData.clientData.id,
+              token: window.securityData.clientData.token
             }
           },
           playerData: data,
