@@ -17,7 +17,6 @@ const Constants = require("./common/constants");
 const { makeID } = require("./common/util");
 
 const loggers = init.winstonLoggers;
-const ErrorLogger = loggers.get("Error-logger");
 const ServerLogger = loggers.get("Server-logger");
 
 /**
@@ -98,7 +97,6 @@ function checkPoint(storage, serverToken) {
           }
         });
       } catch (err) {
-        ErrorLogger.error(err);
         ServerLogger.error(err);
         res.type("html");
         res
@@ -116,7 +114,7 @@ function checkPoint(storage, serverToken) {
       try {
         storage.refresh(cookies.clientID);
       } catch (err) {
-        ErrorLogger.error(err);
+        ServerLogger.error(err);
         res.type("html");
         res
           .status(401)
@@ -174,18 +172,8 @@ function socketNewClientCP(storage, serverToken) {
         maxAge: maxAge
       });
     } catch (err) {
-      ErrorLogger.error(err);
-      socket.emit(Constants.SOCKET_ERROR, JSON.stringify({
-        securityData: {
-          serverToken
-        },
-        playerData: {},
-        otherData: {
-          status: "error",
-          msg: "Something happened..."
-        }
-      }));
-      socket.disconnect(true);
+      ServerLogger.error(err);
+      next(new Error("500 Internal Server Error."));
       return;
     }
     socket.emit(Constants.SOCKET_SECURITY_DATA, JSON.stringify({
@@ -206,42 +194,26 @@ function socketNewClientCP(storage, serverToken) {
 }
 /**
  * Socket.io client emit checkpoint
- * @param {String} serverToken The server's token
- * @param {socketIO.Socket} socket The socket object associated with the
- * client
  * @returns {Function}
  */
-function socketEmitCP(serverToken, socket) {
+function socketEmitCP() {
   return function(packet, next) {
     const packetData = JSON.parse(packet[1]);
     const clientData = packetData.securityData.clientData;
-    if (!clientData.id) {
-      socket.emit(Constants.SOCKET_ERROR, JSON.stringify({
-        securityData: {
-          serverToken
-        },
-        playerData: {},
-        otherData: {
-          status: "error",
-          msg: "No id specified!"
-        }
-      }));
-      socket.disconnect(true);
-      return;
-    } else if (!clientData.token) {
-      socket.emit(Constants.SOCKET_ERROR, JSON.stringify({
-        securityData: {
-          serverToken
-        },
-        playerData: {},
-        otherData: {
-          status: "error",
-          msg: "No token specified!"
-        }
-      }));
-      socket.disconnect(true);
+    try {
+      if (!clientData.id) {
+        next(new Error("No ID specified!"));
+        return;
+      } else if (!clientData.token) {
+        next(new Error("No token specified!"));
+        return;
+      }
+    } catch (err) {
+      ServerLogger.error(err);
+      next(new Error("Missing client token or ID"));
       return;
     }
+
     next();
   };
 }
@@ -250,26 +222,18 @@ function socketEmitCP(serverToken, socket) {
  * @param {SessionStorage} storage The session storage that you use
  * for socket.io session handling
  * @param {Manager} manager The manager object used for game managing
- * @param {String} serverToken The server's token
  * @returns {Function}
  */
-function nspCheckPoint(storage, manager, serverToken) {
+function nspCheckPoint(storage, manager) {
   return function(socket, next) {
     const prevClientID = socket.handshake.query.prevSocketID;
     const session = storage.getSessionInfo(prevClientID);
     const client = manager.getClient(prevClientID);
     if (!prevClientID || !session || !client) {
-      socket.emit(Constants.SOCKET_ERROR, JSON.stringify({
-        securityData: {
-          serverToken
-        },
-        playerData: {},
-        otherData: {
-          status: "error",
-          msg: "It looks like your session does not exist or" +
-            " you have not been to the main page."
-        }
-      }));
+      next(new Error(
+        "It looks like your session does not exist or" +
+        " you have not been to the main page."
+      ));
       return;
     }
     next();
@@ -297,25 +261,17 @@ function nspChangeStats(storage, manager) {
  * Checks if the client is in the pendingClients object
  * @param {Object} pendingClients The pending clients
  * object that you store pending clients in
- * @param {String} serverToken The server's token
  * @returns {Function}
  */
-function nspCheckIsPending(pendingClients, serverToken) {
+function nspCheckIsPending(pendingClients) {
   return function(socket, next) {
     const prevClientID = socket.handshake.query.prevSocketID;
     const pending = pendingClients[prevClientID];
     if (!pending) {
-      socket.emit(Constants.SOCKET_ERROR, JSON.stringify({
-        securityData: {
-          serverToken
-        },
-        playerData: {},
-        otherData: {
-          status: "error",
-          msg: "It looks like your session does not exist or" +
-            " you have not been to the main page."
-        }
-      }));
+      next(new Error(
+        "It looks like your session does not exist or" +
+        " you have not been to the main page."
+      ));
       return;
     }
     next();
