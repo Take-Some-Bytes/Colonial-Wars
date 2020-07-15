@@ -12,6 +12,7 @@ values into ``Map``s.
 - Put in some handlers in case the client isn't able to connect to the server
 on the play page.
 - Update ``mixUp`` method in ``util.js``.
+- Made ``.html`` files use absolute paths
 ### v0.8.3
 - Updated .eslintrc.json because of style changes.
 - Started using ``morgan`` and ``debug`` modules for logging stuff debugging
