@@ -37,7 +37,6 @@ const winstonFormat = printf(({ level, message, label, timestamp }) => {
 //Add logging colours
 winston.addColors(Constants.WINSTON_LOGGING_LEVELS.colors);
 
-
 if (process.env.NODE_ENV === "production") {
   //Create a new directory for the logs
   const logsDate = new Date().toISOString().replace(/:/g, "_");
@@ -75,6 +74,10 @@ if (process.env.NODE_ENV === "production") {
       winstonFormat
     ),
     transports: [
+      new winston.transports.File({
+        filename: path.join(__dirname, "../../",
+          "logs/combined.log")
+      }),
       new winston.transports.File({
         filename: path.join(__dirname, "../../",
           `logs/${logsDate}/CSP-reports.log`
@@ -128,6 +131,10 @@ if (process.env.NODE_ENV === "production") {
         filename: path.join(__dirname, "../../",
           `logs/${logsDate}/process.log`)
       }),
+      new winston.transports.File({
+        filename: path.join(__dirname, "../../",
+          "logs/combined.log")
+      }),
       new winston.transports.Console()
     ]
   });
@@ -169,6 +176,10 @@ if (process.env.NODE_ENV === "production") {
       winstonFormat
     ),
     transports: [
+      new winston.transports.File({
+        filename: path.join(__dirname, "../../",
+          "logs/combined.log")
+      }),
       new winston.transports.File({
         filename: path.join(__dirname, "../../",
           "logs/CSP-reports.log"
@@ -221,6 +232,10 @@ if (process.env.NODE_ENV === "production") {
       new winston.transports.File({
         filename: path.join(__dirname, "../../",
           "logs/process.log")
+      }),
+      new winston.transports.File({
+        filename: path.join(__dirname, "../../",
+          "logs/combined.log")
       }),
       new winston.transports.Console()
     ]
