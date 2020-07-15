@@ -910,11 +910,11 @@ const Constants = {
   SOCKET_CHAT_SERVER_CLIENT: "chat-server-to-client",*/
   SOCKET_DISCONNECT: "disconnect",
   SOCKET_AVAILABLE_GAMES: "available-games",
-  SOCKET_ERROR: "err",
+  SOCKET_ERROR: "error",
   SOCKET_SECURITY_DATA: "security-data",
   SOCKET_PROCEED: "proceed",
   //Version
-  VERSION: "0.8.3-ALPHA",
+  VERSION: "0.8.4-ALPHA",
   //UI things
   BUTTON_COOLDOWN: 500,
   BUTTON_KEYS: [
