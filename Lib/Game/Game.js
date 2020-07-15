@@ -57,16 +57,16 @@ class Game {
     this.startPositions = startPositions;
     this.mapName = mapName;
 
-    if (mode !== "FFA") {
-      this.teams = new Map();
-      this.teams.set("British", new Map());
-      this.teams.set("French", new Map());
-      this.teams.set("Russian", new Map());
-      this.teams.set("Prussian", new Map());
-      this.teams.set("American", new Map());
-      this.teams.set("Italian", new Map());
-      this.teams.set("Neutral", []);
-    }
+    // if (mode !== "FFA") {
+    //   this.teams = new Map();
+    //   this.teams.set("British", new Map());
+    //   this.teams.set("French", new Map());
+    //   this.teams.set("Russian", new Map());
+    //   this.teams.set("Prussian", new Map());
+    //   this.teams.set("American", new Map());
+    //   this.teams.set("Italian", new Map());
+    //   this.teams.set("Neutral", []);
+    // }
 
     this.lastUpdateTime = 0;
     this.deltaTime = 0;
@@ -95,7 +95,7 @@ class Game {
     this.numPlayers = 0;
     this.closed = false;
 
-    deepClear(this.teams);
+    // deepClear(this.teams);
     deepClear(this.projectiles, Array.isArray(this.projectiles));
     deepClear(this.troops, Array.isArray(this.troops));
     // deepClear(this.obstacles, Array.isArray(this.obstacles));
