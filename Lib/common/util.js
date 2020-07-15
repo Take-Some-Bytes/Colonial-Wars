@@ -8,6 +8,13 @@
 const debug = require("./debug");
 
 /**
+ * @typedef {"array"|"object"|"nested array"} OutAsFormat
+ */
+/**
+ * @typedef {"object"|"nested array"} InAsFormat
+ */
+
+/**
  * Given a value, a minimum, and a maximum, returns true if value is
  * between the minimum and maximum, inclusive of both bounds. This
  * function will still work if min and max are switched.
@@ -279,25 +286,82 @@ function getNonCallableProps(obj) {
  */
 function mixUp(string, additionalLetters, maxLength) {
   const splitString = string.split("");
-  const arrayLength = splitString.length;
   const stringLength = additionalLetters.length;
   let result = "";
   let i = 0;
 
   while (i < string.length) {
-    const indexToGet = Math.floor(Math.random() * arrayLength);
+    const indexToGet = bind(
+      Math.floor(Math.random() * splitString.length),
+      0, splitString.length
+    );
     result += splitString.splice(indexToGet, 1)[0];
     i++;
   }
   while (result.length < maxLength) {
     const additionalLetter = additionalLetters.charAt(
-      Math.floor(Math.random() * stringLength)
+      Math.round(Math.random() * stringLength)
     );
 
     result += additionalLetter;
   }
 
   return result;
+}
+/**
+ * Gets all the values of a map, and returns them in the specified format
+ * @param {Map} map The map to get values as.
+ * @param {OutAsFormat} outAs The format to output the
+ * values.
+ * @returns {Array<any>|Array<Array<any>>|{}}
+ */
+function getMapValues(map, outAs) {
+  if (
+    outAs.toLowerCase() === "nested array" || outAs.toLowerCase() === "object"
+  ) {
+    const valueToReturn = outAs === "object" ?
+      {} :
+      [];
+
+    for (const [key, value] of map) {
+      if (valueToReturn instanceof Array) {
+        valueToReturn.push([key, value]);
+      } else {
+        valueToReturn[key] = value;
+      }
+    }
+    return valueToReturn;
+  } else if (outAs.toLowerCase() === "array") {
+    const valueToReturn = [];
+
+    for (const value of map.values()) {
+      valueToReturn.push(value);
+    }
+    return valueToReturn;
+  }
+  throw new TypeError("Invalid outAs parameter!");
+}
+/**
+ * Creates a map from a value
+ * @param {{}|Array<Array<any>>} val The value to create the map from.
+ * @param {InAsFormat} inAs The format that the map is to be created from.
+ * @returns {Map}
+ */
+function createMapFrom(val, inAs) {
+  if (inAs.toLowerCase() === "object") {
+    const arr = [];
+
+    for (const key in val) {
+      arr.push([
+        key, val[key]
+      ]);
+    }
+
+    return new Map(arr);
+  } else if (inAs.toLowerCase() === "nested array") {
+    return new Map(val);
+  }
+  throw new TypeError("Invalid inAs parameter!");
 }
 
 /**
@@ -317,5 +381,6 @@ module.exports = exports = {
   inCircle,
   logMemoryUsage,
   getNonCallableProps,
-  mixUp
+  mixUp,
+  getMapValues
 };
