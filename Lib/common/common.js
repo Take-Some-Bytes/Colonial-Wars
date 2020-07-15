@@ -10,7 +10,6 @@ const init = require("./init");
 const loggers = init.winstonLoggers;
 const CSPLogger = loggers.get("CSP-logger");
 const ServerLogger = loggers.get("Server-logger");
-const ErrorLogger = loggers.get("Error-logger");
 
 /**
  * Automatically handles the requests that the server approves of.
@@ -28,7 +27,6 @@ function serveFile(req, res, next, file, response) {
     s.pipe(res);
   });
   s.on("error", err => {
-    ErrorLogger.error(err);
     ServerLogger.error(err);
     res.type("html");
     res.status(404).send(response);
@@ -93,7 +91,6 @@ function handleOther(req, res, next) {
       s.pipe(res);
     });
     s.on("error", err => {
-      ErrorLogger.error(err);
       ServerLogger.error(err);
       res.type("html");
       res.status(404)
@@ -103,7 +100,7 @@ function handleOther(req, res, next) {
         );
     });
   } else {
-    fs.stat(reqPath, (err, stats) => {
+    fs.stat(path.join(__dirname, "../../", reqPath), (err, stats) => {
       if (err) {
         reqPath = path.join(
           __dirname, "../../",
@@ -116,7 +113,6 @@ function handleOther(req, res, next) {
           s.pipe(res);
         });
         s.on("error", er => {
-          ErrorLogger.error(er);
           ServerLogger.error(er);
           res.type("html");
           res.status(404)
