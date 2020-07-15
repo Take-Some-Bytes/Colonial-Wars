@@ -3,12 +3,14 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-export const Constants = {
+import { deepSeal } from "./functions.js";
+
+const Constants = {
   //World max and min
   WORLD_MIN: -4500,
   WORLD_MAX: 4500,
   //Version
-  VERSION: "0.8.3-ALPHA",
+  VERSION: "0.8.4-ALPHA",
   //Drawing
   DRAWING_TROOP_BASE_PATH: "/imgs/troops",
   DRAWING_BUILDING_BASE_PATH: "/imgs/buildings",
@@ -83,7 +85,12 @@ export const Constants = {
   SOCKET_CHAT_SERVER_CLIENT: "chat-server-to-client",*/
   SOCKET_DISCONNECT: "disconnect",
   SOCKET_AVAILABLE_GAMES: "available-games",
-  SOCKET_ERROR: "err",
+  SOCKET_ERROR: "error",
   SOCKET_SECURITY_DATA: "security-data",
-  SOCKET_PROCEED: "proceed"
+  SOCKET_PROCEED: "proceed",
+  SOCKET_SCREEN_RESIZE: "screen-resize"
 };
+
+deepSeal(Constants);
+
+export { Constants };
