@@ -36,6 +36,8 @@ class Player {
     this.buildings = [];
     this.buttons = [];
     this.icons = [];
+    this.ui = new Map();
+
     this.resources = {
       wood: 0,
       stone: 0,
@@ -173,7 +175,7 @@ class Player {
       * wood: number,
       * stone: number,
       * food: number,
-      * gold: number,
+      * coins: number,
       * ammo: number
       * }}
       */
@@ -187,21 +189,21 @@ class Player {
       wood: 0,
       stone: 0,
       food: 0,
-      gold: 0,
+      coins: 0,
       ammo: 0
     };
     const resourceGen = {
       wood: 0,
       stone: 0,
       food: 0,
-      gold: 0,
+      coins: 0,
       ammo: 0
     };
     const resourceBonus = {
       woodIncrease: 0,
       stoneIncrease: 0,
       foodIncrease: 0,
-      goldIncrease: 0,
+      coinsIncrease: 0,
       ammoIncrease: 0
     };
 
@@ -235,9 +237,9 @@ class Player {
     totalResourceRate.food = multiplySomething([
       resourceGen.food, resourceBonus.foodIncrease
     ]) - resourceMin.food;
-    totalResourceRate.gold = multiplySomething([
-      resourceGen.gold, resourceBonus.goldIncrease
-    ]) - resourceMin.gold;
+    totalResourceRate.coins = multiplySomething([
+      resourceGen.coins, resourceBonus.coinsIncrease
+    ]) - resourceMin.coins;
     totalResourceRate.ammo = multiplySomething([
       resourceGen.ammo, resourceBonus.ammoIncrease
     ]) - resourceMin.ammo;
@@ -276,7 +278,7 @@ class Player {
     * wood: Number,
     * stone: Number,
     * food: Number,
-    * gold: Number,
+    * coins: Number,
     * ammo: Number
     * }} amounts The amounts to increase this player's resource rates by
     */
