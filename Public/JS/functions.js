@@ -56,6 +56,56 @@ export function normalizeAngle(angle, isDegree = false) {
     return 1.5707963267948966;
   }
 }
+/**
+ * Changes the viewport stats in the Constants object
+ */
+export function changeViewportStats() {
+  try {
+    Constants.VIEWPORT_HEIGHT = (() => {
+      if (window.innerHeight !== undefined) {
+        const vw = window.innerHeight;
+        return vw;
+      }
+      const vw = document.documentElement.clientHeight;
+      return vw;
+    })();
+    Constants.VIEWPORT_WIDTH = (() => {
+      if (window.innerWidth !== undefined) {
+        const vw = window.innerWidth;
+        return vw;
+      }
+      const vw = document.documentElement.clientWidth;
+      return vw;
+    })();
+  } catch (err) {
+    if (err instanceof TypeError) {
+      console.error("Object has been frozen!");
+      console.error(err);
+    } else {
+      throw err;
+    }
+  }
+}
+/**
+ * Deep seals an object
+ * @param {*} obj The object to deep seal
+ * @returns {*}
+ */
+export function deepSeal(obj) {
+  //Retrieve the property names defined on object
+  const propNames = Object.getOwnPropertyNames(obj);
+
+  //Freeze properties before freezing self
+  for (const name of propNames) {
+    const value = obj[name];
+
+    if (value && typeof value === "object") {
+      deepSeal(value);
+    }
+  }
+
+  return Object.seal(obj);
+}
 
 /**
  * Gets this client's game info
