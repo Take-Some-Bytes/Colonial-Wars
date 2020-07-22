@@ -80,6 +80,31 @@ class Icon extends UIElement {
     this.value = parsedValue;
   }
   /**
+   * Updates the value increase of this icon
+   * @param {Number|String} newIncrease The new number to increase by. Must
+   * be a number or a string that could be parsed into a number
+   */
+  updateValueIncrease(newIncrease) {
+    const parsedValue =
+      typeof newIncrease === "number" ?
+        newIncrease :
+        parseInt(newIncrease, 10);
+
+    // debug("Updating valueIncrease of icon: ", this.image);
+    // debug(
+    //   `New valueIncrease: ${parsedValue}. Type of it: ${typeof parsedValue}`
+    // );
+    if (typeof parsedValue !== "number") {
+      throw new TypeError(
+        "The supplied parameter is not, and could not be converted to a number!"
+      );
+    } else if (isNaN(parsedValue)) {
+      throw new TypeError("Value is NaN!");
+    }
+
+    this.valueIncrease = parsedValue;
+  }
+  /**
    * Handles a mouse event
    * @param {{
    * mouseX: Number,
