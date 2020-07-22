@@ -12,6 +12,10 @@ const CSPLogger = loggers.get("CSP-logger");
 const ServerLogger = loggers.get("Server-logger");
 
 /**
+ * Length error class
+ */
+class LengthError extends Error {}
+/**
  * Automatically handles the requests that the server approves of.
  * @param {express.request} req Client Request
  * @param {express.response} res Server Response
@@ -143,21 +147,35 @@ function handleOther(req, res, next) {
  * @param {express.NextFunction} next Next function
  */
 function logCSPReport(req, res, next) {
-  let reqData = null;
+  const reqData = [];
   req.on("data", chunk => {
-    reqData = chunk;
-    if (reqData.length > 40 * 1000) {
-      ServerLogger.warning(
-        "The CSP sent a POST request that was too large. Please verify it."
-      );
-      res.type("html");
-      res.status(413).send("<h1>POST entity too large</h1>");
-    }
+    reqData.push(chunk);
   });
   req.on("end", () => {
-    reqData = JSON.parse(reqData);
-    reqData = JSON.stringify(reqData, null, 3);
-    CSPLogger.warning(reqData);
+    let parsedData = "";
+    try {
+      parsedData = JSON.stringify(
+        JSON.parse(
+          Buffer.concat(reqData).toString("utf-8")
+        ), null, 3
+      );
+      if (
+        Buffer.from(parsedData, "utf-8").byteLength >
+        40 * 1024
+      ) {
+        throw new LengthError("Data too long.");
+      }
+      CSPLogger.warning(parsedData);
+    } catch (err) {
+      ServerLogger.error(err);
+      if (err instanceof SyntaxError) {
+        res.status(400).send("Bad Request.");
+      } else if (err instanceof LengthError) {
+        res.status(413).send("Payload Too Large.");
+      } else {
+        res.status(500).send("Internal Server Error.");
+      }
+    }
   });
 }
 /**
