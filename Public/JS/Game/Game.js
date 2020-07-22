@@ -8,6 +8,19 @@ import { Drawing } from "./Drawing.js";
 import { Input } from "./Input.js";
 import { Vector } from "./Physics/Vector.js";
 import { Viewport } from "./Viewport.js";
+
+/**
+ * @typedef {Object} InputState
+ * @property {Object} directionData
+ * @property {Boolean} directionData.up
+ * @property {Boolean} directionData.down
+ * @property {Boolean} directionData.right
+ * @property {Boolean} directionData.left
+ * @property {Object} mouseData
+ * @property {Boolean} mouseData.leftMousePressed
+ * @property {Boolean} mouseData.rightMousePressed
+ * @property {Array<Number>} mouseData.mouseCoords
+ */
 /**
  * Game class
  */
@@ -42,7 +55,7 @@ export class Game {
     this.resources = {};
     this.resourceRates = {};
     this.population = {};
-    this.uiBackgrounds = [...Constants.DRAWING_UI_BACKGROUND_KEYS];
+    this.uiBackgrounds = [];
     //this.obstacles = [];
 
     this.self = null;
@@ -55,8 +68,13 @@ export class Game {
    */
   init() {
     this.lastUpdateTime = Date.now();
-    this.socket.on(Constants.SOCKET_UPDATE,
-      this.onReceiveGameState.bind(this));
+    this.socket.on(
+      Constants.SOCKET_UPDATE,
+      this.onReceiveGameState.bind(this)
+    );
+    this.input.on(
+      "input", this.onInput.bind(this)
+    );
   }
   /**
    * Starts the animation and update loop to run the game.
@@ -66,58 +84,19 @@ export class Game {
     this.deltaTime = currentTime - this.lastUpdateTime;
     this.lastUpdateTime = currentTime;
 
-    this.update(this.token);
+    // this.update(this.token);
+    if (this.self) {
+      this.viewport.update(this.deltaTime);
+    }
     this.draw();
     this.animationFrameId = window.requestAnimationFrame(this.run.bind(this));
   }
-
   /**
    * Stops the animation and update loop for the game.
    */
   stop() {
     window.cancelAnimationFrame(this.animationFrameId);
   }
-
-  /**
-   * Updates the client state of the game and sends user input to the server.
-   * @param {String} token The token of the client.
-   */
-  update(token) {
-    if (this.self) {
-      this.viewport.update(this.deltaTime);
-
-      const absoluteMouseCoords = this.viewport.toWorld(
-        Vector.fromArray(this.input.mousePosition)
-      );
-      const playerToMouseVector = Vector.sub(this.self.position,
-        absoluteMouseCoords);
-
-      this.socket.emit(Constants.SOCKET_PLAYER_ACTION, JSON.stringify({
-        securityData: {
-          clientData: {
-            token
-          }
-        },
-        playerData: {
-          actionData: {
-            up: this.input.up,
-            down: this.input.down,
-            left: this.input.left,
-            right: this.input.right,
-            mouse: {
-              leftMousePressed: this.input.leftMouseDown,
-              rightMousePressed: this.input.rightMouseDown,
-              absMouseCoords: absoluteMouseCoords,
-              rltvMouseCoords: Vector.fromArray(this.input.mousePosition)
-            }
-          },
-          game: this.id
-        },
-        otherData: {}
-      }));
-    }
-  }
-
   /**
    * Draws the state of the game to the canvas.
    */
@@ -140,6 +119,8 @@ export class Game {
    */
   onReceiveGameState(data) {
     const parsedData = JSON.parse(data);
+    const gameData = parsedData.gameData.gameStats;
+    const playerData = parsedData.gameData.playerStats;
 
     if (this.expectedToken !== parsedData.securityData.gameToken) {
       const body = document.body;
@@ -151,19 +132,54 @@ export class Game {
         "been hacked. We are sorry for the inconvenience.</h3>";
       return;
     }
-    this.self = parsedData.playerData.self;
+    this.self = parsedData.gameData.self;
     // this.players = state.players;
     // this.projectiles = state.projectiles;
-    this.buildings = parsedData.playerData.buildings;
+    this.buildings = gameData.buildings;
     // this.troops = state.troops;
-    this.buttons = parsedData.playerData.ui.buttons;
-    this.icons = parsedData.playerData.ui.icons;
-    this.resources = parsedData.playerData.resources;
-    this.resourceRates = parsedData.playerData.resourceRates;
-    this.population = parsedData.playerData.population;
+    this.buttons = playerData.playerUi[0].children;
+    this.icons = playerData.playerUi[1].children;
+    this.resources = playerData.resources;
+    this.resourceRates = playerData.resourceRates;
+    this.population = playerData.population;
+    this.uiBackgrounds = playerData.playerUi;
+    console.log(playerData.playerUi);
 
+    this.viewport.updateTrackingPosition(parsedData.gameData.self);
+  }
+  /**
+   * Updates this game object on input
+   * @param {InputState} state The current input state
+   */
+  onInput(state) {
+    if (this.self) {
+      const absoluteMouseCoords = this.viewport.toWorld(
+        Vector.fromArray(state.mouseData.mouseCoords)
+      );
+      // const playerToMouseVector = Vector.sub(
+      //   this.self.position,
+      //   absoluteMouseCoords
+      // );
 
-    this.viewport.updateTrackingPosition(parsedData.playerData.self);
+      this.socket.emit(Constants.SOCKET_PLAYER_ACTION, JSON.stringify({
+        playerData: {
+          actionData: {
+            up: state.directionData.up,
+            down: state.directionData.down,
+            left: state.directionData.left,
+            right: state.directionData.right,
+            mouse: {
+              leftMousePressed: state.mouseData.leftMousePressed,
+              rightMousePressed: state.mouseData.rightMousePressed,
+              absMouseCoords: absoluteMouseCoords,
+              rltvMouseCoords: Vector.fromArray(state.mouseData.mouseCoords)
+            }
+          },
+          game: this.id
+        },
+        otherData: {}
+      }));
+    }
   }
   /**
    * Resets this client's token
