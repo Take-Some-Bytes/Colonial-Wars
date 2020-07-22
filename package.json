@@ -1,6 +1,6 @@
 {
    "name": "colonial-wars",
-   "version": "0.8.4",
+   "version": "0.8.5",
    "description": "Colonial Wars is a multiplayer, online game, set in the colonial era.",
    "main": "server.js",
    "scripts": {
