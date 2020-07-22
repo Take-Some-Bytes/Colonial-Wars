@@ -144,35 +144,14 @@ export class Drawing {
   }
   /**
    * Draws a section of the UI background
-   * @param {String} sectionName The section of the UI background that you want
-   * to draw
+   * @param {UIElement} bGround The section of the UI background that
+   * you want to draw
    */
-  drawUIBackground(sectionName) {
-    let position = null;
-    let size = null;
-    switch (sectionName) {
-    case "background_1":
-      position = new Vector(1060, 538);
-      size = {
-        width: 313,
-        height: 125
-      };
-      break;
-    case "resource_stats_background":
-      position = new Vector(667, 0);
-      size = {
-        width: 700,
-        height: 75
-      };
-      break;
-    default:
-      throw new Error("Section name not recognized!");
-    }
-
+  drawUIBackground(bGround) {
     this.context.drawImage(
-      this.images[sectionName],
-      position.x, position.y,
-      size.width, size.height
+      this.images[bGround.image],
+      bGround.position.x, bGround.position.y,
+      bGround.width, bGround.height
     );
   }
   /**
@@ -239,7 +218,7 @@ export class Drawing {
    */
   drawStat(icon) {
     const iconPosition = icon.position;
-    const framePosition = Constants.DRAWING_ICON_POSITIONS[icon.name];
+    const framePosition = Constants.DRAWING_ICON_POSITIONS[icon.image];
     const textPosition =
       Vector.fromObject(icon.position)
         .add(
@@ -270,7 +249,7 @@ export class Drawing {
     this.context.fillText(icon.value, textPosition.x, textPosition.y);
 
 
-    if (icon.name === "people") {
+    if (icon.image === "people") {
       return;
     }
 
