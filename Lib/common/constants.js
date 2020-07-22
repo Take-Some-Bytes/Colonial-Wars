@@ -888,7 +888,7 @@ const Constants = {
   //Player stuff
   PLAYER_DEFAULT_SPEED: 0.4,
   //Game stuff
-  MAX_PLAYERS: 60,
+  MAX_PLAYERS: 30,
   MAX_GAMES: 6,
   GAME_UPDATE_SPEED: 1000 / 25,
   START_POSITIONS_TEAM_MAP_1: {
@@ -901,7 +901,6 @@ const Constants = {
   },
   TILE_SIZE: 100,
   MAP_1: "testing",
-
   //Communications
   SOCKET_UPDATE: "update",
   SOCKET_NEW_PLAYER: "new-player",
@@ -914,7 +913,7 @@ const Constants = {
   SOCKET_SECURITY_DATA: "security-data",
   SOCKET_PROCEED: "proceed",
   //Version
-  VERSION: "0.8.4-ALPHA",
+  VERSION: "0.8.5-ALPHA",
   //UI things
   BUTTON_COOLDOWN: 500,
   BUTTON_KEYS: [
@@ -930,6 +929,28 @@ const Constants = {
     "ammo",
     "people"
   ],
+  UI_BACKGROUND_KEYS: [
+    "button_background",
+    "resource_stats_background"
+  ],
+  UI_BASE_STATS: {
+    button_background: {
+      size: {
+        width: 313,
+        height: 125
+      },
+      position: new Vector(1060, 538),
+      children_type: "buttons"
+    },
+    resource_stats_background: {
+      size: {
+        width: 700,
+        height: 75
+      },
+      position: new Vector(667, 0),
+      children_type: "icons"
+    }
+  },
   ICON_INFO_TEXT: {
     wood: "The amount of wood you have.",
     stone: "The amount of stone you have.",
