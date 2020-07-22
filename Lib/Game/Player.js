@@ -14,6 +14,10 @@ const Constants = require("../common/constants");
 const {
   degreeToRadian, bind, multiplySomething, checkProperties
 } = require("../common/util");
+const debug = require("../common/debug");
+const { makeUI } = require("../common/gameCommon");
+const UIElement = require("./UI/UIElement");
+const util = require("util");
 
 /**
  * Player class
@@ -34,8 +38,8 @@ class Player {
 
     this.troops = [];
     this.buildings = [];
-    this.buttons = [];
-    this.icons = [];
+    // this.buttons = [];
+    // this.icons = [];
     this.ui = new Map();
 
     this.resources = {
@@ -68,94 +72,31 @@ class Player {
    * Adds the UI elements this player is going to interact with
    */
   addUIElements() {
+    debug("Making UI elements...");
     //Declaration stuff
-    const buttonsLength = Constants.BUTTON_KEYS.length;
-    const buttonKeys = Constants.BUTTON_KEYS;
-    const buttonY = 570;
-    let buttonX = 1100;
-    const iconLength = Constants.ICON_KEYS.length - 1;
-    const iconKeys = Constants.ICON_KEYS;
-    const iconsY = 15;
-    const textOffset = new Vector(50, 30);
-    const textOffsetHeight = new Vector(-28, 20);
-    let iconsX = 685;
+    const uiBGs = Constants.UI_BACKGROUND_KEYS;
+    for (const bGround of uiBGs) {
+      const baseStats = Constants.UI_BASE_STATS[bGround];
 
-    //Add buttons
-    for (let i = 0; i < buttonsLength; i++) {
-      const btn = new Button({
-        width: 60,
-        height: 60,
-        image: buttonKeys[i],
-        position: new Vector(buttonX, buttonY),
-        onClick: () => {
-          btn.clicked = true;
-          btn.lastClickTime = Date.now();
-        },
-        onHover: () => {
-          btn.hovered = true;
-        },
-        onNotHover: () => {
-          btn.hovered = false;
-        },
-        onNotClick: () => {
-          btn.clicked = false;
-          btn.lastClickTime = Date.now();
+      const elemChildren = makeUI(baseStats.children_type, {
+        playerStats: {
+          resources: this.resources,
+          resourceRate: this.resourceRate,
+          population: this.population
         }
       });
-      this.buttons.push(btn);
-      buttonX += 80;
-    }
-    //Add icons
-    for (let i = 0; i < iconLength; i++) {
-      const infoText = Constants.ICON_INFO_TEXT[iconKeys[i]];
-      const value = this.resources[iconKeys[i]];
-
-      const icon = new Icon({
-        image: iconKeys[i],
-        position: new Vector(iconsX, iconsY),
-        infoText: infoText,
-        value:
-          `${value}`,
-        valueIncrease: this.resourceRate[iconKeys[i]],
-        name: iconKeys[i],
-        textOffset: textOffset,
-        textOffset2: textOffsetHeight,
+      const elem = new UIElement({
+        width: baseStats.size.width,
+        height: baseStats.size.height,
+        image: bGround,
+        position: baseStats.position,
         clickable: false,
-        onHover: function() {
-          icon.hovered = true;
-          icon.displayInfoText = true;
-        },
-        onNotHover: function() {
-          icon.hovered = false;
-          icon.displayInfoText = false;
-        }
+        value: null,
+        children: elemChildren
       });
 
-      this.icons.push(icon);
-      iconsX += 110;
+      this.ui.set(bGround, elem);
     }
-
-    const icon = new Icon({
-      image: "people",
-      position: new Vector(iconsX, iconsY),
-      infoText: Constants.ICON_INFO_TEXT.people,
-      value:
-        `${this.population.used} / ${this.population.max}`,
-      name: "people",
-      textOffset: textOffset,
-      textOffset2: textOffsetHeight,
-      clickable: false,
-      onHover: function() {
-        icon.hovered = true;
-        icon.displayInfoText = true;
-      },
-      onNotHover: function() {
-        icon.hovered = false;
-        icon.displayInfoText = false;
-      }
-    });
-
-    this.icons.push(icon);
   }
   /**
     * Binds this player's position within the world if it is outside of the
@@ -303,7 +244,7 @@ class Player {
     *  rightMousePressed: Boolean,
     *  absMouseCoords: Vector,
     *  rltvMouseCoords: Vector
-    }}} data A JSON Object storing the input state
+    * }}} data An Object storing the input state
    */
   updateOnInput(data) {
     if (data.up) {
@@ -318,13 +259,13 @@ class Player {
       this.velocity = Vector.zero();
     }
 
-    this.buttons.forEach(btn => {
-      const event = {
-        mouseX: data.mouse.rltvMouseCoords.x,
-        mouseY: data.mouse.rltvMouseCoords.y,
-        clicked: data.mouse.leftMousePressed
-      };
-      btn.handleMouseEvent(event);
+    const event = {
+      mouseX: data.mouse.rltvMouseCoords.x,
+      mouseY: data.mouse.rltvMouseCoords.y,
+      clicked: data.mouse.leftMousePressed
+    };
+    this.ui.forEach(elem => {
+      elem.handleMouseEvent(event);
     });
   }
   /**
@@ -341,17 +282,16 @@ class Player {
       const newResourceRates = this.calculateResourceRates();
       this.updateResourceRate(newResourceRates);
 
-      for (let i = 0; i < this.icons.length - 1; i++) {
-        this.icons[i].valueIncrease = this.resourceRate[this.icons[i].name];
+      for (const elem of this.ui.get("resource_stats_background").children) {
+        if (elem.image === "people") { continue; }
+        elem.updateValueIncrease(newResourceRates[elem.image]);
       }
     }
 
     const allIsTrue = checkProperties(this.resourceRate);
     if (allIsTrue) {
       this.updateResources();
-      for (let i = 0; i < this.icons.length - 1; i++) {
-        this.icons[i].updateValue();
-      }
+      this.ui.get("resource_stat_background").updateChildren();
     }
     this.bindToWorld();
 
@@ -363,15 +303,18 @@ class Player {
    * @returns {Player}
    */
   init() {
+    debug("Initializing player...");
     this.troops = [];
     this.buildings = [];
-    this.buttons = [];
-    this.icons = [];
+    // this.buttons = [];
+    // this.icons = [];
+    this.ui = new Map();
     this.lastUpdateTime = Date.now();
     this.velocity = Vector.zero();
 
     this.addUIElements();
     this.update(this.lastUpdateTime, this.lastUpdateTime);
+    debug("Done");
     return this;
   }
 }
