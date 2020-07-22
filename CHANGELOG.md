@@ -3,6 +3,15 @@ This is a changelog for the whole web app.
 
 ## Pre-release
 This is the pre-release part of the changelog.
+### v0.8.5
+- Moved ``functions.js`` into a directory called ``common`` on the client side.
+- Made game input event-based.
+- Added a browser-side ``EventEmitter`` in ``common`` directory.
+- Reworked how server and client handled game UI.
+- Updated ``logCSPReport`` on server side.
+- Updated the ``process.on("SIGINT");`` and how the server logs the server address.
+- Update UI classes.
+- Added a ``process.on("uncaughtException");`` handler to handle server crashes.
 ### v0.8.4
 - Added a util method to get all values from a ``Map``, plus another one to convert
 values into ``Map``s.
