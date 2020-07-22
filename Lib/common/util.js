@@ -210,39 +210,6 @@ function checkProperties(obj) {
   return true;
 }
 /**
- * Gets the euclidean distance squared
- * @param {Vector} p1 Point number 1
- * @param {Vector} p2 Point number 2
- * @returns {Number}
- */
-function getEuclideanDist2(p1, p2) {
-  const distance = Math.sqrt(
-    (p2.x - p1.x) * (p2.x - p1.x) +
-    (p2.y - p1.y) * (p2.y - p1.y)
-  );
-
-  if (isNaN(distance)) {
-    throw new TypeError(
-      "Arguments are not valid Vectors, or " +
-      "the properties of the Vectors are not valid numbers!"
-    );
-  }
-  return distance;
-}
-/**
- * Tests if a point is in a circle
- * @param {Vector} circlePosition The circle's position
- * @param {Number} circleRadius The circle's radius
- * @param {Vector} pointPosition The point that you want to test
- * @returns {Boolean}
- */
-function inCircle(circlePosition, circleRadius, pointPosition) {
-  const euclideanDist = getEuclideanDist2(pointPosition, circlePosition);
-
-  const isInCircle = euclideanDist < circleRadius;
-  return isInCircle;
-}
-/**
  * Logs the memory usage of the current node js process
  */
 function logMemoryUsage() {
@@ -377,8 +344,6 @@ module.exports = exports = {
   deepClear,
   multiplySomething,
   checkProperties,
-  getEuclideanDist2,
-  inCircle,
   logMemoryUsage,
   getNonCallableProps,
   mixUp,
