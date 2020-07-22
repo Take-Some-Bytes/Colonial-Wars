@@ -7,7 +7,6 @@
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
 //Import debugger
 const debug = require("./Lib/common/debug");
-
 debug("Starting colonialwars app!");
 
 //Dependencies
@@ -17,10 +16,11 @@ const express = require("express");
 const socketIO = require("socket.io");
 
 //Variables
-const PROTOCOL = "http";
+const PROTOCOL = process.env.PROTOCOL || "http";
 const PORT = PROTOCOL === "http" ? 8000 : 4430;
-const HOST = "localhost";
+const HOST = process.env.HOST || "localhost";
 const pendingClients = {};
+const intervals = [];
 
 //Custom modules
 const router = require("./Lib/router");
@@ -213,14 +213,14 @@ server.listen(PORT, HOST, 20, err => {
     }, 600);
   }
   ProcessLogger.info(
-    `Server started successfully on port ${PORT}, address http://${HOST}`
+    `Server started successfully on http://${HOST}:${PORT}.`
   );
-  debug(`Server started on port ${PORT}, http://${HOST}.`);
+  debug(`Server started on http://${HOST}:${PORT}.`);
   debug(`Protocol is: ${PROTOCOL}.`);
   logMemoryUsage();
 });
 
-setInterval(() => {
+const sessionInterval = setInterval(() => {
   //Refresh ws sessions
   wsSessions.refreshAll();
   wsSessions.forEach((session, ID) => {
@@ -254,25 +254,40 @@ setInterval(() => {
   });
 }, 8 * 60 * 1000);
 
-setInterval(() => {
+const updateLoop = setInterval(() => {
   manager.update();
   manager.sendState();
 }, Constants.GAME_UPDATE_SPEED);
 
+intervals.push(sessionInterval, updateLoop);
+
 process.on("SIGINT", signal => {
   //Let us know that the user terminated the process
-  debug(`Received signal ${signal}.`);
-  debug("Exiting...");
-  ProcessLogger.info(`Received signal ${signal} from user. Exiting...`);
-  //Allow the async functions to finish
-  setTimeout(() => {
+  intervals.forEach(interval => {
+    clearInterval(interval);
+  });
+  debug(`Received signal ${signal}. Shutting down server...`);
+  ProcessLogger.info(
+    `Received signal ${signal} from user. Shutting down server...`
+  );
+  server.close(() => io.close(() => {
+    debug("Server shutdown complete. Exiting...");
+    ProcessLogger.info(
+      "Server shutdown complete. Exiting..."
+    );
+    //Allow the async functions to finish
+    setTimeout(() => {
     // eslint-disable-next-line no-process-exit
-    process.exit(0);
-  }, 600);
+      process.exit(0);
+    }, 600);
+  }));
 });
 process.on("uncaughtException", err => {
+  intervals.forEach(interval => {
+    clearInterval(interval);
+  });
   ProcessLogger.fatal("Server crashed. Error is:");
-  ProcessLogger.fatal(err);
+  ProcessLogger.fatal(err.stack);
   ProcessLogger.fatal("Exiting...");
   debug("Server crashed. Error is:");
   debug(err);
