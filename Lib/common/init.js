@@ -135,6 +135,11 @@ if (process.env.NODE_ENV === "production") {
         filename: path.join(__dirname, "../../",
           "logs/combined.log")
       }),
+      new winston.transports.File({
+        filename: path.join(__dirname, "../../",
+          `logs/${logsDate}/errors.log`),
+        level: "error"
+      }),
       new winston.transports.Console()
     ]
   });
@@ -236,6 +241,11 @@ if (process.env.NODE_ENV === "production") {
       new winston.transports.File({
         filename: path.join(__dirname, "../../",
           "logs/combined.log")
+      }),
+      new winston.transports.File({
+        filename: path.join(__dirname, "../../",
+          "logs/errors.log"),
+        level: "error"
       }),
       new winston.transports.Console()
     ]
