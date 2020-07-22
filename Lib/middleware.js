@@ -8,7 +8,6 @@ const qs = require("querystring");
 const crypto = require("crypto");
 const cookieParser = require("cookie-parser");
 const express = require("express");
-const socketIO = require("socket.io");
 
 const SessionStorage = require("./Security/SessionStorage");
 const Manager = require("./Game/Manager");
