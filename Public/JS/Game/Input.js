@@ -3,14 +3,17 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
+import { EventEmitter } from "../common/EventEmitter.js";
 /**
  * Input class
+ * @extends EventEmitter
  */
-export class Input {
+export class Input extends EventEmitter {
   /**
    * Constructor for an Input class
    */
   constructor() {
+    super();
     this.up = false;
     this.down = false;
     this.left = false;
@@ -48,6 +51,20 @@ export class Input {
       this.right = true;
       break;
     }
+    const state = {
+      directionData: {
+        up: this.up,
+        down: this.down,
+        right: this.right,
+        left: this.left
+      },
+      mouseData: {
+        leftMousePressed: this.leftMouseDown,
+        rightMousePressed: this.rightMouseDown,
+        mouseCoords: this.mousePosition
+      }
+    };
+    this.emit("input", state);
   }
   /**
    * Event handler for the `keyup` event
@@ -76,6 +93,20 @@ export class Input {
       this.right = false;
       break;
     }
+    const state = {
+      directionData: {
+        up: this.up,
+        down: this.down,
+        right: this.right,
+        left: this.left
+      },
+      mouseData: {
+        leftMousePressed: this.leftMouseDown,
+        rightMousePressed: this.rightMouseDown,
+        mouseCoords: this.mousePosition
+      }
+    };
+    this.emit("input", state);
   }
   /**
    * Handles a `mousedown` event
@@ -88,6 +119,20 @@ export class Input {
     if (event.button === 1) {
       this.rightMouseDown = true;
     }
+    const state = {
+      directionData: {
+        up: this.up,
+        down: this.down,
+        right: this.right,
+        left: this.left
+      },
+      mouseData: {
+        leftMousePressed: this.leftMouseDown,
+        rightMousePressed: this.rightMouseDown,
+        mouseCoords: this.mousePosition
+      }
+    };
+    this.emit("input", state);
   }
   /**
    * Handles a `mouseup` event
@@ -100,6 +145,20 @@ export class Input {
     if (event.button === 1) {
       this.rightMouseDown = false;
     }
+    const state = {
+      directionData: {
+        up: this.up,
+        down: this.down,
+        right: this.right,
+        left: this.left
+      },
+      mouseData: {
+        leftMousePressed: this.leftMouseDown,
+        rightMousePressed: this.rightMouseDown,
+        mouseCoords: this.mousePosition
+      }
+    };
+    this.emit("input", state);
   }
   /**
    * Handles a `mousemove` event
@@ -108,6 +167,21 @@ export class Input {
   onMouseMove(event) {
     this.mousePosition[0] = event.offsetX;
     this.mousePosition[1] = event.offsetY;
+
+    const state = {
+      directionData: {
+        up: this.up,
+        down: this.down,
+        right: this.right,
+        left: this.left
+      },
+      mouseData: {
+        leftMousePressed: this.leftMouseDown,
+        rightMousePressed: this.rightMouseDown,
+        mouseCoords: this.mousePosition
+      }
+    };
+    this.emit("input", state);
   }
   /**
    * Applies the event handlers to elements in the DOM.
