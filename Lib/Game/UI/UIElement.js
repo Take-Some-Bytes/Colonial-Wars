@@ -18,6 +18,7 @@ class UIElement {
     * position: Vector,
     * clickable: Boolean,
     * value: any,
+    * children: Array<any>,
     * onHover: function():void,
     * onNotHover: function():void
     * }} config Config
@@ -32,6 +33,7 @@ class UIElement {
     this.onHover = config.onHover || function() { return false; };
     this.onNotHover = config.onNotHover || function() { return false; };
     this.clickable = config.clickable || false;
+    this.children = config.children;
 
     this.hovered = false;
   }
@@ -48,6 +50,33 @@ class UIElement {
          event.mouseX < this.position.x + this.width &&
          event.mouseY > this.position.y &&
          event.mouseY < this.position.y + this.height;
+  }
+  /**
+   * Handles a mouse event
+   * @param {{
+   * mouseX: Number,
+   * mouseY: Number
+   * }} event The mouse event that happened
+   */
+  handleMouseEvent(event) {
+    if (this.isMouseInside(event)) {
+      this.children.forEach(elem => {
+        elem.handleMouseEvent(event);
+      });
+    }
+  }
+  /**
+   * Updates the stuff inside the ```children``` property of
+   * this UIElement
+   */
+  updateChildren() {
+    for (const child of this.children) {
+      try {
+        child.updateValue();
+      } catch (err) {
+        continue;
+      }
+    }
   }
 }
 
