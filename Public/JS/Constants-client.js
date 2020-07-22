@@ -3,14 +3,14 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-import { deepSeal } from "./functions.js";
+import { deepSeal } from "./common/functions.js";
 
 const Constants = {
   //World max and min
   WORLD_MIN: -4500,
   WORLD_MAX: 4500,
   //Version
-  VERSION: "0.8.4-ALPHA",
+  VERSION: "0.8.5-ALPHA",
   //Drawing
   DRAWING_TROOP_BASE_PATH: "/imgs/troops",
   DRAWING_BUILDING_BASE_PATH: "/imgs/buildings",
@@ -32,7 +32,7 @@ const Constants = {
     "all_icons"
   ],
   DRAWING_UI_BACKGROUND_KEYS: [
-    "background_1",
+    "button_background",
     "resource_stats_background"
   ],
   DRAWING_TILE_SIZE: 100,
