@@ -6,7 +6,7 @@
 /* eslint-disable no-undef */
 
 import { Constants } from "./Constants-client.js";
-import { init } from "./functions.js";
+import { init } from "./common/functions.js";
 const pathname = window.location.pathname;
 let dialog = null;
 
