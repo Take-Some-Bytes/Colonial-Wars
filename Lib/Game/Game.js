@@ -10,8 +10,9 @@ const Building = require("./Game/Building");
 const Troop = require("./Game/Troop");
 const Constants = require("../common/constants");
 const {
-  deepClear, getEuclideanDist2, inCircle, getNonCallableProps
+  deepClear, getNonCallableProps, getMapValues
 } = require("../common/util");
+const { getEuclideanDist2, inCircle } = require("../common/gameCommon");
 const debug = require("../common/debug");
 
 const socketIO = require("socket.io");
@@ -187,11 +188,16 @@ class Game {
    * Updates the specified player on input
    * @param {String} socketID The socket ID associated with this player
    * @param {{
-    * up: Number,
-    * down: Number,
-    * right: Number,
-    * left: Number
-    * }} data A JSON object containing the update data
+    * up: Boolean,
+    * down: Boolean,
+    * right: Boolean,
+    * left: Boolean,
+    * mouse: {
+    *  leftMousePressed: Boolean,
+    *  rightMousePressed: Boolean,
+    *  absMouseCoords: Vector,
+    *  rltvMouseCoords: Vector
+    * }}} data An object containing the update data
    */
   updatePlayerOnInput(socketID, data) {
     const player = this.players.get(socketID);
@@ -210,12 +216,12 @@ class Game {
     const players = [
       ...this.players.values()
     ];
-
     const entities = [
       ...this.projectiles,
       ...this.troops,
       ...this.buildings
     ];
+
     if (players) {
       players.forEach(player => {
         player.update(this.lastUpdateTime, this.deltaTime);
@@ -247,9 +253,9 @@ class Game {
           }
           if (
             e1 instanceof Building && e2 instanceof Projectile &&
-          e2.source !== e1 ||
-          e1 instanceof Troop && e2 instanceof Projectile &&
-          e2.source !== e1
+            e2.source !== e1 ||
+            e1 instanceof Troop && e2 instanceof Projectile &&
+            e2.source !== e1
           ) {
             if (e2.explodes) {
               const AOE = e2.splashDamageRadius;
@@ -412,25 +418,20 @@ class Game {
         securityData: {
           gameToken: this.token
         },
-        playerData: {
+        gameData: {
           self: getNonCallableProps(currentPlayer),
-          // players: players,
-          // projectiles: this.projectiles,
-          buildings: this.buildings.map(building => {
-            const newProps = getNonCallableProps(building);
-            return newProps;
-          }),
-          resources: currentPlayer.resources,
-          resourceRate: currentPlayer.resourceRate,
-          population: currentPlayer.population,
-          // troops: this.troops
-          ui: {
-            buttons: currentPlayer.buttons.map(button => {
-              const newProps = getNonCallableProps(button);
-              return newProps;
-            }),
-            icons: currentPlayer.icons.map(icon => {
-              const newProps = getNonCallableProps(icon);
+          playerStats: {
+            resources: currentPlayer.resources,
+            resourceRate: currentPlayer.resourceRate,
+            population: currentPlayer.population,
+            // troops: this.troops
+            playerUi: getMapValues(currentPlayer.ui, "array")
+          },
+          gameStats: {
+            // players: players,
+            // projectiles: this.projectiles,
+            buildings: this.buildings.map(building => {
+              const newProps = getNonCallableProps(building);
               return newProps;
             })
           }
