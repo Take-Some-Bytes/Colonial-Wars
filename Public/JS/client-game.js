@@ -7,7 +7,7 @@
 
 import { Constants } from "./Constants-client.js";
 import { Game } from "./Game/Game.js";
-import { changeViewportStats } from "./functions.js";
+import { changeViewportStats } from "./common/functions.js";
 
 const pathname = window.location.pathname;
 let game = null;
