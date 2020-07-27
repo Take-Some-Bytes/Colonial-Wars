@@ -199,17 +199,11 @@ function socketEmitCP() {
   return function(packet, next) {
     const packetData = JSON.parse(packet[1]);
     const clientData = packetData.securityData.clientData;
-    try {
-      if (!clientData.id) {
-        next(new Error("No ID specified!"));
-        return;
-      } else if (!clientData.token) {
-        next(new Error("No token specified!"));
-        return;
-      }
-    } catch (err) {
-      ServerLogger.error(err);
-      next(new Error("Missing client token or ID"));
+    if (typeof clientData.id === "undefined") {
+      next(new Error("No ID specified!"));
+      return;
+    } else if (typeof clientData.token === "undefined") {
+      next(new Error("No token specified!"));
       return;
     }
 
