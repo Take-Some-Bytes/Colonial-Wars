@@ -19,6 +19,7 @@ const manager = init.manager;
 const loggers = init.winstonLoggers;
 const morganLoggers = init.morganLoggers;
 const ServerLogger = loggers.get("Server-logger");
+const SecurityLogger = loggers.get("Security-logger");
 
 //Route logger and security thing
 router.use(morganLoggers.consoleLogger, morganLoggers.fileLogger);
@@ -37,7 +38,7 @@ router.route("/")
     );
 
     serveFile(req, res, next, filePath,
-      "<h1>Page Not Found:(</h1>\n" +
+      "<h1>Page Not Found.</h1>\n" +
       "<h3>Somehow the home page isn't where it used to be</h3>"
     );
   })
@@ -54,7 +55,7 @@ router.route("/play")
     );
 
     serveFile(req, res, next, filePath,
-      "<h1>Page Not Found:(</h1>\n" +
+      "<h1>Page Not Found.</h1>\n" +
       "<h3>Somehow the play page isn't where it used to be</h3>"
     );
   })
@@ -71,7 +72,7 @@ router.route("/about")
     );
 
     serveFile(req, res, next, filePath,
-      "<h1>Page Not Found:(</h1>\n" +
+      "<h1>Page Not Found.</h1>\n" +
       "<h3>Somehow the about page isn't where it used to be</h3>"
     );
   })
@@ -88,7 +89,7 @@ router.route("/version")
     );
 
     serveFile(req, res, next, filePath,
-      "<h1>Page Not Found:(</h1>\n" +
+      "<h1>Page Not Found.</h1>\n" +
       "<h3>Somehow the version page isn't where it used to be</h3>"
     );
   })
@@ -105,7 +106,7 @@ router.route("/license")
     );
 
     serveFile(req, res, next, filePath,
-      "<h1>Page Not Found:(</h1>\n" +
+      "<h1>Page Not Found.</h1>\n" +
     "<h3>Somehow the license page isn't where it used to be</h3>"
     );
   })
@@ -130,8 +131,8 @@ router.route("/xhr")
     const cookies = req.signedCookies;
 
     //Security
-    if (!query) {
-      ServerLogger.notice(
+    if (typeof query !== "string") {
+      SecurityLogger.notice(
         `Someone tried to get: ${req.url} without a query. ` +
         `Request date: ${date}`
       );
@@ -139,8 +140,13 @@ router.route("/xhr")
         .status(400)
         .send("No query supplied! Cannot process request.");
       return;
+    } else if (typeof query.for === "undefined") {
+      SecurityLogger.notice(
+        `Someone tried to get ${req.url} without a for field in their query.` +
+        ` Request date: ${date}`
+      );
     } else if (!cookies.token || !cookies.clientID) {
-      ServerLogger.notice(
+      SecurityLogger.notice(
         `Someone tried to get: ${req.url} without a token or ID with their ` +
         `cookies. Request date: ${date}`
       );
@@ -153,7 +159,7 @@ router.route("/xhr")
     switch (query.for) {
     case "games_available": {
       const gamesAvailable = manager.allGames.filter(game => {
-        const isGameClosed = !!game.status;
+        const isGameClosed = game.status === "Game is open";
         return isGameClosed;
       });
       const arrayLength = gamesAvailable.length;
@@ -193,16 +199,28 @@ router.route("/xhr")
         });
         res.send(response);
       });
+      s.on("error", err => {
+        ServerLogger.error(err);
+        if (err.code === "ENOENT") {
+          res
+            .status(404)
+            .send("File not found.");
+        } else {
+          res
+            .status(500)
+            .send("Server error");
+        }
+      });
       break;
     }
     default:
-      ServerLogger.notice(
+      SecurityLogger.notice(
         `Someone tried to get: ${req.url} with an unrecognized for field. ` +
-        `Request date: ${date}`
+        `Request date: ${date}.`
       );
       res
         .status(400)
-        .send("Unrecognized for field! Cannot process request");
+        .send("Unrecognized for field! Cannot process request.");
     }
   })
   .post((req, res, next) => methodNotAllowed(req, res, next, ["GET"]))
