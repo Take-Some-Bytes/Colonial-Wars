@@ -92,7 +92,7 @@
       "no-unused-vars": "off",
  
       // Node.js and CommonJS
-      "global-require": "warn",
+      "global-require": "off",
       "handle-callback-err": ["error", "^.*(e|E)rr"],
       "no-buffer-constructor": "off",
       "no-mixed-requires": ["warn", {
