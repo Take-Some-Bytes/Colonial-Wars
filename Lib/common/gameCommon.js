@@ -13,40 +13,40 @@ const Constants = require("./constants");
  */
 /**
  * @typedef {Object} Size
- * @property {Number} width
- * @property {Number} height
+ * @prop {Number} width
+ * @prop {Number} height
  */
 /**
  * @typedef {Object} PopulationStats
- * @property {Number} used
- * @property {Number} max
+ * @prop {Number} used
+ * @prop {Number} max
  */
 /**
  * @typedef {Object} ResourceStats
- * @property {Number} wood
- * @property {Number} stone
- * @property {Number} food
- * @property {Number} coins
- * @property {Number} ammo
+ * @prop {Number} wood
+ * @prop {Number} stone
+ * @prop {Number} food
+ * @prop {Number} coins
+ * @prop {Number} ammo
  */
 /**
  * @typedef {Object} UIOptions
- * @property {ScaleOptions} [scaleOpts]
- * @property {Size} [clientScreenSize]
- * @property {Vector} [startPosition]
- * @property {Object} [playerStats]
- * @property {ResourceStats} [playerStats.resources]
- * @property {ResourceStats} [playerStats.resourceRate]
- * @property {PopulationStats} [playerStats.population]
+ * @prop {ScaleOptions} [scaleOpts]
+ * @prop {Size} [clientScreenSize]
+ * @prop {Vector} [startPosition]
+ * @prop {Object} [playerStats]
+ * @prop {ResourceStats} [playerStats.resources]
+ * @prop {ResourceStats} [playerStats.resourceRate]
+ * @prop {PopulationStats} [playerStats.population]
  */
 /**
  * @typedef {Object} ScaleOptions Translate options. If the first
  * two properties are omitted, then the last two are required.
- * @property {ScreenSize} [baseScreenSize] The base screen size to
+ * @prop {ScreenSize} [baseScreenSize] The base screen size to
  * translate the value to.
- * @property {ScreenSize} [otherScreenSize] The other screen size that
+ * @prop {ScreenSize} [otherScreenSize] The other screen size that
  * the value is coming from.
- * @property {Number|ScaleStats} [scaleBy] The scale by which to calculate by.
+ * @prop {Number|ScaleStats} [scaleBy] The scale by which to calculate by.
  */
 
 /**
