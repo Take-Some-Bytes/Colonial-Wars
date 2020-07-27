@@ -12,6 +12,8 @@ This is the pre-release part of the changelog.
 - Updated some ``if--else`` conditionals to use ``typeof`` instead of the not (``!``)
 operator to make sure that the server doesn't crash upon a ``TypeError: Cannot read property`` error.
 - Updated ``README.md``.
+- Added an array to store existing ``socket.io`` connections so that the server can close them
+on shutdown.
 ### v0.8.5
 - Moved ``functions.js`` into a directory called ``common`` on the client side.
 - Made game input event-based.
