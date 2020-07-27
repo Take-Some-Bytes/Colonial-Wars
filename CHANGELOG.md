@@ -3,6 +3,15 @@ This is a changelog for the whole web app.
 
 ## Pre-release
 This is the pre-release part of the changelog.
+### v0.8.6
+- Fixed string splitting. Used spread syntax instead of ``string.split();``.
+- Added a file to parse arguments passed to the program, and to parse ``.env`` files.
+- Refractored logger making code.
+- Reduced number of loggers from 4 to 2.
+- Updated which loggers logged where.
+- Updated some ``if--else`` conditionals to use ``typeof`` instead of the not (``!``)
+operator to make sure that the server doesn't crash upon a ``TypeError: Cannot read property`` error.
+- Updated ``README.md``.
 ### v0.8.5
 - Moved ``functions.js`` into a directory called ``common`` on the client side.
 - Made game input event-based.
