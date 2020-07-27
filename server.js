@@ -20,6 +20,7 @@ const PORT = config.serverConfig.port || (PROTOCOL === "http" ? 8000 : 4430);
 const HOST = config.serverConfig.host || "localhost";
 const pendingClients = {};
 const intervals = [];
+const connections = [];
 process.env.NODE_ENV = config.environment;
 
 //Custom modules
@@ -70,6 +71,7 @@ io.use((socket, next) => {
   next();
 });
 io.on("connection", socket => {
+  connections.push(socket);
   debug("Connection!", socket.id);
   socket.use(middleware.socketEmitCP());
   socket.on(Constants.SOCKET_NEW_PLAYER, (data, cb) => {
@@ -168,6 +170,7 @@ playIO.use((socket, next) => {
   next();
 });
 playIO.on("connection", socket => {
+  connections.push(socket);
   const pending = pendingClients[socket.handshake.query.prevSocketID];
   const gameID = pendingClients[socket.handshake.query.prevSocketID].gameID;
   delete pendingClients[socket.handshake.query.prevSocketID];
@@ -265,6 +268,9 @@ process.on("SIGINT", signal => {
   intervals.forEach(interval => {
     clearInterval(interval);
   });
+  connections.forEach(socket => {
+    socket.disconnect(true);
+  });
   debug(`Received signal ${signal}. Shutting down server...`);
   ServerLogger.info(
     `Received signal ${signal} from user. Shutting down server...`
@@ -278,7 +284,7 @@ process.on("SIGINT", signal => {
     setTimeout(() => {
     // eslint-disable-next-line no-process-exit
       process.exit(0);
-    }, 600);
+    }, 1000);
   }));
 });
 process.on("uncaughtException", err => {
@@ -295,5 +301,5 @@ process.on("uncaughtException", err => {
   setTimeout(() => {
     // eslint-disable-next-line no-process-exit
     process.exit(1);
-  }, 600);
+  }, 1000);
 });
