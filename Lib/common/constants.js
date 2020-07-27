@@ -913,7 +913,7 @@ const Constants = {
   SOCKET_SECURITY_DATA: "security-data",
   SOCKET_PROCEED: "proceed",
   //Version
-  VERSION: "0.8.5-ALPHA",
+  VERSION: "0.8.6-ALPHA",
   //UI things
   BUTTON_COOLDOWN: 500,
   BUTTON_KEYS: [
@@ -982,6 +982,16 @@ const Constants = {
       trace: "grey"
     }
   },
+  WINSTON_LOGGER_INFO: [
+    { id: "Server-logger", label: "Server_log" },
+    { id: "Security-logger", label: "Security_log" }
+  ],
+  WINSTON_LOG_FILE_NAMES: [
+    "combined",
+    "errors",
+    "process",
+    "security"
+  ],
   WINSTON_LOGGING_TIMESTAMP_FORMAT: "ddd[,] DD MMM YYYY HH:mm:ss Z",
   MORGAN_LOGGING_FORMAT: ":date[web]: Request received at :reqPath, " +
     "with method :method. Request full url: :url",
