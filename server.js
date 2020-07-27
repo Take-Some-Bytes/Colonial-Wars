@@ -215,9 +215,9 @@ server.listen(PORT, HOST, 20, err => {
     }, 600);
   }
   ServerLogger.info(
-    `Server started successfully on http://${HOST}:${PORT}.`
+    `Server started successfully on ${PROTOCOL}://${HOST}:${PORT}.`
   );
-  debug(`Server started on http://${HOST}:${PORT}.`);
+  debug(`Server started on ${PROTOCOL}://${HOST}:${PORT}.`);
   debug(`Protocol is: ${PROTOCOL}.`);
   logMemoryUsage();
 });
