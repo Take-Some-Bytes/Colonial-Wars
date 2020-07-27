@@ -8,7 +8,7 @@ const path = require("path");
 const express = require("express");
 const init = require("./init");
 const loggers = init.winstonLoggers;
-const CSPLogger = loggers.get("CSP-logger");
+const SecurityLogger = loggers.get("Security-logger");
 const ServerLogger = loggers.get("Server-logger");
 
 /**
@@ -32,8 +32,12 @@ function serveFile(req, res, next, file, response) {
   });
   s.on("error", err => {
     ServerLogger.error(err);
-    res.type("html");
-    res.status(404).send(response);
+    if (err.code === "ENOENT") {
+      res.type("html");
+      res.status(404).send(response);
+    } else {
+      res.status(500).send("Server error");
+    }
   });
 }
 /**
@@ -62,7 +66,7 @@ function methodNotImplemented(req, res, next) {
  */
 function methodNotAllowed(req, res, next, allowed) {
   const date = new Date();
-  ServerLogger.notice(
+  SecurityLogger.notice(
     `Someone used a method that is not allowed at ${req.url} at: ${date}.`
   );
   res.type("html");
@@ -96,12 +100,14 @@ function handleOther(req, res, next) {
     });
     s.on("error", err => {
       ServerLogger.error(err);
-      res.type("html");
-      res.status(404)
-        .send(
+      if (err.code === "ENOENT") {
+        res.type("html");
+        res.status(404).send(
           "<h1>File Not Found</h1>\n" +
-          "<h3>The file you requested was not found</h3>"
-        );
+          "<h3>The file you requested was not found</h3>");
+      } else {
+        res.status(500).send("Server error");
+      }
     });
   } else {
     fs.stat(path.join(__dirname, "../../", reqPath), (err, stats) => {
@@ -118,15 +124,17 @@ function handleOther(req, res, next) {
         });
         s.on("error", er => {
           ServerLogger.error(er);
-          res.type("html");
-          res.status(404)
-            .send(
+          if (err.code === "ENOENT") {
+            res.type("html");
+            res.status(404).send(
               "<h1>File Not Found</h1>\n" +
-              "<h3>The file you requested was not found</h3>"
-            );
+              "<h3>The file you requested was not found</h3>");
+          } else {
+            res.status(500).send("Server error");
+          }
         });
       } else {
-        ServerLogger.notice(
+        SecurityLogger.notice(
           `Someone tried to access ${reqPath} at ` +
           `${date}. The request was blocked`
         );
@@ -165,7 +173,7 @@ function logCSPReport(req, res, next) {
       ) {
         throw new LengthError("Data too long.");
       }
-      CSPLogger.warning(parsedData);
+      SecurityLogger.warning(parsedData);
     } catch (err) {
       ServerLogger.error(err);
       if (err instanceof SyntaxError) {
