@@ -3,9 +3,8 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-//Define process.env.NODE_ENV
-process.env.NODE_ENV = process.env.NODE_ENV || "development";
-//Import debugger
+//Import debugger and configurations
+const config = require("./config");
 const debug = require("./Lib/common/debug");
 debug("Starting colonialwars app!");
 
@@ -16,11 +15,12 @@ const express = require("express");
 const socketIO = require("socket.io");
 
 //Variables
-const PROTOCOL = process.env.PROTOCOL || "http";
-const PORT = PROTOCOL === "http" ? 8000 : 4430;
-const HOST = process.env.HOST || "localhost";
+const PROTOCOL = config.httpsConfig.isHttps ? "https" : "http";
+const PORT = config.serverConfig.port || (PROTOCOL === "http" ? 8000 : 4430);
+const HOST = config.serverConfig.host || "localhost";
 const pendingClients = {};
 const intervals = [];
+process.env.NODE_ENV = config.environment;
 
 //Custom modules
 const router = require("./Lib/router");
@@ -37,9 +37,8 @@ const secret = init.cookieSecret;
 const manager = init.manager;
 
 const ServerLogger = init.winstonLoggers.get("Server-logger");
-const ProcessLogger = init.winstonLoggers.get("Process-logger");
 
-ProcessLogger.info("Imports done, starting server.");
+ServerLogger.info("Imports done, starting server.");
 debug("Done imports, starting server.");
 
 const app = express();
@@ -202,8 +201,8 @@ playIO.on("connection", socket => {
 
 server.listen(PORT, HOST, 20, err => {
   if (err) {
-    ProcessLogger.fatal("Failed to start server. Error is:");
-    ProcessLogger.fatal(err);
+    ServerLogger.fatal("Failed to start server. Error is:");
+    ServerLogger.fatal(err);
     debug("Failed to start server. Error is: ");
     debug(err);
     //Allow the async functions to finish
@@ -212,7 +211,7 @@ server.listen(PORT, HOST, 20, err => {
       process.exit(1);
     }, 600);
   }
-  ProcessLogger.info(
+  ServerLogger.info(
     `Server started successfully on http://${HOST}:${PORT}.`
   );
   debug(`Server started on http://${HOST}:${PORT}.`);
@@ -267,12 +266,12 @@ process.on("SIGINT", signal => {
     clearInterval(interval);
   });
   debug(`Received signal ${signal}. Shutting down server...`);
-  ProcessLogger.info(
+  ServerLogger.info(
     `Received signal ${signal} from user. Shutting down server...`
   );
   server.close(() => io.close(() => {
     debug("Server shutdown complete. Exiting...");
-    ProcessLogger.info(
+    ServerLogger.info(
       "Server shutdown complete. Exiting..."
     );
     //Allow the async functions to finish
@@ -286,9 +285,9 @@ process.on("uncaughtException", err => {
   intervals.forEach(interval => {
     clearInterval(interval);
   });
-  ProcessLogger.fatal("Server crashed. Error is:");
-  ProcessLogger.fatal(err.stack);
-  ProcessLogger.fatal("Exiting...");
+  ServerLogger.fatal("Server crashed. Error is:");
+  ServerLogger.fatal(err.stack);
+  ServerLogger.fatal("Exiting...");
   debug("Server crashed. Error is:");
   debug(err);
   debug("Exiting...");
