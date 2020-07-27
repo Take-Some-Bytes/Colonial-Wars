@@ -2,16 +2,18 @@
  * @fileoverview Winston logger and stuff initialization file
  * @author Horton Cheng <horton0712@gmail.com>
  */
-
 //Import required 3rd party modules.
 const winston = require("winston");
 const morgan = require("morgan");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const express = require("express");
+const { IncomingMessage, ServerResponse } = require("http");
 //Import required custom modules
 const Constants = require("./constants");
 const { makeID, mixUp } = require("./util");
+const config = require("../../config");
 
 const Manager = require("../Game/Manager");
 const Security = require("../Security/Security");
@@ -20,251 +22,193 @@ const SessionStorage = require("../Security/SessionStorage");
 //Make exports the same as module.exports.
 exports = module.exports;
 
+/**
+ * @typedef {Function} Handler
+ * @param {IncomingMessage} req
+ * @param {ServerResponse} res
+ * @param {express.NextFunction} next
+ * @returns {void}
+ */
+/**
+ * @typedef {Object} MorganLoggers
+ * @prop {Handler} consoleLogger
+ * @prop {Handler} fileLogger
+ */
+/**
+ * @typedef {Object} Loggers
+ * @prop {winston.Container} winstonLoggers
+ * @prop {MorganLoggers} [morganLoggers]
+ */
+/**
+ * @typedef {Object} WinstonTransports
+ * @prop {{
+ * allLevelConsole: winston.transports.ConsoleTransportInstance
+ * }} consoleTransports
+ * @prop {{
+ * combined: winston.transports.FileTransportInstance,
+ * errors: winston.transports.FileTransportInstance,
+ * process: winston.transports.FileTransportInstance
+ * security: winston.transports.FileTransportInstance
+ * }|null} fileTransports
+ */
+/**
+ * @typedef {Function} EmptyMiddleware
+ * @param {express.Request} req
+ * @param {express.Response} res
+ * @param {express.NextFunction} next
+ * @returns {void}
+ */
+
 //Create a token in morgan
 morgan.token("reqPath", (req, res) => {
-  const reqPath = req.url.toString().split("?")[0];
+  const protocol = config.httpsConfig.isHttps ? "https:" : "http:";
+  const url = new URL(
+    req.url, `${protocol}//${req.headers.host}`
+  );
+  const reqPath = url.pathname;
   return reqPath;
 });
 //Initialize winston format stuff
 const { combine, timestamp, label, printf, colorize } = winston.format;
-//Initialize logger containers
-let winstonLoggers = null;
-let morganLoggers = null;
 // eslint-disable-next-line no-shadow
 const winstonFormat = printf(({ level, message, label, timestamp }) => {
   return `${timestamp} [${label}] ${level}: ${message}`;
 });
 //Add logging colours
 winston.addColors(Constants.WINSTON_LOGGING_LEVELS.colors);
+/**
+ * Makes the winston transports
+ * @param {Boolean} logToFile Whether to log to a file.
+ * @param {Boolean} isProd Whether the app environment is
+ * production.
+ * @returns {WinstonTransports}
+ */
+function makeTransports(logToFile, isProd) {
+  const consoleTransports = {
+    allLevelConsole: new winston.transports.Console()
+  };
 
-if (process.env.NODE_ENV === "production") {
-  //Create a new directory for the logs
-  const logsDate = new Date().toISOString().replace(/:/g, "_");
-  try {
-  // eslint-disable-next-line no-sync
-    fs.mkdirSync(path.join(__dirname, "../../", `logs/${logsDate}`));
-  } catch (err) {
-    if (err.code !== "EEXIST") {
-      throw err;
+  let dirName = "";
+  if (!logToFile) {
+    return {
+      consoleTransports: consoleTransports,
+      fileTransports: null
+    };
+  } else if (isProd) {
+    const logsDate = new Date().toISOString().replace(/:/g, "_");
+    try {
+      // eslint-disable-next-line no-sync
+      fs.mkdirSync(path.join(config.logOpts.logTo, `${logsDate}`));
+    } catch (err) {
+      if (err.code !== "EEXIST") {
+        throw err;
+      }
     }
+    dirName = path.join(config.logOpts.logTo, logsDate);
+  } else {
+    dirName = path.resolve(config.logOpts.logTo);
   }
-  //Create the fs writeStream for morgan
-  const writeS = fs.createWriteStream(path.join(
-    __dirname, "../../",
-    `logs/${logsDate}/requests.log`
-  ),
-  {
-    flags: "wx"
-  });
-
-  writeS.on("error", err => {
-    throw err;
-  });
-  //Add CSP-report logger
-  winston.loggers.add("CSP-logger", {
-    levels: Constants.WINSTON_LOGGING_LEVELS.levels,
-    format: combine(
-      colorize({
-        colors: Constants.WINSTON_LOGGING_LEVELS.colors
-      }),
-      label({ label: "CSP_report_log" }),
-      timestamp({
-        format: Constants.WINSTON_LOGGING_TIMESTAMP_FORMAT
-      }),
-      winstonFormat
-    ),
-    transports: [
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          "logs/combined.log")
-      }),
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          `logs/${logsDate}/CSP-reports.log`
-        )
-      })
-    ]
-  });
-  //Add Server logger
-  winston.loggers.add("Server-logger", {
-    levels: Constants.WINSTON_LOGGING_LEVELS.levels,
-    format: combine(
-      colorize({
-        colors: Constants.WINSTON_LOGGING_LEVELS.colors
-      }),
-      label({ label: "Server_log" }),
-      timestamp({
-        format: Constants.WINSTON_LOGGING_TIMESTAMP_FORMAT
-      }),
-      winstonFormat
-    ),
-    transports: [
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          `logs/${logsDate}/combined.log`)
-      }),
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          `logs/${logsDate}/errors.log`),
-        level: "warning"
-      }),
-      new winston.transports.Console({
-        level: "warning"
-      })
-    ]
-  });
-  //Add error and warning logger
-  winston.loggers.add("Process-logger", {
-    levels: Constants.WINSTON_LOGGING_LEVELS.levels,
-    format: combine(
-      colorize({
-        colors: Constants.WINSTON_LOGGING_LEVELS.colors
-      }),
-      label({ label: "Process_log" }),
-      timestamp({
-        format: Constants.WINSTON_LOGGING_TIMESTAMP_FORMAT
-      }),
-      winstonFormat
-    ),
-    transports: [
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          `logs/${logsDate}/process.log`)
-      }),
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          "logs/combined.log")
-      }),
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          `logs/${logsDate}/errors.log`),
-        level: "error"
-      }),
-      new winston.transports.Console()
-    ]
-  });
-
-  winstonLoggers = winston.loggers;
-  morganLoggers = {
-    consoleLogger: morgan(Constants.MORGAN_LOGGING_FORMAT, {
-      immediate: true
-    }),
-    fileLogger: morgan(Constants.MORGAN_LOGGING_FORMAT, {
-      immediate: true,
-      stream: writeS
-    })
+  return {
+    consoleTransports: consoleTransports,
+    fileTransports: (() => {
+      const transportsToReturn = {};
+      for (const fileName of Constants.WINSTON_LOG_FILE_NAMES) {
+        transportsToReturn[fileName] = new winston.transports.File({
+          filename: path.join(dirName, `${fileName}.log`),
+          level: fileName === "errors" ? "warning" : "info"
+        });
+      }
+      return transportsToReturn;
+    })()
   };
-} else if (process.env.NODE_ENV === "development") {
-  //Create the fs writeStream for morgan
-  const writeS = fs.createWriteStream(path.join(
-    __dirname, "../../",
-    "logs/requests.log"
-  ),
-  {
-    flags: "a"
-  });
-
-  writeS.on("error", err => {
-    throw err;
-  });
-  //Add CSP-report logger
-  winston.loggers.add("CSP-logger", {
-    levels: Constants.WINSTON_LOGGING_LEVELS.levels,
-    format: combine(
-      colorize({
-        colors: Constants.WINSTON_LOGGING_LEVELS.colors
-      }),
-      label({ label: "CSP_report_log" }),
-      timestamp({
-        format: Constants.WINSTON_LOGGING_TIMESTAMP_FORMAT
-      }),
-      winstonFormat
-    ),
-    transports: [
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          "logs/combined.log")
-      }),
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          "logs/CSP-reports.log"
-        )
-      })
-    ]
-  });
-  //Add Server logger
-  winston.loggers.add("Server-logger", {
-    levels: Constants.WINSTON_LOGGING_LEVELS.levels,
-    format: combine(
-      colorize({
-        colors: Constants.WINSTON_LOGGING_LEVELS.colors
-      }),
-      label({ label: "Server_log" }),
-      timestamp({
-        format: Constants.WINSTON_LOGGING_TIMESTAMP_FORMAT
-      }),
-      winstonFormat
-    ),
-    transports: [
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          "logs/combined.log")
-      }),
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          "logs/errors.log"),
-        level: "warning"
-      }),
-      new winston.transports.Console({
-        level: "warning"
-      })
-    ]
-  });
-  //Add error and warning logger
-  winston.loggers.add("Process-logger", {
-    levels: Constants.WINSTON_LOGGING_LEVELS.levels,
-    format: combine(
-      colorize({
-        colors: Constants.WINSTON_LOGGING_LEVELS.colors
-      }),
-      label({ label: "Process_log" }),
-      timestamp({
-        format: Constants.WINSTON_LOGGING_TIMESTAMP_FORMAT
-      }),
-      winstonFormat
-    ),
-    transports: [
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          "logs/process.log")
-      }),
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          "logs/combined.log")
-      }),
-      new winston.transports.File({
-        filename: path.join(__dirname, "../../",
-          "logs/errors.log"),
-        level: "error"
-      }),
-      new winston.transports.Console()
-    ]
-  });
-
-  winstonLoggers = winston.loggers;
-  morganLoggers = {
-    consoleLogger: morgan(Constants.MORGAN_LOGGING_FORMAT, {
-      immediate: true
-    }),
-    fileLogger: morgan(Constants.MORGAN_LOGGING_FORMAT, {
-      immediate: true,
-      stream: writeS
-    })
-  };
-} else {
-  throw new Error("Invalid app environment!");
 }
+/**
+ * Makes the morgan and winston loggers
+ * @param {String} env The environment this app is operating in.
+ * Must be either `production` or `development`.
+ * @returns {Loggers}
+ */
+function makeLoggers(env) {
+  //Make transports
+  const transports = makeTransports(
+    !config.logOpts.noLog,
+    env === "production"
+  );
+  //Add winston loggers
+  Constants.WINSTON_LOGGER_INFO.forEach(loggerInfo => {
+    const currentLoggerTransports = (() => {
+      if (!transports.fileTransports) {
+        return [
+          transports.consoleTransports.allLevelConsole
+        ];
+      }
+      if (loggerInfo.id === "Server-logger") {
+        return [
+          transports.consoleTransports.allLevelConsole,
+          ...Object.values(transports.fileTransports).slice(0, 3)
+        ];
+      }
+      return [
+        transports.consoleTransports.allLevelConsole,
+        ...Object.values(transports.fileTransports).slice(3)
+      ];
+    })();
+    winston.loggers.add(loggerInfo.id, {
+      levels: Constants.WINSTON_LOGGING_LEVELS.levels,
+      format: combine(
+        colorize({
+          colors: Constants.WINSTON_LOGGING_LEVELS.colors
+        }),
+        label({ label: loggerInfo.label }),
+        timestamp({
+          format: Constants.WINSTON_LOGGING_TIMESTAMP_FORMAT
+        }),
+        winstonFormat
+      ),
+      transports: currentLoggerTransports
+    });
+  });
+  /**
+   * @type {MorganLoggers}
+   */
+  const morganLoggers = (() => {
+    if (env === "production") {
+      return {
+        consoleLogger: (req, res, next) => { next(); },
+        fileLogger: (req, res, next) => { next(); }
+      };
+    }
+    if (config.logOpts.noLog) {
+      return {
+        consoleLogger: morgan(Constants.MORGAN_LOGGING_FORMAT, {
+          immediate: true
+        }),
+        fileLogger: (req, res, next) => { next(); }
+      };
+    }
+    //Add morgan loggers
+    const writeS = fs.createWriteStream(
+      path.join(
+        config.logOpts.logTo, "request.log"
+      ), { flags: "w" }
+    );
+    return {
+      consoleLogger: morgan(Constants.MORGAN_LOGGING_FORMAT, {
+        immediate: true
+      }),
+      fileLogger: morgan(Constants.MORGAN_LOGGING_FORMAT, {
+        immediate: true,
+        stream: writeS
+      })
+    };
+  })();
 
+  return {
+    winstonLoggers: winston.loggers,
+    morganLoggers: morganLoggers
+  };
+}
+const { winstonLoggers, morganLoggers } = makeLoggers(config.environment);
 /**
  * Export winston loggers
  * @readonly
