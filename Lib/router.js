@@ -131,7 +131,7 @@ router.route("/xhr")
     const cookies = req.signedCookies;
 
     //Security
-    if (typeof query !== "string") {
+    if (Object.keys(query).length === 0 && query.constructor === Object) {
       SecurityLogger.notice(
         `Someone tried to get: ${req.url} without a query. ` +
         `Request date: ${date}`
