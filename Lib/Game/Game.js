@@ -17,6 +17,9 @@ const debug = require("../common/debug");
 
 const socketIO = require("socket.io");
 /**
+ * @typedef {"Game is closed"|"Game is open"} GameStatus
+ */
+/**
  * Game class
  */
 class Game {
@@ -82,7 +85,7 @@ class Game {
   /**
     * Gets the status of the game. Returns a string based on whether the
     * game has reached the max amount of players.
-    * @returns {String}
+    * @returns {GameStatus}
     */
   get status() {
     const isClosed = this.closed ? "Game is closed" : "Game is open";
