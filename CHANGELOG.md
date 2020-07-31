@@ -1,144 +1,198 @@
 # APP CHANGELOG
 This is a changelog for the whole web app.
 
-## Pre-release
-This is the pre-release part of the changelog.
-### v0.8.6
-- Fixed string splitting. Used spread syntax instead of ``string.split();``.
-- Added a file to parse arguments passed to the program, and to parse ``.env`` files.
-- Refractored logger making code.
-- Reduced number of loggers from 4 to 2.
-- Updated which loggers logged where.
-- Updated some ``if--else`` conditionals to use ``typeof`` instead of the not (``!``)
-operator to make sure that the server doesn't crash upon a ``TypeError: Cannot read property`` error.
-- Updated ``README.md``.
-- Added an array to store existing ``socket.io`` connections so that the server can close them
-on shutdown.
-### v0.8.5
-- Moved ``functions.js`` into a directory called ``common`` on the client side.
-- Made game input event-based.
-- Added a browser-side ``EventEmitter`` in ``common`` directory.
-- Reworked how server and client handled game UI.
-- Updated ``logCSPReport`` on server side.
-- Updated the ``process.on("SIGINT");`` and how the server logs the server address.
-- Update UI classes.
-- Added a ``process.on("uncaughtException");`` handler to handle server crashes.
-### v0.8.4
-- Added a util method to get all values from a ``Map``, plus another one to convert
-values into ``Map``s.
-- Started using ``next(new Error())`` instead of ``socket.disconnect`` in socket.io middleware.
-- Split the JS scripts for the game page and the other pages.
-- Started logging process information--when the server starts up, when it crashes, etc.
-- Put in some handlers in case the client isn't able to connect to the server
-on the play page.
-- Update ``mixUp`` method in ``util.js``.
-- Made ``.html`` files use absolute paths
-### v0.8.3
-- Updated .eslintrc.json because of style changes.
-- Started using ``morgan`` and ``debug`` modules for logging stuff debugging
-messages and requests.
-- Moved all of the common methods and stuff (e.g, common methods, manager
-instance, Constants, etc) into a folder called common.
+The format is based on [Keep a Changelog],
+and this project (kind-of) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+# Pre-release
+This is the pre-release part of the changelog. All pre-release changes will be documented here.
+***NOTE:*** This new changelog was written in [v0.3.6], thus, there may be some mistakes. Please
+feel free to open an [issue](https://github.com/Take-Some-Bytes/Colonial-Wars/issues) if you find
+one.
+## [v0.3.6] - 2020-07-31
+### Changed:
+- Reworked this changelog into the [Keep a Changelog] format.
+- Reworked the versioning of this project.
+## [v0.3.5] - 2020-07-27
+### Added:
+- Added ``/config/config.js`` to parse program arguments and to parse ``.env`` files.
+### Changed:
+- Reduced number of winston loggers from 4 to 2
+- Refractored the code that was making the loggers.
+### Fixed:
+- Fixed string splitting to use spread syntax (``...``) instead of ``string.split("");``.
+- Fixed some ``if--else`` conditionals to use ``typeof`` instead of the not (``!``)
+so that the server doesn't crash upon a ``TypeError: Cannot read property`` error.
+- Fixed how the server shuts down--now, the server keeps an array of existing ``socket.io``
+connections so that the server can close them on shutdown.
+## [v0.3.4] - 2020-07-21
+### Added:
+- Added a browser-side ``EventEmitter`` in ``/Public/JS/common``.
+### Changed:
+- Moved ``functions.js`` from ``/Public/JS`` to ``/Public/JS/common``.
+- Renamed some images on the client-side.
+- Renamed some game graphic files.
+- Updated the client-side game to use event-based input.
+- Updated the game's UI handling so that things will work properly.
+- Updated this web app's favicon.
+### Fixed:
+- Fixed how the server shuts down on an uncaught exception and a SIGINT signal. The
+server now shuts down gracefully.
+## [v0.3.3] - 2020-07-14
+### Added:
+- Added a few methods to get values from ``Map``s, and to convert values into ``Map``s.
+### Changed:
+- Separated the game specific code and other code into two files--``client.js`` and
+``client-game.js``.
+### Fixed:
+- Fixed how the ``Socket.IO`` server rejects client connections--instead of just plainly
+disconnecting them, used ``next(new Error());`` instead.
+- Fixed all ``.html`` files to use absolute URLs instead of relative ones.
+### Removed:
+- Removed a winston logger called ``ErrorLogger``.
+## [v0.3.2] - 2020-07-08
+### Added:
+- Started using ``morgan`` to log requests, and ``debug`` to log debugging messages.
+### Changed:
+- Moved common server files into ``/Lib/common``.
+- Updated eslint styles: now all JavaScript statements that could have a semicolon at the end
+*must* have one.
+- Updated all server files to work with the new location of common server files.
 - Updated the ``SessionStorage`` class to use ``Map``s.
-### v0.8.2
-- Changed ``German`` team into ``Prussian`` team.
-- Started using sprite sheets more.
-- Updated ``handleOther`` method.
-- Updated how the router handles requests; now the ``fs.createReadStream`` use absolute paths.
-- Added a line in the ``methodNotAllowed`` function to send an ``Allow`` header.
-- Added support for the new ``report-to`` CSP directive.
-- Added a some scripts in package.json.
-- Re-thought how the game is going to work.
-- Finished the resource stat display for the game.
-### v0.8.1
-- Added a ``UIElement`` base class for the UI elements to further use the OOP nature of
-JavaScript.
-- Changed the UI layout a bit on the client side.
-- Changed the layout of constants in ``Constants.js``.
-- Changed the way the client draws the stat board.
-- Added some more constants to ``Constants.js``.
-- Adjusted the game classes to work with the new constants layout.
-### v0.8.0
-- Got the game to draw the basic UI.
-- Added a function to get all of the non-function properties of an object, to rid
-objects of any properties that are should not be emitted to the client; those properties are
-useless anyway to the client, and just take up bandwidth.
-- Changed ``LICENSE`` from a GNU GPL license to a GNU AGPL.
-- Updated some client things.
-- Added a ``license.html`` file.
-- Removed some useless auth.
-- Changed stylistic guidelines.
-### v0.7.2
-- Cleaned up some of the code--meaning that I replaced some ``if-else`` statements
-with ternaries.
-- Fixed some code that was bound to cause problems later on(like the switch statements that used
-the ``||`` operator in the case blocks).
-- Added a static ``create`` method in ``Building.js``.
-- Updated the ``deepClear`` method in ``Util.js``, added a ``logMemoryUsage`` method in Util as well
-- Made the game able to draw buildings.
-- Added an event handler so that when the client presses ``Enter`` for the game-select form, it doesn't submit
-to the server.
-- Changed ``npm start`` script to ``npm run dev``.
-- Name changes.
-- Changed game world size.
-### v0.7.1
-- Got the server-to-client game communications up and running.
-- Got the client-side game to draw something on the canvas.
-- Updated ``README.md``.
-### v0.7.0
-- Completely re-thought how the ``Socket.IO`` server is going to work.
-- Re-done main client.js file.
-- Deleted game changelog.
-- Added XHR router for XHR requests.
-- Went on a mission to eliminate all ``console`` logging and replace them with
-``winston`` logging that are for production uses.
-- Dropped the ``.io`` part of the name; now the game is called ``colonialwars``.
-### v0.6.0
-- Security updates. Added sessions and lots of security middleware.
-- Going to use ``winston`` for logging most production stuff.
-- Extensive work has began on the client files.
-- JQuery UI now is being used.
-- Started using ``cookie-parser`` middleware.
-- Created file ``middleware.js`` for storing ``Express`` and ``Socket.IO`` middleware.
-### v0.5.1
-- Big brain physics handling has started on the server side.
-- Set up ``WebSockets`` handlers.
-### v0.5.0
-- Work has started on the client-side stuff.
-- Server-side game still needs work; we aren't done yet!
-- Deleted ``Shared`` folder; moved contents elsewhere.
-- Removed ``@version`` part of every file's starting JSDoc.
-### v0.4.0
-- Kept working on serverside game.
-- Added more CSP headers(and debugging them).
-- Removed unneeded imports.
-- Changed some style stuff in eslint.
-### v0.3.1
-- ``winston`` approved as a logger.
-- Added logs directory to store the logs.
-- Added a bunch of handlers.
-### v0.3.0
-- Html nonsense.
-- Added Game directory and game things.
-- Added ``Constants.js``.
-- Testing ``winston`` as a logger.
-- Server ``file not found`` handling.
-- Server CSP report handling.
-### v0.2.1
-- Ditched ``.php`` files because they complicate things too much. Used ``.html`` files instead.
-- Debugging things.
-### v0.2.0
-- Added ``Public`` directory, with Images directory, CSS directory,
-``.php`` files, and Common directory.
-- Added init.php for improved security.
-- Fixed some things with the server that was bound to cause problems.
-- Renamed game to colonialwars.io.
-- Incorporated jquery ui into the web app.
-### v0.1.1
-- Continued building server.js and Router.js.
-- Fixed some bugs that was disrupting the program in
-Security.js and Router.js.
-### v0.1.0
-- Added server.js, Security.js, and Router.js.
-- Added the .md files.
-- Added the .json files.
+## [v0.3.1] - 2020-06-16
+### Added:
+- New game graphics! Now most game graphics are on sprite sheets instead of individual files.
+### Changed:
+- Updated client-side game so that all the UI could be drawn properly.
+- Updated all client-side game files to utilize sprite sheets correctly.
+- Updated server to handle [HTTP 405](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/405)
+correctly.
+- Updated the server's way of handling routes that are not defined by default.
+### Fixed:
+- Fixed server to read files from absolute paths--it's less error-prone that way.
+- Fixed a bug that was preventing the number 0 to be passed as a value to an UIElement.
+### Removed:
+- All old game graphics that were in individual files. 
+## [v0.3.0] - 2020-06-11
+### Added:
+- Added most game images in ``/Public/Images``.
+- Actually uploaded the license and license text files for the front-end.
+- Added more game UI: next are icons, and a base class called ``UIElement``.
+### Changed:
+- Changed the ***entire*** layout of constants in ``Constants.js``. Also adjusted all
+server-side files to utilize the new layout correctly.
+- Updated the ``Button`` class to inherit from the ``UIElement`` class.
+- Updated the way the client handles UI--now most of the handling logic is on the server-side,
+and only the drawing logic is on the client-side.
+- Updated styles in ``styles.css``.
+## [v0.2.3] - 2020-06-11
+### Added:
+- Added a method in ``Drawing.js`` so that the client-side game could draw game buildings.
+- Started adding game UI: first to come are the buttons.
+### Changed:
+- Changed the LICENSE from a GNU GPL v3.0 license to a GNU AGPL v3.0 license.
+- Updated eslint style guidelines--now all JavaScript keywords (``for``, ``if``, etc.) have
+to have a space after them.
+- Updated the ``/xhr`` route:
+  * Firstly, a new section was added to serve the license text,
+  * Secondly, some useless authentication was removed.
+## [v0.2.2] - 2020-05-27
+### Added:
+- A few new constants.
+- A method to log the current memory usage.
+### Changed:
+- Updated ``deepClear`` method in ``Util.js``.
+- Updated the code to use ternaries whenever possible.
+- Increased the game world size to 9000 100 pixel blocks.
+- Stopped using ``npm start`` to start the app. Instead used ``npm run dev``.
+### Fixed:
+- Used [switch fall-through](https://stackoverflow.com/questions/13207927/switch-statement-multiple-cases-in-javascr) instead of code like this:
+```js
+switch (someVar) {
+case 10 || "this" || "that":
+  doSomething();
+}
+```
+## [v0.2.1] - 2020-05-23
+### Added:
+- New ``/Lib/Security`` directory to store security-related files.
+- New ``/xhr`` route for XHR requests.
+- ``middleware.js`` to store all the middleware that will be used on the server.
+- Added most images that are going to be used on the client side.
+- Added rest of client-side game files.
+- Added the ``Socket.IO`` server for real-time communications.
+### Changed:
+- Updated eslint config--changed a few rules.
+- Updated all of the game classes so that the game can actually function.
+- ``.css`` styles--more of them have been added.
+- Updated most files to actually *use* ``winston`` loggers.
+- Renamed ``Winstoninit.js`` to ``init.js``.
+### Removed:
+- ``jquery-ui.js``, because there is no reason to have it here when there are lots of
+CDNs serving it up.
+## [v0.2.0] - 2020-04-29
+### Added:
+- The play page (``play.html``).
+- Client-side ``.js`` files:
+  * ``client.js`` and ``Constants-client.js`` for the basic client functions,
+  * The ``/Public/JS/Game`` directory for client-side game files.
+### Changed:
+- Updated more eslint config--we're moving to all ECMAScript 2015 (ES6) block variable
+definitions (``let``, ``const``)
+- All ``.js`` files to conform to the new style (again).
+- Moved ``Common.js`` and ``Winstoninit.js`` from ``/Lib`` to ``/Lib/Common``.
+- Moved the contents of the ``Shared`` directory--server-side contents have
+been moved to the ``/Lib`` directory, and client-side contents have been moved to 
+the ``/Public/JS`` directory (spoiler: there weren't any).
+- Changed name from ``colonialwars.io`` to ``colonialwars``.
+### Removed:
+- All ``@version`` tag in all ``.js`` files.
+- The ``Shared`` directory (after a lot of hassling).
+## [v0.1.2] - 2020-04-16
+### Added:
+- Added ``Shared`` directory to store:
+  * Common files that will be used between the server and client,
+  such as ``Util.js`` and ``Constants.js``,
+  * The game files so that everything could be in one place,
+  * The old game CHANGELOG.
+### Changed:
+- Updated ``.eslintrc.json`` configurations--now indents must be two spaces long.
+- All ``.js`` files to conform to the new style.
+## [v0.1.1] - 2020-03-31
+### Added:
+- [``winston``](https://www.npmjs.com/package/winston) for logging.
+- Two more ``.js`` files: ``Winstoninit.js`` to handle initialization of winston loggers,
+and ``Common.js`` for storing common server functions.
+- ``logs`` directory to store server logs.
+### Changed:
+- Moved the old CHANGELOG and LICENSE to root.
+- Updated some CSP directives.
+- Updated how ``index.html`` loads resources--meaning that the resource paths don't have
+a leading slash (``/``) in front of them.
+- Updated styles in ``styles.css``.
+- Updated methods in ``Common.js``.
+## [v0.1.0] - 2020-03-29
+### Added:
+- Added basic server files: ``server.js``, ``Security.js``, and ``Router.js``.
+- Added basic metadata files: ``package.json`` and ``package-lock.json``.
+- Added the README file, eslint configuration file, and the old CHANGELOG and GNU
+GPL v3.0 license file in the ``Docs`` directory (Note that this changelog was written
+*after* the [v0.1.0] release--only after [v0.3.6] was this changelog updated into this format).
+- Added the ``Public`` directory, containing the files that are going to be served to the public.
+
+<!-- TODO: Change the last release link to the correct one. -->
+[Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
+[v0.1.0]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/b451b51754ec832dc49442895b6748b78d233c20
+[v0.1.1]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/7d31bc7198253a372e40ec9f40addf74e603d9e5
+[v0.1.2]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/ad055c5682b43721ec3255b77189a3fa0d6616f1
+[v0.2.0]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/f6fcfa129ef7d936ef27ad903c0d4f95fb17ed82
+[v0.2.1]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/ae2b821dde5a78aa13ec5bc0c2bf8121d8d7d893
+[v0.2.2]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/623ddb6cde4084d563d191841ae7e8ec79d970e2
+[v0.2.3]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/8ed857e9ae6d3aa734ddfa915edfe337fe0485fa
+[v0.3.0]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/c124a9f3cffb4bad41a8c78768331b26d2efa909
+[v0.3.1]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/2f1264e5d93951fd5f78800a6f30f9e6e7def373
+[v0.3.2]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/d3d0f15958e0eec0bcfda19071e2f03c97196108
+[v0.3.3]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/caa81dc44440aff280e13a27734bf5b785685455
+[v0.3.4]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/b2fe62eb637915de4e66b4a1c31993aa1aebbef3
+[v0.3.5]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/81e45a97785d9c4aa4c307513da86367094d0f93
+[v0.3.6]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/dev
