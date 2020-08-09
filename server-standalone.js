@@ -3,18 +3,28 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-//Import debugger and configurations
+// Import debugger and configurations
 const config = require("./config");
 const debug = require("./Lib/common/debug");
 debug("Starting colonialwars app!");
 
-//Dependencies
+// Check if express is installed
+let express = null;
+try {
+  express = require("express");
+} catch (err) {
+  throw new Error(
+    "\u001b[31mTo run this project as a standalone, you " +
+    "must have express installed.\u001b[39m."
+  );
+}
+
+// Dependencies
 const http = require("http");
 const path = require("path");
-const express = require("express");
 const socketIO = require("socket.io");
 
-//Variables
+// Variables
 const PROTOCOL = config.httpsConfig.isHttps ? "https" : "http";
 const PORT = config.serverConfig.port || (PROTOCOL === "http" ? 8000 : 4430);
 const HOST = config.serverConfig.host || "localhost";
@@ -23,14 +33,14 @@ const intervals = [];
 const connections = [];
 process.env.NODE_ENV = config.environment;
 
-//Custom modules
+// Custom modules
 const router = require("./Lib/router");
 const middleware = require("./Lib/middleware");
 const init = require("./Lib/common/init");
 const Constants = require("./Lib/common/constants");
 const { logMemoryUsage } = require("./Lib/common/util");
 
-//Initialization
+// Initialization
 const serverToken = init.serverToken;
 const wsSessions = init.sessionStorages.wsSessions;
 const webSessions = init.sessionStorages.webSessions;
@@ -47,15 +57,15 @@ const server = http.createServer(app);
 const io = socketIO(server);
 const playIO = io.of("/play");
 
-//Settings
+// Settings
 app.set("query parser", middleware.parseURL);
 app.disable("x-powered-by");
 
-//Middleware
+// Middleware
 app.use(middleware.parseCookies(secret));
 app.use(middleware.checkPoint(webSessions, serverToken));
 
-//Server stuff
+// Server stuff
 app.use("/dist", express.static(path.join(__dirname, "dist")));
 app.use("/shared", express.static(path.join(__dirname, "Shared")));
 app.use("/JS", express.static(path.join(__dirname, "Public/JS")));
@@ -63,7 +73,7 @@ app.use("/CSS", express.static(path.join(__dirname, "Public/CSS")));
 app.use("/imgs", express.static(path.join(__dirname, "Public/Images")));
 app.use("/", router);
 
-//Socket.io stuff
+// Socket.io stuff
 io.use(middleware.socketNewClientCP(wsSessions, serverToken));
 io.use((socket, next) => {
   const clientSession = wsSessions.getSessionInfo(socket.id);
@@ -208,7 +218,7 @@ server.listen(PORT, HOST, 20, err => {
     ServerLogger.fatal(err);
     debug("Failed to start server. Error is: ");
     debug(err);
-    //Allow the async functions to finish
+    // Allow the async functions to finish
     setTimeout(() => {
       // eslint-disable-next-line no-process-exit
       process.exit(1);
@@ -223,7 +233,7 @@ server.listen(PORT, HOST, 20, err => {
 });
 
 const sessionInterval = setInterval(() => {
-  //Refresh ws sessions
+  // Refresh ws sessions
   wsSessions.refreshAll();
   wsSessions.forEach((session, ID) => {
     manager.getClient(ID).socket.emit(
@@ -241,7 +251,7 @@ const sessionInterval = setInterval(() => {
         }
       }));
   });
-  //Delete unused web sessions
+  // Delete unused web sessions
   webSessions.forEach((session, ID) => {
     const requestLessStreak = session.storedData.requestLessStreak;
     const requestsInSession = session.storedData.requestsInSession;
@@ -264,7 +274,7 @@ const updateLoop = setInterval(() => {
 intervals.push(sessionInterval, updateLoop);
 
 process.on("SIGINT", signal => {
-  //Let us know that the user terminated the process
+  // Let us know that the user terminated the process
   intervals.forEach(interval => {
     clearInterval(interval);
   });
@@ -280,7 +290,7 @@ process.on("SIGINT", signal => {
     ServerLogger.info(
       "Server shutdown complete. Exiting..."
     );
-    //Allow the async functions to finish
+    // Allow the async functions to finish
     setTimeout(() => {
     // eslint-disable-next-line no-process-exit
       process.exit(0);
@@ -291,13 +301,16 @@ process.on("uncaughtException", err => {
   intervals.forEach(interval => {
     clearInterval(interval);
   });
+  connections.forEach(socket => {
+    socket.disconnect(true);
+  });
   ServerLogger.fatal("Server crashed. Error is:");
   ServerLogger.fatal(err.stack);
   ServerLogger.fatal("Exiting...");
   debug("Server crashed. Error is:");
   debug(err);
   debug("Exiting...");
-  //Allow the async functions to finish
+  // Allow the async functions to finish
   setTimeout(() => {
     // eslint-disable-next-line no-process-exit
     process.exit(1);
