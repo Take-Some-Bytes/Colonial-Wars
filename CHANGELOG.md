@@ -9,6 +9,11 @@ This is the pre-release part of the changelog. All pre-release changes will be d
 ***NOTE:*** This new changelog was written in [v0.3.6], thus, there may be some mistakes. Please
 feel free to open an [issue](https://github.com/Take-Some-Bytes/Colonial-Wars/issues) if you find
 one.
+## [v0.3.7] - 2020-08-08
+### Changed:
+- Updated eslint configurations--now a space **must** be after every comment.
+- Renamed the main server file from ``server.js`` to ``server-standalone.js``.
+- Made Express an [optional dependency](https://docs.npmjs.com/files/package.json#optionaldependencies). The reason for why will be revealed later.
 ## [v0.3.6] - 2020-07-31
 ### Changed:
 - Reworked this changelog into the [Keep a Changelog] format.
@@ -195,4 +200,5 @@ GPL v3.0 license file in the ``Docs`` directory (Note that this changelog was wr
 [v0.3.3]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/caa81dc44440aff280e13a27734bf5b785685455
 [v0.3.4]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/b2fe62eb637915de4e66b4a1c31993aa1aebbef3
 [v0.3.5]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/81e45a97785d9c4aa4c307513da86367094d0f93
-[v0.3.6]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/dev
+[v0.3.6]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/e2cd2abd89d14c05637b79f805fbfd78e0e1b3d5
+[v0.3.7]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/dev
