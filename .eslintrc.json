@@ -191,7 +191,7 @@
          "words": true,
          "nonwords": false
       }],
-      "spaced-comment": ["off", "always"],
+      "spaced-comment": ["warn", "always"],
       "switch-colon-spacing": "warn",
       "template-tag-spacing": "warn",
  
