@@ -9,5 +9,5 @@ fallback when an experimental version in the ``dev`` branch doesn't satisfy the 
 of this project, and
 - All other branches are for whatever their name suggests.
 ## Technical Specifications
-This node.js project uses Node LTS version (v12.x), eslint v6.8.0, and npm v6.x.
+This node.js project uses Node LTS version (v12.x), eslint v7.x, and npm v6.x.
 ECMAScript 6 (2015) syntax is used mostly throughout this project.
