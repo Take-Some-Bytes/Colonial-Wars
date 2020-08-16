@@ -3,7 +3,7 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-//Imports
+// Imports
 // const Troop = require("./Game/Troop");
 // const Building = require("./Game/Building");
 // const Projectile = require("./Game/Projectile");
@@ -73,7 +73,7 @@ class Player {
    */
   addUIElements() {
     debug("Making UI elements...");
-    //Declaration stuff
+    // Declaration stuff
     const uiBGs = Constants.UI_BACKGROUND_KEYS;
     for (const bGround of uiBGs) {
       const baseStats = Constants.UI_BASE_STATS[bGround];
