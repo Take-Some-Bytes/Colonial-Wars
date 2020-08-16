@@ -30,8 +30,9 @@ class UIElement {
     this.value = config.value;
 
     this.position = config.position || Vector.zero();
-    this.onHover = config.onHover || function() { return false; };
-    this.onNotHover = config.onNotHover || function() { return false; };
+    this.onHover = config.onHover || function onHover() { return false; };
+    this.onNotHover =
+      config.onNotHover || function onNotHover() { return false; };
     this.clickable = config.clickable || false;
     this.children = config.children;
 
