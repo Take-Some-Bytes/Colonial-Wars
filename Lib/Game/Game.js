@@ -54,7 +54,7 @@ class Game {
     this.troops = [];
     this.buildings = [];
     this.projectiles = [];
-    //this.obstacles = [];
+    // this.obstacles = [];
     this.mode = mode;
     this.id = id;
     this.token = token;
@@ -247,7 +247,7 @@ class Game {
             continue;
           }
 
-          //Projectile--Building + Troop interaction
+          // Projectile--Building + Troop interaction
           if (e1 instanceof Projectile && e2 instanceof Building ||
           e1 instanceof Projectile && e2 instanceof Troop
           ) {
@@ -290,13 +290,13 @@ class Game {
             continue;
           }
 
-          //Troop-Building interaction
+          // Troop-Building interaction
           if (e1 instanceof Building && e2 instanceof Troop) {
             e1 = entities[j];
             e2 = entities[i];
           }
           if (e1 instanceof Troop && e2 instanceof Building) {
-          //Physics stuff
+          // Physics stuff
             const vCollision = Vector.sub(e1.position, e2.position);
             const distance = getEuclideanDist2(e1.position, e2.position);
             const vCollisionNorm = new Vector(
@@ -316,9 +316,9 @@ class Game {
             e1.velocity.y += impulse * e2.mass * vCollisionNorm.y;
           }
 
-          //Troop-Troop interaction
+          // Troop-Troop interaction
           if (e1 instanceof Troop && e2 instanceof Troop) {
-          //Physics stuff
+          // Physics stuff
             const vCollision = Vector.sub(e1.position, e2.position);
             const distance = getEuclideanDist2(e1.position, e2.position);
             const vCollisionNorm = new Vector(
@@ -340,7 +340,7 @@ class Game {
             e2.velocity.y += impulse * e1.mass * vCollisionNorm.y;
           }
 
-          //Projectile-Projectile interaction
+          // Projectile-Projectile interaction
           if (e1 instanceof Projectile && e2 instanceof Projectile) {
             if (e1.explodes && e2.explodes) {
               const AOE1 = e1.splashDamageRadius;
@@ -397,7 +397,7 @@ class Game {
       }
     }
 
-    //Filter out destroyed stuff
+    // Filter out destroyed stuff
     this.projectiles = this.projectiles.filter(projectile => {
       return !projectile.destroyed;
     });
