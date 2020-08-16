@@ -3,14 +3,19 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
+// Dependencies
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
+
 const { deepFreeze } = require("./util");
 const Vector = require("../Game/Physics/Vector");
 
 const Constants = {
-  //World max and min
+  // World max and min
   WORLD_MIN: -4500,
   WORLD_MAX: 4500,
-  //Declaration arrays
+  // Declaration arrays
   TROOPS: [
     "militia",
     "light_infantry",
@@ -53,7 +58,7 @@ const Constants = {
     "supply_depot",
     "main_base"
   ],
-  //Bullet stuff
+  // Bullet stuff
   BULLET_STATS: {
     musket_ball: {
       name: "musket_ball",
@@ -104,7 +109,7 @@ const Constants = {
       hitbox: 18
     }
   },
-  //Splash damage stuff
+  // Splash damage stuff
   SPLASH_STATS: {
     musket_ball: {
       does_splash: false,
@@ -137,7 +142,7 @@ const Constants = {
       radius: 24
     }
   },
-  //Troop stuff
+  // Troop stuff
   TROOP_STATS: {
     militia: {
       range: 65,
@@ -360,7 +365,7 @@ const Constants = {
       }
     }
   },
-  //Building stuff
+  // Building stuff
   BUILDING_STATS: {
     main_base: {
       max_health: 10000,
@@ -849,7 +854,7 @@ const Constants = {
       resource_bonus: {}
     }
   },
-  //Weapons stuff
+  // Weapons stuff
   MELEE_WEAPONS: {
     pikemen: "pike"
   },
@@ -865,7 +870,7 @@ const Constants = {
     mortar: "4-pounder-mortar",
     cannon_tower: "10-inch-howitzer"
   },
-  //Attack cooldown
+  // Attack cooldown
   ATTACK_COOLDOWN: {
     militia: 6.5,
     light_infantry: 5.7,
@@ -879,15 +884,15 @@ const Constants = {
     mortar: 7.82,
     cannon_tower: 4.97
   },
-  //Other troop things
+  // Other troop things
   TROOP_HEAL_RATE: 8,
   TROOP_TURN_SPEED: 0.58,
-  //Other building things
+  // Other building things
   BUILDING_REPAIR_RATE: 18,
   BUILDING_TURN_SPEED: 0.38,
-  //Player stuff
+  // Player stuff
   PLAYER_DEFAULT_SPEED: 0.4,
-  //Game stuff
+  // Game stuff
   MAX_PLAYERS: 30,
   MAX_GAMES: 6,
   GAME_UPDATE_SPEED: 1000 / 25,
@@ -901,20 +906,20 @@ const Constants = {
   },
   TILE_SIZE: 100,
   MAP_1: "testing",
-  //Communications
+  // Communications
   SOCKET_UPDATE: "update",
   SOCKET_NEW_PLAYER: "new-player",
   SOCKET_PLAYER_ACTION: "player-action",
-  /*SOCKET_CHAT_CLIENT_SERVER: "chat-client-to-server",
+  /* SOCKET_CHAT_CLIENT_SERVER: "chat-client-to-server",
   SOCKET_CHAT_SERVER_CLIENT: "chat-server-to-client",*/
   SOCKET_DISCONNECT: "disconnect",
   SOCKET_AVAILABLE_GAMES: "available-games",
   SOCKET_ERROR: "error",
   SOCKET_SECURITY_DATA: "security-data",
   SOCKET_PROCEED: "proceed",
-  //Version
-  VERSION: "0.8.6-ALPHA",
-  //UI things
+  // Version
+  VERSION: "0.3.8-ALPHA",
+  // UI things
   BUTTON_COOLDOWN: 500,
   BUTTON_KEYS: [
     "civil_button",
@@ -961,7 +966,7 @@ const Constants = {
       "people you you are using, the right number is " +
       "about how many people you have in total"
   },
-  //Logging things
+  // Logging things
   WINSTON_LOGGING_LEVELS: {
     levels: {
       fatal: 0,
@@ -995,11 +1000,99 @@ const Constants = {
   WINSTON_LOGGING_TIMESTAMP_FORMAT: "ddd[,] DD MMM YYYY HH:mm:ss Z",
   MORGAN_LOGGING_FORMAT: ":date[web]: Request received at :reqPath, " +
     "with method :method. Request full url: :url",
-  //Other stuff
+  // Server stuff
   SEC_ALLOWED_METHODS: [
-    "GET", "POST", "HEAD"
+    "GET", "POST", "HEAD", "OPTIONS"
   ],
-  REQ_URL_MAX_LEN: 150
+  REQ_URL_MAX_LEN: 150,
+  ALLOWED_METHODS_MAP: {
+    "/JS|CSS|imgs|dist/": ["GET", "OPTIONS"],
+    "/CSP-report": ["POST", "OPTIONS"],
+    "/.*": ["GET", "OPTIONS"]
+  },
+  EXPRESS_STATIC_OPTS: {
+    dotfiles: "allow",
+    etag: true,
+    extensions: ".js",
+    index: false,
+    maxAge: "1d",
+    redirect: false,
+    /**
+     * @param {express.response} res Response.
+     * @param {String} filePath File path.
+     * @param {fs.Stats} stat Stats.
+     */
+    setHeaders: (res, filePath, stat) => {
+      const contentType =
+        Constants.CONTENT_TYPES[path.extname(filePath)] ?
+          Constants.CONTENT_TYPES[path.extname(filePath)] :
+          "text/html";
+      res.set("Content-Type", contentType);
+    }
+  },
+  CONTENT_TYPES: {
+    ".js": "text/javascript",
+    ".css": "text/css",
+    ".ico": "image/x-icon",
+    ".jpg": "image/jpeg",
+    ".png": "image/png"
+  },
+  HEADERS: {
+    REPORT_TO: [
+      {
+        endpoints: [
+          {
+            url: "https://colonialwars.opengames.net/CSP-report",
+            priority: 1
+          },
+          {
+            url: "https://opengames.net/CSP-reports",
+            priority: 2
+          },
+          {
+            url: "https://localhost/CSP-report",
+            priority: 3
+          }
+        ],
+        include_subdomains: true,
+        group: "colonialwars-csp-report",
+        max_age: 60 * 60 * 24 * 2
+      }
+    ].map(JSON.stringify).join(", "),
+    CSP_DIRECTIVES: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "https://ajax.googleapis.com/"],
+      styleSrc: [
+        "'self' ",
+        "https://*.googleapis.com/ ",
+        "https://*.gstatic.com/"
+      ],
+      fontSrc: [
+        "'self' ",
+        "https://*.googleapis.com/ ",
+        "https://*.gstatic.com/"
+      ],
+      imgSrc: ["'self'", "data:"],
+      childSrc: ["'self'"],
+      mediaSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      connectSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+      formAction: ["'self'"],
+      reportUri: ["/CSP-report"],
+      // reportTo: ["colonialwars-csp-report"],
+      upgradeInsecureRequests: []
+    },
+    EXPECT_CT_OPTS: {
+      maxAge: 60 * 60 * 24 * 2,
+      enforce: true,
+      reportUri: "https://opengames.net/ct-reports"
+    },
+    REFERRER_POLICY: {
+      policy: "no-referrer"
+    }
+  }
 };
 
 deepFreeze(Constants);
