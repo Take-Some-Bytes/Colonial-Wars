@@ -15,7 +15,7 @@ let game = null;
 window.securityData = {};
 
 if (pathname === "/play") {
-  //Connect to the /play namespace
+  // Connect to the /play namespace
   const socket = io("/play", {
     query: {
       prevSocketID:
@@ -117,34 +117,16 @@ if (pathname === "/play") {
       const gameID = parsedData.playerData.gameID;
       const map = parsedData.playerData.gameMap;
 
-      if (
-        !window.securityData.clientData.id ||
-        !window.securityData.clientData.token
-      ) {
-        setTimeout(() => {
-          game = Game.create(
-            socket, "game-board", map,
-            parsedData.securityData.gameToken,
-            {
-              id: securityData.clientData.id,
-              token: securityData.clientData.token
-            },
-            gameID
-          );
-          game.run();
-        }, 1000);
-      } else {
-        game = Game.create(
-          socket, "game-board", map,
-          parsedData.securityData.gameToken,
-          {
-            id: securityData.clientData.id,
-            token: securityData.clientData.token
-          },
-          gameID
-        );
-        game.run();
-      }
+      game = Game.create(
+        socket, "game-board", map,
+        parsedData.securityData.gameToken,
+        {
+          id: securityData.clientData.id,
+          token: securityData.clientData.token
+        },
+        gameID
+      );
+      game.run();
     });
   });
 }
