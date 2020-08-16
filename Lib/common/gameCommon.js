@@ -94,7 +94,7 @@ function makeUI(type, opts) {
     opts.startPosition = {};
   }
   if (type === "buttons") {
-    //Declaration stuff
+    // Declaration stuff
     const buttonKeys = Constants.BUTTON_KEYS;
     const buttonY = opts.startPosition.y || 570;
     let buttonX = opts.startPosition.x || 1100;
@@ -124,13 +124,13 @@ function makeUI(type, opts) {
       buttonX += 80;
     }
   } else if (type === "icons") {
-    //Declaration stuff
+    // Declaration stuff
     const iconKeys = Constants.ICON_KEYS;
     const textOffset = new Vector(50, 30);
     const textOffsetHeight = new Vector(-28, 20);
     const iconsY = opts.startPosition.x || 15;
     let iconsX = opts.startPosition.x || 685;
-    //Add icons
+    // Add icons
     for (const icon of iconKeys) {
       const infoText = Constants.ICON_INFO_TEXT[icon];
       const value = opts.playerStats.resources[icon];
