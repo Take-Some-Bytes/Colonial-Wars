@@ -4,7 +4,7 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-//Imports
+// Imports
 const debug = require("./debug");
 
 /**
