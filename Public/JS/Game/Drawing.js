@@ -337,7 +337,7 @@ export class Drawing {
   static create(canvas, viewport, mapName) {
     const context = canvas.getContext("2d");
     const images = {};
-    //Add UI elements
+    // Add UI elements
     for (const ui of Constants.DRAWING_UI_KEYS) {
       images[ui] = new Image();
       images[ui].src =
@@ -349,7 +349,7 @@ export class Drawing {
       images[bg].src =
         `${Constants.DRAWING_UI_BASE_PATH}/backgrounds/${bg}.png`;
     }
-    //Add tiles
+    // Add tiles
     if (mapName === "testing") {
       images.test_tile = new Image();
       images.test_tile.src =
@@ -360,7 +360,7 @@ export class Drawing {
         images[tile].src = `${Constants.DRAWING_TILE_BASE_PATH}/${tile}.png`;
       }
     }
-    //Add buildings
+    // Add buildings
     for (const building of Constants.DRAWING_BUILDING_KEYS) {
       images[building] = new Image();
       images[building].src =
