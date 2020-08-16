@@ -3,6 +3,7 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
+// Imports
 const Vector = require("../Physics/Vector");
 const Constants = require("../../common/constants");
 const UIElement = require("./UIElement");
