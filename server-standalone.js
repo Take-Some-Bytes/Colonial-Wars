@@ -22,6 +22,7 @@ try {
 // Dependencies
 const http = require("http");
 const path = require("path");
+const cookieParser = require("cookie-parser");
 const socketIO = require("socket.io");
 
 // Variables
@@ -31,6 +32,7 @@ const HOST = config.serverConfig.host || "localhost";
 const pendingClients = {};
 const intervals = [];
 const connections = [];
+
 process.env.NODE_ENV = config.environment;
 
 // Custom modules
@@ -43,8 +45,7 @@ const { logMemoryUsage } = require("./Lib/common/util");
 // Initialization
 const serverToken = init.serverToken;
 const wsSessions = init.sessionStorages.wsSessions;
-const webSessions = init.sessionStorages.webSessions;
-const secret = init.cookieSecret;
+const cookieSecret = init.cookieSecret;
 const manager = init.manager;
 
 const ServerLogger = init.winstonLoggers.get("Server-logger");
@@ -58,19 +59,33 @@ const io = socketIO(server);
 const playIO = io.of("/play");
 
 // Settings
-app.set("query parser", middleware.parseURL);
 app.disable("x-powered-by");
 
 // Middleware
-app.use(middleware.parseCookies(secret));
-app.use(middleware.checkPoint(webSessions, serverToken));
+app.use(cookieParser(cookieSecret));
+app.use(init.helmetFunctions);
+app.use(express.json({
+  inflate: true,
+  limit: "40kb",
+  type: ["application/json", "application/csp-report"]
+}));
+app.use(middleware.sysCheckpoint(Constants.SEC_ALLOWED_METHODS));
+app.use(middleware.requestCheckpoint());
+app.use(middleware.acceptCheckpoint({
+  ignoreAcceptMismatch: false,
+  type: ["text/html", "text/plain"],
+  lang: ["en"],
+  charset: ["utf-8"],
+  encoding: ["identity"]
+}));
 
-// Server stuff
+// Static stuff
 app.use("/dist", express.static(path.join(__dirname, "dist")));
 app.use("/shared", express.static(path.join(__dirname, "Shared")));
 app.use("/JS", express.static(path.join(__dirname, "Public/JS")));
 app.use("/CSS", express.static(path.join(__dirname, "Public/CSS")));
 app.use("/imgs", express.static(path.join(__dirname, "Public/Images")));
+// Actual routing
 app.use("/", router);
 
 // Socket.io stuff
@@ -83,7 +98,6 @@ io.use((socket, next) => {
 io.on("connection", socket => {
   connections.push(socket);
   debug("Connection!", socket.id);
-  socket.use(middleware.socketEmitCP());
   socket.on(Constants.SOCKET_NEW_PLAYER, (data, cb) => {
     let err = null;
     try {
@@ -231,6 +245,9 @@ server.listen(PORT, HOST, 20, err => {
   debug(`Protocol is: ${PROTOCOL}.`);
   logMemoryUsage();
 });
+server.on("error", err => {
+  throw err;
+});
 
 const sessionInterval = setInterval(() => {
   // Refresh ws sessions
@@ -250,19 +267,6 @@ const sessionInterval = setInterval(() => {
           status: "success"
         }
       }));
-  });
-  // Delete unused web sessions
-  webSessions.forEach((session, ID) => {
-    const requestLessStreak = session.storedData.requestLessStreak;
-    const requestsInSession = session.storedData.requestsInSession;
-
-    if (requestsInSession < 1 && requestLessStreak > 3) {
-      try {
-        webSessions.deleteSession(ID);
-      } catch (err) {
-        ServerLogger.error(err);
-      }
-    }
   });
 }, 8 * 60 * 1000);
 
