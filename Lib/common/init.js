@@ -2,37 +2,30 @@
  * @fileoverview Winston logger and stuff initialization file
  * @author Horton Cheng <horton0712@gmail.com>
  */
-//Import required 3rd party modules.
+// Import required 3rd party modules.
 const winston = require("winston");
 const morgan = require("morgan");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const express = require("express");
-const { IncomingMessage, ServerResponse } = require("http");
-//Import required custom modules
+const helmet = require("helmet");
+
+// Import required custom modules
 const Constants = require("./constants");
-const { makeID, mixUp } = require("./util");
+const { makeID, mixUp, deepFreeze } = require("./util");
 const config = require("../../config");
 
 const Manager = require("../Game/Manager");
-const Security = require("../Security/Security");
 const SessionStorage = require("../Security/SessionStorage");
 
-//Make exports the same as module.exports.
+// Make exports the same as module.exports.
 exports = module.exports;
 
 /**
- * @typedef {Function} Handler
- * @param {IncomingMessage} req
- * @param {ServerResponse} res
- * @param {express.NextFunction} next
- * @returns {void}
- */
-/**
  * @typedef {Object} MorganLoggers
- * @prop {Handler} consoleLogger
- * @prop {Handler} fileLogger
+ * @prop {express.Handler} consoleLogger
+ * @prop {express.Handler} fileLogger
  */
 /**
  * @typedef {Object} Loggers
@@ -52,14 +45,10 @@ exports = module.exports;
  * }|null} fileTransports
  */
 /**
- * @typedef {Function} EmptyMiddleware
- * @param {express.Request} req
- * @param {express.Response} res
- * @param {express.NextFunction} next
- * @returns {void}
+ * @typedef {Object<string, string>} ServerCache
  */
 
-//Create a token in morgan
+// Create a token in morgan
 morgan.token("reqPath", (req, res) => {
   const protocol = config.httpsConfig.isHttps ? "https:" : "http:";
   const url = new URL(
@@ -68,13 +57,13 @@ morgan.token("reqPath", (req, res) => {
   const reqPath = url.pathname;
   return reqPath;
 });
-//Initialize winston format stuff
+// Initialize winston format stuff
 const { combine, timestamp, label, printf, colorize } = winston.format;
 // eslint-disable-next-line no-shadow
 const winstonFormat = printf(({ level, message, label, timestamp }) => {
   return `${timestamp} [${label}] ${level}: ${message}`;
 });
-//Add logging colours
+// Add logging colours
 winston.addColors(Constants.WINSTON_LOGGING_LEVELS.colors);
 /**
  * Makes the winston transports
@@ -129,12 +118,12 @@ function makeTransports(logToFile, isProd) {
  * @returns {Loggers}
  */
 function makeLoggers(env) {
-  //Make transports
+  // Make transports
   const transports = makeTransports(
     !config.logOpts.noLog,
     env === "production"
   );
-  //Add winston loggers
+  // Add winston loggers
   Constants.WINSTON_LOGGER_INFO.forEach(loggerInfo => {
     const currentLoggerTransports = (() => {
       if (!transports.fileTransports) {
@@ -186,7 +175,7 @@ function makeLoggers(env) {
         fileLogger: (req, res, next) => { next(); }
       };
     }
-    //Add morgan loggers
+    // Add morgan loggers
     const writeS = fs.createWriteStream(
       path.join(
         config.logOpts.logTo, "request.log"
@@ -220,7 +209,7 @@ exports.winstonLoggers = winstonLoggers;
  */
 exports.morganLoggers = morganLoggers;
 
-//Initialize manager instance
+// Initialize manager instance
 const manager = Manager.create();
 
 manager.addNewGame(
@@ -233,7 +222,7 @@ manager.addNewGame(
  */
 exports.manager = manager;
 
-//Create the server token
+// Create the server token
 const serverToken = crypto.randomBytes(32).toString("hex");
 /**
  * Export server token
@@ -241,25 +230,8 @@ const serverToken = crypto.randomBytes(32).toString("hex");
  */
 exports.serverToken = serverToken;
 
-//Create the cookie secret
-const cookieSecret = mixUp(
-  crypto.randomBytes(16).toString("hex"),
-  "PadflPW@(/'123m_syc",
-  24
-);
-/**
- * Export cookie secret
- * @readonly
- */
-exports.cookieSecret = cookieSecret;
-
-//Initialize SessionStorage instances
+// Initialize SessionStorage instances
 const wsSessions = new SessionStorage(
-  crypto.randomBytes(16).toString("hex"),
-  serverToken,
-  8 * 60 * 1000
-);
-const webSessions = new SessionStorage(
   crypto.randomBytes(16).toString("hex"),
   serverToken,
   8 * 60 * 1000
@@ -269,17 +241,66 @@ const webSessions = new SessionStorage(
  * @readonly
  */
 exports.sessionStorages = {
-  wsSessions,
-  webSessions
+  wsSessions
 };
 
-//Initialize security instance
-const security = Security.create(
-  Constants.SEC_ALLOWED_METHODS,
-  false, false
+// Create the cookie secret
+const cookieSecret = mixUp(
+  config.secrets.cookieSecret || crypto.randomBytes(16).toString("utf-8"),
+  "PadflPW@(/'123m_syc",
+  26
 );
 /**
- * Export security
+ * Export cookie secret
  * @readonly
  */
-exports.security = security;
+exports.cookieSecret = cookieSecret;
+
+// Create the JWT secret
+const jwtSecret = mixUp(
+  config.secrets.jwtSecret || crypto.randomBytes(16).toString("utf-8"),
+  "POoqm(1023]32\\",
+  30
+);
+/**
+ * Export JWT secret
+ * @readonly
+ */
+exports.jwtSecret = jwtSecret;
+
+// Declare server cache
+/**
+ * @type {ServerCache}
+ */
+const cache = {};
+// eslint-disable-next-line no-sync
+const errorPage = fs.readFileSync(
+  path.join(__dirname, "../../Public", "error.html")
+).toString("utf-8");
+
+cache.errorPage = errorPage;
+/**
+ * Export cache
+ * @readonly
+ */
+exports.cache = cache;
+
+// Initialize helmet module
+/**
+ * @type {Array<express.Handler>}
+ */
+const helmetFunctions = [
+  helmet.contentSecurityPolicy({
+    directives: Constants.HEADERS.CSP_DIRECTIVES
+  }),
+  helmet.expectCt(Constants.HEADERS.EXPECT_CT_OPTS),
+  helmet.noSniff(),
+  helmet.referrerPolicy(Constants.HEADERS.REFERRER_POLICY)
+];
+/**
+ * Export helmet functions
+ * @readonly
+ */
+exports.helmetFunctions = helmetFunctions;
+
+deepFreeze(exports);
