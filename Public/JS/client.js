@@ -14,7 +14,7 @@ window.securityData = {};
 
 if (pathname === "/") {
   $(document).ready(() => {
-    //Socket.io stuff
+    // Socket.io stuff
     const socket = io();
 
     socket.on(Constants.SOCKET_SECURITY_DATA, data => {
@@ -27,7 +27,7 @@ if (pathname === "/") {
         .text(`${JSON.parse(err).otherData.msg}`);
     });
 
-    //XHR
+    // XHR
     const params = {
       "for": "games_available"
     };
@@ -47,13 +47,13 @@ if (pathname === "/") {
       }
     });
 
-    //Version display
+    // Version display
     $("#version").html(
       `<a href="/version">Version ${Constants.VERSION}</a>.
       Licensed under the <a href="/license">AGPL-3.0 license.</a>`
     );
 
-    //Dialog
+    // Dialog
     dialog = $("#dialog-form-container")
       .dialog({
         autoOpen: false,
