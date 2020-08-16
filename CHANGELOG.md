@@ -9,6 +9,25 @@ This is the pre-release part of the changelog. All pre-release changes will be d
 ***NOTE:*** This new changelog was written in [v0.3.6], thus, there may be some mistakes. Please
 feel free to open an [issue](https://github.com/Take-Some-Bytes/Colonial-Wars/issues) if you find
 one.
+## [v0.3.8] - 2020-08-16
+### Added:
+- [``helmet``](https://www.npmjs.com/package/helmet) for securing this Node.JS
+app instead of using custom solutions.
+- Added some client files to display errors that the server sends to the client.
+- Added a method to parse cookies on the client side.
+### Changed:
+- Used the built-in express middleware for parsing request body instead
+of a custom solution.
+- Updated server to conform to [this](https://www.loggly.com/wp-content/uploads/2015/06/http-decision-diagram.png) HTTP decision diagram.
+- Updated how the server sends errors to the client. Now the server sends a HTML
+page for displaying errors.
+- Updated eslint config.
+- Updated files to conform to the new eslint rules.
+### Fixed:
+- Fixed broken imports on client side JavaScript files.
+### Removed:
+- ``/Lib/Security/Security.js``. All the functionality the ``Security`` class provided
+is now integrated directly into the app.
 ## [v0.3.7] - 2020-08-08
 ### Changed:
 - Updated eslint configurations--now a space **must** be after every comment.
@@ -201,4 +220,5 @@ GPL v3.0 license file in the ``Docs`` directory (Note that this changelog was wr
 [v0.3.4]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/b2fe62eb637915de4e66b4a1c31993aa1aebbef3
 [v0.3.5]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/81e45a97785d9c4aa4c307513da86367094d0f93
 [v0.3.6]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/e2cd2abd89d14c05637b79f805fbfd78e0e1b3d5
-[v0.3.7]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/dev
+[v0.3.7]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/cce20d72524caf3df247d98e54f9047510115577
+[v0.3.8]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/dev
