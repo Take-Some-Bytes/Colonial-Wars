@@ -4,7 +4,7 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-//Imports
+// Imports
 const Projectile = require("./Projectile");
 const Entity = require("../Physics/Entity");
 const Vector = require("../Physics/Vector");
