@@ -5,6 +5,20 @@
 /* eslint-disable no-undef */
 
 /**
+ * @callback AJAXCallback
+ * @param {Error} err
+ * @param {{}} data
+ * @returns {void}
+ */
+/**
+ * @typedef {Object<string, string|boolean|number>} ParsedCookies
+ */
+
+/**
+ * Export RegExp to check for signed cookies.
+ */
+export const signedCookieRegExp = /^s:(.+)\..+/;
+/**
  * Given a value, a minimum, and a maximum, returns true if value is
  * between the minimum and maximum, inclusive of both bounds. This
  * function will still work if min and max are switched.
@@ -92,10 +106,10 @@ export function changeViewportStats() {
  * @returns {*}
  */
 export function deepSeal(obj) {
-  //Retrieve the property names defined on object
+  // Retrieve the property names defined on object
   const propNames = Object.getOwnPropertyNames(obj);
 
-  //Freeze properties before freezing self
+  // Freeze properties before freezing self
   for (const name of propNames) {
     const value = obj[name];
 
@@ -106,10 +120,46 @@ export function deepSeal(obj) {
 
   return Object.seal(obj);
 }
+/**
+ * Parses the non-http only cookies.
+ * @param {String} cookies The document cookies.
+ * @returns {ParsedCookies}
+ */
+export function parseCookies(cookies) {
+  const objToReturn = {};
+  cookies
+    .split("; ")
+    .forEach(cookie => {
+      const splitCookie = cookie.split("=");
+      const key = splitCookie[0];
+      let val = decodeURIComponent(splitCookie[1]);
+
+      console.log(signedCookieRegExp.test(val));
+      console.log(
+        val.replace(signedCookieRegExp, "$1"));
+      if (signedCookieRegExp.test(val)) {
+        val = val.replace(signedCookieRegExp, "$1");
+      }
+      if (typeof val === "undefined") {
+        val = null;
+      }
+
+      val = isNaN(parseFloat(val)) ?
+        val :
+        parseFloat(val);
+      val = val === "true" || val === "false" ?
+        val === "false" :
+        val;
+
+      objToReturn[key] = val;
+    });
+
+  return objToReturn;
+}
 
 /**
  * Gets this client's game info
- * @param {function(Error, {}): void} cb The callback to run when
+ * @param {AJAXCallback} cb The callback to run when
  * the function is done
  */
 export async function init(cb) {
