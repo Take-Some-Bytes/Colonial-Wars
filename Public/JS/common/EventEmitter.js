@@ -8,6 +8,11 @@
  * @param {...any} [args] Arguments
  * @returns {void}
  */
+/**
+ * The default amount of maximum listeners on
+ * a single instance of the EventEmitter class.
+ * @readonly
+ */
 export const defaultMaxListeners = 10;
 /**
  * EventEmitter class.
