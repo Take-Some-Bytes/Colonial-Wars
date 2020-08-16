@@ -3,7 +3,7 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-//Imports
+// Imports
 const crypto = require("crypto");
 const socketIO = require("socket.io");
 
