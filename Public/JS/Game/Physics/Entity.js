@@ -3,7 +3,7 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-import * as Util from "../../functions.js";
+import * as Util from "../../common/functions.js";
 import { Constants } from "../../Constants-client.js";
 import { Vector } from "./Vector.js";
 
