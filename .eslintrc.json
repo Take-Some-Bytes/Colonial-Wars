@@ -120,7 +120,7 @@
       "eol-last": "warn",
       "func-call-spacing": ["warn", "never"],
       "func-name-matching": ["warn", "always"],
-      "func-names": ["warn", "never"],
+      "func-names": ["warn", "as-needed"],
       "func-style": ["warn", "declaration", {
          "allowArrowFunctions": true
       }],
