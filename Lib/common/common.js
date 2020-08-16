@@ -3,78 +3,130 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
+// Dependencies
 const fs = require("fs");
 const path = require("path");
 const express = require("express");
+
 const init = require("./init");
 const loggers = init.winstonLoggers;
 const SecurityLogger = loggers.get("Security-logger");
-const ServerLogger = loggers.get("Server-logger");
 
 /**
- * Length error class
+ * @typedef {Object} SendErrorOpts Options.
+ * @prop {Object} [httpOpts]
+ * @prop {Number} [httpOpts.status=500] HTTP status code. Default is 500.
+ * @prop {String} [httpOpts.contentType="text/html"] HTTP content type.
+ * Only required if ``opts.messageToSend`` is a ``Buffer`` or if the
+ * content type is not HTML.
+ * @prop {Object} [logOpts]
+ * @prop {String} [logOpts.logMessage=""] The message to log. No default.
+ * @prop {Boolean} [logOpts.doLog=false] Whether to log or not to log.
+ * Default is false.
+ * @prop {String} [logOpts.loggerID] The ID of the winston logger to use.
+ * @prop {String} [logOpts.logLevel] The level to log at.
+ * @prop {String|Buffer} [messageToSend] The error message to send. Default is
+ * the cached error page from ``init.js``.
  */
-class LengthError extends Error {}
+
+/**
+ * Sends an error to the client.
+ * @param {SendErrorOpts} opts Options.
+ * @returns {express.Handler}
+ */
+function sendError(opts) {
+  /**
+   * @type {SendErrorOpts}
+   */
+  const defaults = {
+    httpOpts: {
+      status: 500,
+      contentType: "text/html"
+    },
+    logOpts: {
+      doLog: false
+    },
+    messageToSend: init.cache.errorPage
+  };
+  /**
+   * @type {SendErrorOpts}
+   */
+  let _opts = {};
+
+  if (!opts) {
+    _opts = defaults;
+  } else {
+    _opts = {
+      httpOpts: opts.httpOpts ?
+        {
+          status: opts.httpOpts.status || defaults.httpOpts.status,
+          contentType:
+            opts.httpOpts.contentType || defaults.httpOpts.contentType
+        } :
+        defaults.httpOpts,
+      logOpts: opts.logOpts ?
+        {
+          doLog: opts.logOpts.doLog || defaults.logOpts.doLog,
+          logMessage: opts.logOpts.logMessage,
+          loggerID: opts.logOpts.loggerID,
+          logLevel: opts.logOpts.logLevel
+        } :
+        defaults.logOpts,
+      messageToSend: opts.messageToSend ?
+        opts.messageToSend :
+        defaults.messageToSend
+    };
+  }
+
+  return (req, res, next) => {
+    res.type(_opts.httpOpts.contentType);
+    res.cookie(
+      "statusCode", _opts.httpOpts.status,
+      { signed: true, sameSite: "strict" }
+    );
+    if (_opts.logOpts.doLog) {
+      loggers
+        .get(_opts.logOpts.loggerID)[
+          _opts.logOpts.logLevel
+        ](_opts.logOpts.logMessage);
+    }
+
+    res
+      .status(_opts.httpOpts.status)
+      .send(_opts.messageToSend);
+  };
+}
 /**
  * Automatically handles the requests that the server approves of.
  * @param {express.request} req Client Request
  * @param {express.response} res Server Response
  * @param {express.NextFunction} next Next function
  * @param {String} file The file to read
- * @param {String} response The response to send if an error occurs
+ * @param {Boolean} sendType Whether to send the `Content-Type` header.
  */
-function serveFile(req, res, next, file, response) {
-  //File reading
+function serveFile(req, res, next, file, sendType) {
+  // File reading
   const s = fs.createReadStream(file);
   s.on("open", () => {
-    res.type(path.extname(file).slice(1));
+    if (sendType) {
+      res.type(path.extname(file).slice(1));
+    }
     s.pipe(res);
   });
   s.on("error", err => {
-    ServerLogger.error(err);
-    if (err.code === "ENOENT") {
-      res.type("html");
-      res.status(404).send(response);
-    } else {
-      res.status(500).send("Server error");
-    }
+    const is404 = err.code === "ENOENT";
+    sendError({
+      httpOpts: {
+        status: is404 ? 404 : 500
+      },
+      logOpts: {
+        doLog: true,
+        loggerID: is404 ? "Server-logger" : "Security-logger",
+        logLevel: "error",
+        logMessage: err.stack
+      }
+    })(req, res, next);
   });
-}
-/**
- * Automatically handles the requests that uses a method that the server
- * doesn't support.
- * @param {express.request} req Client Request
- * @param {express.response} res Server Response
- * @param {express.NextFunction} next Next function
- */
-function methodNotImplemented(req, res, next) {
-  const date = new Date();
-  ServerLogger.notice(
-    `Someone used an unsupported method to try to access ${req.url} at: ${date}`
-  );
-  res.type("html");
-  res.status(501)
-    .send("<h1>Not Implemented</h1>\n<h3>That method is not implemented.</h3>");
-}
-/**
- * Automatically handles the requests that use a method that is not allowed on
- * the resource that is requested.
- * @param {express.request} req Client Request
- * @param {express.response} res Server Response
- * @param {express.NextFunction} next Next function
- * @param {Array<String>} allowed The allowed methods on this resource
- */
-function methodNotAllowed(req, res, next, allowed) {
-  const date = new Date();
-  SecurityLogger.notice(
-    `Someone used a method that is not allowed at ${req.url} at: ${date}.`
-  );
-  res.type("html");
-  res.header("Allow", allowed.join(", "));
-  res.status(405)
-    .send(
-      "<h1>Not Allowed</h1>\n<h3>That method is not allowed on this page.</h3>"
-    );
 }
 /**
  * Automatically handles the requests that requests for a file that is
@@ -84,69 +136,24 @@ function methodNotAllowed(req, res, next, allowed) {
  * @param {express.NextFunction} next Next function
  */
 function handleOther(req, res, next) {
-  const date = new Date();
-  let reqPath = req.url.toString().split("?")[0];
+  const protocol = req.socket.encrypted ? "https:" : "http:";
+  const reqPath = new URL(req.url, `${protocol}//${req.headers.host}`);
+  const includesFavicon = reqPath.pathname.includes("/favicon.ico");
+  let actualPath = path.join(__dirname, "../../Public", reqPath.pathname);
 
-  if (reqPath === "/favicon.ico") {
-    const s = fs.createReadStream(
-      path.join(
-        __dirname, "../../",
-        "Public/Images/favicon.ico"
-      )
-    );
-    s.on("open", () => {
-      res.type(path.extname(reqPath).slice(1));
-      s.pipe(res);
-    });
-    s.on("error", err => {
-      ServerLogger.error(err);
-      if (err.code === "ENOENT") {
-        res.type("html");
-        res.status(404).send(
-          "<h1>File Not Found</h1>\n" +
-          "<h3>The file you requested was not found</h3>");
-      } else {
-        res.status(500).send("Server error");
-      }
-    });
-  } else {
-    fs.stat(path.join(__dirname, "../../", reqPath), (err, stats) => {
-      if (err) {
-        reqPath = path.join(
-          __dirname, "../../",
-          "Public", reqPath
-        );
-
-        const s = fs.createReadStream(reqPath);
-        s.on("open", () => {
-          res.type(path.extname(reqPath).slice(1));
-          s.pipe(res);
-        });
-        s.on("error", er => {
-          ServerLogger.error(er);
-          if (err.code === "ENOENT") {
-            res.type("html");
-            res.status(404).send(
-              "<h1>File Not Found</h1>\n" +
-              "<h3>The file you requested was not found</h3>");
-          } else {
-            res.status(500).send("Server error");
-          }
-        });
-      } else {
-        SecurityLogger.notice(
-          `Someone tried to access ${reqPath} at ` +
-          `${date}. The request was blocked`
-        );
-        res.type("html");
-        res.status(403)
-          .send(
-            "<h1>Forbidden</h1>\n" +
-              "<h3>The file you requested is not for public viewing.</h3>"
-          );
-      }
-    });
+  if (includesFavicon) {
+    actualPath = path.join(__dirname, "../../Public", "Images/favicon.ico");
+  } else if (!path.extname(actualPath)) {
+    actualPath += ".html";
   }
+
+  if (includesFavicon) {
+    res.type("image/x-icon");
+  }
+  serveFile(
+    req, res, next, actualPath,
+    !includesFavicon
+  );
 }
 /**
  * Logs a CSP report
@@ -155,44 +162,47 @@ function handleOther(req, res, next) {
  * @param {express.NextFunction} next Next function
  */
 function logCSPReport(req, res, next) {
-  const reqData = [];
-  req.on("data", chunk => {
-    reqData.push(chunk);
-  });
-  req.on("end", () => {
-    let parsedData = "";
-    try {
-      parsedData = JSON.stringify(
-        JSON.parse(
-          Buffer.concat(reqData).toString("utf-8")
-        ), null, 3
-      );
-      if (
-        Buffer.from(parsedData, "utf-8").byteLength >
-        40 * 1024
-      ) {
-        throw new LengthError("Data too long.");
-      }
-      SecurityLogger.warning(parsedData);
-    } catch (err) {
-      ServerLogger.error(err);
-      if (err instanceof SyntaxError) {
-        res.status(400).send("Bad Request.");
-      } else if (err instanceof LengthError) {
-        res.status(413).send("Payload Too Large.");
-      } else {
-        res.status(500).send("Internal Server Error.");
-      }
+  // Check if req.body is existent
+  if (
+    req.body &&
+    typeof req.body === "object" &&
+    req.body.constructor === Object &&
+    req.body instanceof Object
+  ) {
+    // We have to be very careful!
+    // We have no idea what there is in req.body.
+    // Not much validation is done, since this is a development server.
+    if (typeof req.body["csp-report"] === "object") {
+      SecurityLogger.warning(JSON.stringify(req.body, null, 3));
+      return;
+    } else if (typeof req.body.type === "string") {
+      SecurityLogger.warning(JSON.stringify(req.body, null, 3));
+      return;
     }
-  });
+    sendError({
+      httpOpts: {
+        status: 400
+      },
+      logOpts: {
+        doLog: false
+      }
+    })(req, res, next);
+  }
+  sendError({
+    httpOpts: {
+      status: 400
+    },
+    logOpts: {
+      doLog: false
+    }
+  })(req, res, next);
 }
 /**
  * Export common server methods
  */
 module.exports = exports = {
   serveFile,
-  methodNotImplemented,
-  methodNotAllowed,
   handleOther,
-  logCSPReport
+  logCSPReport,
+  sendError
 };
