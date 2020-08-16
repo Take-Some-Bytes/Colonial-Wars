@@ -2,7 +2,7 @@
  * @fileoverview Game class for managing client-side game
  * @author Horton Cheng <horton0712@gmail.com>
  */
-//Imports
+// Imports
 import { Constants } from "../Constants-client.js";
 import { Drawing } from "./Drawing.js";
 import { Input } from "./Input.js";
@@ -56,7 +56,7 @@ export class Game {
     this.resourceRates = {};
     this.population = {};
     this.uiBackgrounds = [];
-    //this.obstacles = [];
+    // this.obstacles = [];
 
     this.self = null;
     this.deltaTime = 0;
