@@ -1,5 +1,7 @@
 /**
- * @fileoverview The server of this web app. Made with express.js
+ * @fileoverview The server of this web app. Made with express.js.
+ * For development environments. In production, ideally, you should use
+ * server-prod.js, and use a reverse proxy.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
@@ -7,6 +9,7 @@
 const config = require("./config");
 const debug = require("./Lib/common/debug");
 debug("Starting colonialwars app!");
+process.env.NODE_ENV = config.environment;
 
 // Check if express is installed
 let express = null;
@@ -25,16 +28,6 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const socketIO = require("socket.io");
 
-// Variables
-const PROTOCOL = config.httpsConfig.isHttps ? "https" : "http";
-const PORT = config.serverConfig.port || (PROTOCOL === "http" ? 8000 : 4430);
-const HOST = config.serverConfig.host || "localhost";
-const pendingClients = {};
-const intervals = [];
-const connections = [];
-
-process.env.NODE_ENV = config.environment;
-
 // Custom modules
 const router = require("./Lib/router");
 const middleware = require("./Lib/middleware");
@@ -42,9 +35,18 @@ const init = require("./Lib/common/init");
 const Constants = require("./Lib/common/constants");
 const { logMemoryUsage } = require("./Lib/common/util");
 
+// Variables
+const PROTOCOL = config.httpsConfig.isHttps ? "https" : "http";
+const PORT = config.serverConfig.port || (PROTOCOL === "http" ? 8000 : 4430);
+const HOST = config.serverConfig.host || "localhost";
+const pendingClients = init.pendingClients;
+const intervals = [];
+/**
+ * @type {Array<socketIO.Socket>}
+ */
+const connections = [];
+
 // Initialization
-const serverToken = init.serverToken;
-const wsSessions = init.sessionStorages.wsSessions;
 const cookieSecret = init.cookieSecret;
 const manager = init.manager;
 
@@ -89,12 +91,7 @@ app.use("/imgs", express.static(path.join(__dirname, "Public/Images")));
 app.use("/", router);
 
 // Socket.io stuff
-io.use(middleware.socketNewClientCP(wsSessions, serverToken));
-io.use((socket, next) => {
-  const clientSession = wsSessions.getSessionInfo(socket.id);
-  manager.addNewClient(socket, clientSession);
-  next();
-});
+io.use(middleware.acceptNewSocket(cookieSecret, pendingClients));
 io.on("connection", socket => {
   connections.push(socket);
   debug("Connection!", socket.id);
@@ -103,19 +100,29 @@ io.on("connection", socket => {
     try {
       const playData = JSON.parse(data).playerData;
       const gameToJoin = manager.getGame(playData.game);
+      const socketAuth = socket.auth;
 
       if (!gameToJoin) {
-        err = new Error("Game does not exist.");
-        ServerLogger.error(err);
-
         cb("Selected game does not exist.");
+      } else if (!socketAuth) {
+        cb("Not authorized.");
       } else {
-        pendingClients[socket.id] = {
-          clientName: playData.name,
-          gameID: playData.game,
-          clientTeam: playData.team
-        };
-
+        init.pendingClients.set(
+          socketAuth.validationData.utk,
+          {
+            connected: true,
+            joinedGame: true,
+            playData: {
+              clientName: playData.name,
+              clientTeam: playData.team,
+              gameID: playData.game
+            },
+            validationData: {
+              utk: socketAuth.validationData.utk,
+              passPhrase: socketAuth.validationData.passPhrase
+            }
+          }
+        );
         cb(null);
       }
     } catch (error) {
@@ -127,77 +134,13 @@ io.on("connection", socket => {
   });
   socket.on(Constants.SOCKET_DISCONNECT, () => {
     debug("Client Disconnected!", socket.id);
-    if (!pendingClients[socket.id]) {
-      const client = manager.getClient(socket.id);
-      const session = wsSessions.getSessionInfo(socket.id);
-      if (client && session) {
-        manager.removeClient(socket.id);
-        try {
-          wsSessions.deleteSession(socket.id);
-        } catch (err) {
-          ServerLogger.error(err);
-        }
-      }
-    }
   });
 });
 
-playIO.use(middleware.nspCheckPoint(wsSessions, manager));
-playIO.use(middleware.nspCheckIsPending(pendingClients));
-playIO.use(middleware.nspChangeStats(wsSessions, manager));
-playIO.use((socket, next) => {
-  const session = wsSessions.getSessionInfo(socket.id);
-  socket.emit(Constants.SOCKET_SECURITY_DATA, JSON.stringify({
-    securityData: {
-      serverToken: serverToken,
-      clientData: {
-        token: session.token,
-        id: session.clientID
-      }
-    },
-    playerData: {},
-    otherData: {
-      status: "success"
-    }
-  }));
-  const prevSocketID = socket.handshake.query.prevSocketID;
-  const pending = pendingClients[prevSocketID];
-  if (!pending) {
-    next(new Error("Client does not exist."));
-    return;
-  }
-  try {
-    manager.addClientToGame(
-      pending.gameID,
-      socket,
-      pending.clientName,
-      pending.clientTeam,
-      pending.screen_size
-    );
-  } catch (err) {
-    next(new Error(err));
-  }
-  const game = manager.getGame(pending.gameID);
-  socket.emit(Constants.SOCKET_PROCEED, JSON.stringify({
-    securityData: {
-      serverToken: serverToken,
-      gameToken: game.token
-    },
-    playerData: {
-      gameID: pending.gameID,
-      gameMap: game.mapName
-    },
-    otherData: {
-      status: "success"
-    }
-  }));
-  next();
-});
+playIO.use(middleware.checkSocket(cookieSecret, pendingClients));
 playIO.on("connection", socket => {
   connections.push(socket);
-  const pending = pendingClients[socket.handshake.query.prevSocketID];
-  const gameID = pendingClients[socket.handshake.query.prevSocketID].gameID;
-  delete pendingClients[socket.handshake.query.prevSocketID];
+  const gameID = socket.gameID;
   debug("Connection!", socket.id);
   logMemoryUsage();
   socket.on(Constants.SOCKET_PLAYER_ACTION, data => {
@@ -208,19 +151,6 @@ playIO.on("connection", socket => {
   socket.on(Constants.SOCKET_DISCONNECT, reason => {
     debug("Client disconnected!", socket.id);
     if (reason !== "server namespace disconnect") {
-      const client = manager.getClient(socket.id);
-      const session = wsSessions.getSessionInfo(socket.id);
-      if (client && session) {
-        manager.removeClient(socket.id);
-        try {
-          wsSessions.deleteSession(socket.id);
-        } catch (err) {
-          ServerLogger.error(err);
-        }
-      }
-      manager.removeClientFromGame(gameID, socket);
-    } else {
-      pendingClients[socket.handshake.query.prevSocketID] = pending;
       manager.removeClientFromGame(gameID, socket);
     }
   });
@@ -228,54 +158,24 @@ playIO.on("connection", socket => {
 
 server.listen(PORT, HOST, 20, err => {
   if (err) {
-    ServerLogger.fatal("Failed to start server. Error is:");
-    ServerLogger.fatal(err);
-    debug("Failed to start server. Error is: ");
-    debug(err);
-    // Allow the async functions to finish
-    setTimeout(() => {
-      // eslint-disable-next-line no-process-exit
-      process.exit(1);
-    }, 600);
+    throw err;
   }
   ServerLogger.info(
     `Server started successfully on ${PROTOCOL}://${HOST}:${PORT}.`
   );
   debug(`Server started on ${PROTOCOL}://${HOST}:${PORT}.`);
   debug(`Protocol is: ${PROTOCOL}.`);
+  debug(`Is server listening? ${server.listening}`);
   logMemoryUsage();
 });
-server.on("error", err => {
-  throw err;
-});
 
-const sessionInterval = setInterval(() => {
-  // Refresh ws sessions
-  wsSessions.refreshAll();
-  wsSessions.forEach((session, ID) => {
-    manager.getClient(ID).socket.emit(
-      Constants.SOCKET_SECURITY_DATA, JSON.stringify({
-        securityData: {
-          serverToken: serverToken,
-          clientData: {
-            token: session.token,
-            id: session.id
-          }
-        },
-        playerData: {},
-        otherData: {
-          status: "success"
-        }
-      }));
-  });
-}, 8 * 60 * 1000);
 
 const updateLoop = setInterval(() => {
   manager.update();
   manager.sendState();
 }, Constants.GAME_UPDATE_SPEED);
 
-intervals.push(sessionInterval, updateLoop);
+intervals.push(updateLoop);
 
 process.on("SIGINT", signal => {
   // Let us know that the user terminated the process
@@ -285,21 +185,27 @@ process.on("SIGINT", signal => {
   connections.forEach(socket => {
     socket.disconnect(true);
   });
+  debug(`Is server listening? ${server.listening}`);
   debug(`Received signal ${signal}. Shutting down server...`);
   ServerLogger.info(
     `Received signal ${signal} from user. Shutting down server...`
   );
-  server.close(() => io.close(() => {
-    debug("Server shutdown complete. Exiting...");
-    ServerLogger.info(
-      "Server shutdown complete. Exiting..."
-    );
-    // Allow the async functions to finish
-    setTimeout(() => {
-    // eslint-disable-next-line no-process-exit
-      process.exit(0);
-    }, 1000);
-  }));
+  server.close(err => {
+    if (err) {
+      throw err;
+    }
+    io.close(() => {
+      debug("Server shutdown complete. Exiting...");
+      ServerLogger.info(
+        "Server shutdown complete. Exiting..."
+      );
+      // Allow the async functions to finish
+      setTimeout(() => {
+        // eslint-disable-next-line no-process-exit
+        process.exit(0);
+      }, 1000);
+    });
+  });
 });
 process.on("uncaughtException", err => {
   intervals.forEach(interval => {
@@ -311,6 +217,7 @@ process.on("uncaughtException", err => {
   ServerLogger.fatal("Server crashed. Error is:");
   ServerLogger.fatal(err.stack);
   ServerLogger.fatal("Exiting...");
+  debug(`Is server listening? ${server.listening}`);
   debug("Server crashed. Error is:");
   debug(err);
   debug("Exiting...");
