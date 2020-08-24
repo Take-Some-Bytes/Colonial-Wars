@@ -5,8 +5,8 @@
  */
 /* eslint-disable no-undef */
 
-import { Constants } from "./Constants-client.js";
-import { Game } from "./Game/Game.js";
+import Constants from "./Constants-client.js";
+import Game from "./Game/Game.js";
 import { changeViewportStats } from "./common/functions.js";
 
 const pathname = window.location.pathname;
@@ -29,6 +29,11 @@ if (pathname === "/play") {
   $(document).on("contextmenu", e => {
     e.preventDefault();
     return false;
+  });
+  $("#reconnect").on("click", e => {
+    e.preventDefault();
+
+    socket.connect();
   });
   $(window).on("resize", () => {
     changeViewportStats();
@@ -118,13 +123,7 @@ if (pathname === "/play") {
       const map = parsedData.playerData.gameMap;
 
       game = Game.create(
-        socket, "game-board", map,
-        parsedData.securityData.gameToken,
-        {
-          id: securityData.clientData.id,
-          token: securityData.clientData.token
-        },
-        gameID
+        socket, "game-board", map, gameID
       );
       game.run();
     });
