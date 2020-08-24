@@ -17,7 +17,7 @@ export const defaultMaxListeners = 10;
 /**
  * EventEmitter class.
  */
-export class EventEmitter {
+export default class EventEmitter {
   /**
    * Constructor for an EventEmitter class.
    */
