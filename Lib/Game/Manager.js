@@ -9,8 +9,8 @@ const socketIO = require("socket.io");
 
 const Game = require("./Game");
 const Vector = require("./Physics/Vector");
-const Constants = require("../common/constants");
 const { deepClear } = require("../common/util");
+const Constants = require("../common/constants");
 
 /**
  * Manager class
@@ -21,24 +21,13 @@ class Manager {
     */
   constructor() {
     /**
-       * This is a Map containing all of the connected clients
-       */
-    this.clients = new Map();
-    /**
-       * This is a Map containing all of the games running
-       * on the server
-       */
+     * This is a Map containing all of the games running
+     * on the server
+     */
     this.games = new Map();
 
     this.deltaTime = 0;
     this.lastUpdateTime = 0;
-  }
-  /**
-    * Gets the total amount of clients on the server
-    * @returns {Number}
-    */
-  get numPlayers() {
-    return this.clients.size;
   }
   /**
    * Gets all the games as an array
@@ -58,53 +47,6 @@ class Manager {
     this.lastUpdateTime = Date.now();
 
     deepClear(this.games, true);
-    deepClear(this.clients, true);
-  }
-  /**
-    * Adds a new client
-    * @param {socketIO.Socket} socket The socket object associated with
-    * this client
-    * @param {{
-    * token: String
-    * }} session The session of the client
-    */
-  addNewClient(socket, session) {
-    this.clients.set(socket.id, {
-      clientID: socket.id,
-      clientToken: session.token,
-      socket: socket
-    });
-  }
-  /**
-   * Removes a client
-   * @param {String} socketID The socket ID associated with this client
-   */
-  removeClient(socketID) {
-    if (this.clients.has(socketID)) {
-      this.clients.delete(socketID);
-    }
-  }
-  /**
-   * Changes a client's stats
-   * @param {{
-   * id: String,
-   * token: String,
-   * socket: socketIO.Socket
-   * }} newStats The new stats to give the client
-   * @param {String} ID The ID of the client. Must be the original ID
-   */
-  changeStats(newStats, ID) {
-    let client = {};
-    if (!this.clients.has(ID)) {
-      throw new Error("Client does not exist!");
-    }
-    client = {
-      clientID: newStats.id,
-      clientToken: newStats.token,
-      socket: newStats.socket
-    };
-    this.clients.delete(ID);
-    this.clients.set(newStats.id, client);
   }
   /**
     * Adds a new game, then returns the made game
@@ -197,18 +139,6 @@ class Manager {
       const game = this.games.get(gameID);
       game.removePlayer(client.id);
     }
-  }
-  /**
-   * Gets a specific client
-   * @param {String} ID The ID associated with the client
-   * @returns {{}}
-   */
-  getClient(ID) {
-    const client = this.clients.get(ID);
-    if (!client) {
-      return {};
-    }
-    return client;
   }
   /**
     * Create a new game manager
