@@ -10,7 +10,7 @@ const Constants = {
   WORLD_MIN: -4500,
   WORLD_MAX: 4500,
   // Version
-  VERSION: "0.3.8-ALPHA",
+  VERSION: "0.4.0-ALPHA",
   // Drawing
   DRAWING_TROOP_BASE_PATH: "/imgs/troops",
   DRAWING_BUILDING_BASE_PATH: "/imgs/buildings",
@@ -93,4 +93,4 @@ const Constants = {
 
 deepSeal(Constants);
 
-export { Constants };
+export default Constants;
