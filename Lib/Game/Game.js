@@ -14,6 +14,7 @@ const {
 } = require("../common/util");
 const { getEuclideanDist2, inCircle } = require("../common/gameCommon");
 const debug = require("../common/debug");
+const config = require("../../config");
 
 const socketIO = require("socket.io");
 /**
@@ -42,13 +43,15 @@ class Game {
     */
   constructor(mode, id, token, mapName, startPositions) {
     /**
-       * This is a Map containing all of the connected players
-       * and socket ids associated with them
-       */
+     * This is a Map containing all of the connected players
+     * and socket ids associated with them.
+     * @type {Map<string, Player>}
+     */
     this.players = new Map();
     /**
-       * This is a Map containing all of the connected clients
-       */
+     * This is a Map containing all of the connected clients.
+     * @type {Map<string, socketIO.Socket}
+     */
     this.clients = new Map();
 
     this.troops = [];
@@ -412,45 +415,72 @@ class Game {
    * Sends the game state to all connected clients in this game
    */
   sendState() {
-    const players = [...this.players.values()];
+    // const players = [...this.players.values()];
 
     this.clients.forEach((client, socketID) => {
       const currentPlayer = this.players.get(socketID);
 
-      const dataToEmit = JSON.stringify({
-        securityData: {
-          gameToken: this.token
-        },
-        gameData: {
-          self: getNonCallableProps(currentPlayer),
-          playerStats: {
-            resources: currentPlayer.resources,
-            resourceRate: currentPlayer.resourceRate,
-            population: currentPlayer.population,
-            // troops: this.troops
-            playerUi: getMapValues(currentPlayer.ui, "array")
+      if (config.environment === "development") {
+        const dataToEmit = JSON.stringify({
+          securityData: {
+            gameToken: this.token
           },
-          gameStats: {
+          gameData: {
+            self: getNonCallableProps(currentPlayer),
+            playerStats: {
+              resources: currentPlayer.resources,
+              resourceRate: currentPlayer.resourceRate,
+              population: currentPlayer.population,
+              // troops: this.troops
+              playerUi: getMapValues(currentPlayer.ui, "array")
+            },
+            gameStats: {
             // players: players,
             // projectiles: this.projectiles,
-            buildings: this.buildings.map(building => {
-              const newProps = getNonCallableProps(building);
-              return newProps;
-            })
-          }
-        },
-        otherData: {}
-      });
+              buildings: this.buildings.map(building => {
+                const newProps = getNonCallableProps(building);
+                return newProps;
+              })
+            }
+          },
+          otherData: {}
+        });
 
-      this.numEmits++;
-      if (this.numEmits > 25 * 30) {
-        debug("Packet size: ",
-          Buffer.from(dataToEmit, "utf-8").byteLength
-        );
-        this.numEmits = 0;
+        this.numEmits++;
+        if (this.numEmits > 25 * 30) {
+          debug("Packet size: ",
+            Buffer.from(dataToEmit, "utf-8").byteLength
+          );
+          this.numEmits = 0;
+        }
+
+        client.emit(Constants.SOCKET_UPDATE, dataToEmit);
+      } else {
+        client.emit(Constants.SOCKET_UPDATE, JSON.stringify({
+          securityData: {
+            gameToken: this.token
+          },
+          gameData: {
+            self: getNonCallableProps(currentPlayer),
+            playerStats: {
+              resources: currentPlayer.resources,
+              resourceRate: currentPlayer.resourceRate,
+              population: currentPlayer.population,
+              // troops: this.troops
+              playerUi: getMapValues(currentPlayer.ui, "array")
+            },
+            gameStats: {
+            // players: players,
+            // projectiles: this.projectiles,
+              buildings: this.buildings.map(building => {
+                const newProps = getNonCallableProps(building);
+                return newProps;
+              })
+            }
+          },
+          otherData: {}
+        }));
       }
-
-      this.clients.get(socketID).emit(Constants.SOCKET_UPDATE, dataToEmit);
     });
   }
   /**
