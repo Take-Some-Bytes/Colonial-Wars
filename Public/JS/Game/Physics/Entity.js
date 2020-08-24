@@ -4,13 +4,13 @@
  */
 
 import * as Util from "../../common/functions.js";
-import { Constants } from "../../Constants-client.js";
-import { Vector } from "./Vector.js";
+import Constants from "../../Constants-client.js";
+import Vector from "./Vector.js";
 
 /**
  * Entity class
  */
-export class Entity {
+export default class Entity {
   /**
     * Constructor for the Entity class
     * @param {Vector} position The current position of the entity
