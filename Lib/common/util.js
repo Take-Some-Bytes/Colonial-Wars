@@ -15,6 +15,11 @@ const debug = require("./debug");
  */
 
 /**
+ * Regex to test for a stringified array.
+ */
+const stringifiedArrayRegex = /^\[(.+)\]$/;
+
+/**
  * Given a value, a minimum, and a maximum, returns true if value is
  * between the minimum and maximum, inclusive of both bounds. This
  * function will still work if min and max are switched.
@@ -330,6 +335,28 @@ function createMapFrom(val, inAs) {
   }
   throw new TypeError("Invalid inAs parameter!");
 }
+/**
+ * Parses a stringified array. Returns false if
+ * string cannot be parsed. Trims whitespace and removes
+ * inner quotes.
+ * @param {String} str The string to parse.
+ * @returns {Array<string>|false}
+ */
+function parseArray(str) {
+  if (typeof str !== "string") {
+    throw new TypeError(
+      `Attempting to parse a stringified array from ${typeof str}`
+    );
+  } else if (!str) {
+    return false;
+  } else if (!stringifiedArrayRegex.test(str)) {
+    return false;
+  }
+
+  return str.replace(stringifiedArrayRegex, "$1")
+    .split(",")
+    .map(val => val.trim().replace(/^["'`](.+)["'`]$/, "$1").trim());
+}
 
 /**
  * Export utility methods
@@ -347,5 +374,6 @@ module.exports = exports = {
   logMemoryUsage,
   getNonCallableProps,
   mixUp,
-  getMapValues
+  getMapValues,
+  parseArray
 };
