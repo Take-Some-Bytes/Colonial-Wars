@@ -3,11 +3,11 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 // Imports
-import { Constants } from "../Constants-client.js";
-import { Drawing } from "./Drawing.js";
-import { Input } from "./Input.js";
-import { Vector } from "./Physics/Vector.js";
-import { Viewport } from "./Viewport.js";
+import Constants from "../Constants-client.js";
+import Drawing from "./Drawing.js";
+import Input from "./Input.js";
+import Vector from "./Physics/Vector.js";
+import Viewport from "./Viewport.js";
 
 /**
  * @typedef {Object} InputState
@@ -24,26 +24,22 @@ import { Viewport } from "./Viewport.js";
 /**
  * Game class
  */
-export class Game {
+export default class Game {
   /**
    * Constructor for a Game class
    * @param {Socket} socket The socket object associated with this player
    * @param {Viewport} viewport Viewport object
    * @param {Drawing} drawing Drawing object
    * @param {Input} input Input object
-   * @param {String} expectedToken The expected token for the server-side game
-   * @param {String} token The token of the client.
    * @param {String} id The ID of the server-side game this client is
    * connected to
    */
-  constructor(socket, viewport, drawing, input, expectedToken, token, id) {
+  constructor(socket, viewport, drawing, input, id) {
     this.socket = socket;
 
     this.viewport = viewport;
     this.drawing = drawing;
     this.input = input;
-    this.expectedToken = expectedToken;
-    this.token = token;
     this.id = id;
 
     this.projectiles = [];
@@ -122,16 +118,6 @@ export class Game {
     const gameData = parsedData.gameData.gameStats;
     const playerData = parsedData.gameData.playerStats;
 
-    if (this.expectedToken !== parsedData.securityData.gameToken) {
-      const body = document.body;
-      body.innerHTML = "";
-      body.innerHTML =
-        "<h1>Oops! It looks like your connection has been hacked</h1>\n" +
-        "<h3>The received game token does not match " +
-        "the expected game token.<br>\nIt is assumed that your connection has" +
-        "been hacked. We are sorry for the inconvenience.</h3>";
-      return;
-    }
     this.self = parsedData.gameData.self;
     // this.players = state.players;
     // this.projectiles = state.projectiles;
@@ -143,7 +129,6 @@ export class Game {
     this.resourceRates = playerData.resourceRates;
     this.population = playerData.population;
     this.uiBackgrounds = playerData.playerUi;
-    console.log(playerData.playerUi);
 
     this.viewport.updateTrackingPosition(parsedData.gameData.self);
   }
@@ -195,15 +180,13 @@ export class Game {
    * game to
    * @param {String} mapName The map's name of the game that the
    * client is playing on
-   * @param {String} expectedToken The expected token for the server-side game
-   * @param {String} token The token of the client.
    * @param {String} id The ID of the server-side game this client is
    * connected to
    * @returns {Game}
    */
   static create(
     socket, canvasElementID, mapName,
-    expectedToken, token, id
+    id
   ) {
     const canvas = document.getElementById(canvasElementID);
     canvas.width = Constants.VIEWPORT_WIDTH;
@@ -214,7 +197,7 @@ export class Game {
     const input = Input.create(document, canvas);
 
     const game = new Game(
-      socket, viewport, drawing, input, expectedToken, token, id
+      socket, viewport, drawing, input, id
     );
     game.init();
     return game;
