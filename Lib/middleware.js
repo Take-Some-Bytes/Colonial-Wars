@@ -6,13 +6,16 @@
 // Imports
 const crypto = require("crypto");
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const socketIO = require("socket.io");
+const cookieParser = require("cookie-parser");
 
-const SessionStorage = require("./Security/SessionStorage");
-const Manager = require("./Game/Manager");
+const config = require("../config");
 const init = require("./common/init");
+const debug = require("./common/debug");
+const Manager = require("./Game/Manager");
 const Constants = require("./common/constants");
-const { sendError } = require("./common/common");
+const { sendError, jwtVerifyPromise } = require("./common/common");
 
 const loggers = init.winstonLoggers;
 const ServerLogger = loggers.get("Server-logger");
@@ -26,7 +29,7 @@ const ServerLogger = loggers.get("Server-logger");
  * @callback SocketIOHandler
  * @param {socketIO.Socket} socket
  * @param {SocketIONext} next
- * @returns {void}
+ * @returns {void|Promise<void>}
  */
 /**
  * @typedef {Object} AcceptOpts
@@ -40,6 +43,23 @@ const ServerLogger = loggers.get("Server-logger");
  * @typedef {Object} CheckAcceptOpts
  * @prop {"type"|"lang"|"charset"|"encoding"} whichAccept
  * @prop {Array<String>} acceptedTypes
+ */
+/**
+ * @typedef {Object} MockedRequest
+ * @prop {Object} headers
+ * @prop {String} headers.cookie
+ * @prop {String} secret
+ * @prop {Object<string, string>} cookies
+ * @prop {Object<string, string>} signedCookies
+ */
+/**
+ * @typedef {Object} SocketIOAuthPayload
+ * @prop {String} sub
+ * @prop {String} iss
+ * @prop {String} aud
+ * @prop {String} utk
+ * @prop {Number} exp
+ * @prop {String} pssPhrs
  */
 
 /**
@@ -188,104 +208,195 @@ function acceptCheckpoint(acceptOpts) {
   };
 }
 /**
- * Socket.io new client checkpoint
- * @param {SessionStorage} storage The session storage for socket.io
- * @param {String} serverToken The server's token
+ * Wraps the `cookie-parser` middleware for non-express
+ * environments.
+ * @param {String|Array<string>} secrets Cookie secrets, if any.
+ * @param {String} cookies The `Cookie` header from the HTTP request.
+ * @returns {MockedRequest}
+ */
+function wrapCookieParser(secrets, cookies) {
+  const cookieParserFn = cookieParser(secrets, {});
+  /**
+   * @type {MockedRequest}
+   */
+  const _req = {
+    headers: {
+      cookie: cookies
+    },
+    secret: ""
+  };
+
+  try {
+    cookieParserFn(_req, null, err => {
+      if (err) { throw err; }
+    });
+  } catch (err) {
+    ServerLogger.error(`Failed to wrap cookie-parser. Error is: ${err}.`);
+    return {};
+  }
+  return _req;
+}
+/**
+ * Accept a new ``SocketIO.Socket`` socket.
+ * @param {String|Array<string>} secrets The cookie secrets, if any.
+ * @param {init.PendingClients} pendingClients Pending clients.
  * @returns {SocketIOHandler}
  */
-function socketNewClientCP(storage, serverToken) {
-  return (socket, next) => {
-    const clientID = socket.id;
-    const token = crypto.randomBytes(16).toString("hex");
-    const startTime = Date.now();
-    const maxAge = storage.maxAge;
+function acceptNewSocket(secrets, pendingClients) {
+  return async(socket, next) => {
+    const req = wrapCookieParser(secrets, socket.request.headers.cookie);
+    const cookies = req.signedCookies;
+
+    if (typeof cookies.socketIOAuth !== "string") {
+      next(new Error("No Socket.IO authorization!"));
+      return;
+    }
     try {
-      storage.addNewSession({
-        serverToken: serverToken,
-        id: clientID,
-        token: token,
-        startTime: startTime,
-        maxAge: maxAge
-      });
-    } catch (err) {
-      ServerLogger.error(err);
-      next(new Error("500 Internal Server Error."));
-      return;
-    }
-    socket.emit(Constants.SOCKET_SECURITY_DATA, JSON.stringify({
-      securityData: {
-        serverToken: serverToken,
-        clientData: {
-          token: token,
-          id: clientID
+      /**
+       * @type {SocketIOAuthPayload}
+       */
+      const decoded = await jwtVerifyPromise(
+        cookies.socketIOAuth, init.jwtSecret,
+        {
+          issuer: config.serverConfig.appName,
+          audience: config.serverConfig.appName,
+          maxAge: config.securityOpts.maxTokenAge,
+          subject: config.securityOpts.validSubjectsMap.sockAuthCW,
+          ignoreNotBefore: true
         }
-      },
-      playerData: {},
-      otherData: {
-        status: "success"
+      );
+
+      if (!decoded.utk || typeof decoded.utk !== "string") {
+        next(new Error("Missing unique token!"));
+        return;
+      } else if (!config.securityOpts.passPhrases.includes(decoded.pssPhrs)) {
+        next(new Error("Invalid passphrase!"));
+      } else if (!pendingClients.has(decoded.utk)) {
+        next(new Error("Your session does not exist."));
+      } else {
+        const joinedGame = pendingClients.get(
+          decoded.utk
+        ).joinedGame;
+        if (joinedGame) {
+          next();
+          return;
+        }
+        const auth = {
+          connected: true,
+          joinedGame: false,
+          playData: {},
+          validationData: {
+            utk: decoded.utk,
+            passPhrase: decoded.pssPhrs
+          }
+        };
+        pendingClients.set(decoded.utk, auth);
+        socket.auth = auth;
+        next();
       }
-    }));
-    next();
+    } catch (err) {
+      if (
+        err instanceof jwt.NotBeforeError ||
+        err instanceof jwt.JsonWebTokenError ||
+        err instanceof jwt.TokenExpiredError
+      ) {
+        debug(err);
+        next(new Error("Unauthorized."));
+      } else {
+        ServerLogger.error(err.stack);
+        next(new Error("Server error."));
+      }
+    }
   };
 }
 /**
- * Checkpoint for the socket.io namespaces
- * @param {SessionStorage} storage The session storage that you use
- * for socket.io session handling
- * @param {Manager} manager The manager object used for game managing
+ * Checks if a `Socket.IO` socket exists in the pending clients
+ * queue when a new connection to the `play` namespace is
+ * received.
+ * @param {String|Array<string>} secrets The cookie secrets, if any.
+ * @param {init.PendingClients} pendingClients Pending clients.
  * @returns {SocketIOHandler}
  */
-function nspCheckPoint(storage, manager) {
-  return (socket, next) => {
-    const prevClientID = socket.handshake.query.prevSocketID;
-    const session = storage.getSessionInfo(prevClientID);
-    const client = manager.getClient(prevClientID);
-    if (!prevClientID || !session || !client) {
-      next(new Error(
-        "It looks like your session does not exist or" +
-        " you have not been to the main page."
-      ));
+function checkSocket(secrets, pendingClients) {
+  return async(socket, next) => {
+    const req = wrapCookieParser(secrets, socket.request.headers.cookie);
+    const cookies = req.signedCookies;
+
+    if (typeof cookies.socketIOAuth !== "string") {
+      next(new Error("No Socket.IO authorization!"));
       return;
     }
-    next();
-  };
-}
-/**
- * Changes a client's stats
- * @param {SessionStorage} storage The session storage for ws sessions
- * @param {Manager} manager The manager you are using
- * @returns {SocketIOHandler}
- */
-function nspChangeStats(storage, manager) {
-  return (socket, next) => {
-    const query = socket.handshake.query;
-    storage.changeSessionID(socket.id, query.prevSocketID);
-    manager.changeStats({
-      id: socket.id,
-      token: storage.getSessionInfo(socket.id).token,
-      socket: socket
-    }, query.prevSocketID);
-    next();
-  };
-}
-/**
- * Checks if the client is in the pendingClients object
- * @param {Object} pendingClients The pending clients
- * object that you store pending clients in
- * @returns {Function}
- */
-function nspCheckIsPending(pendingClients) {
-  return (socket, next) => {
-    const prevClientID = socket.handshake.query.prevSocketID;
-    const pending = pendingClients[prevClientID];
-    if (!pending) {
-      next(new Error(
-        "It looks like your session does not exist or" +
-        " you have not been to the main page."
-      ));
-      return;
+    try {
+      /**
+       * @type {SocketIOAuthPayload}
+       */
+      const decoded = await jwtVerifyPromise(
+        cookies.socketIOAuth, init.jwtSecret,
+        {
+          issuer: config.serverConfig.appName,
+          audience: config.serverConfig.appName,
+          maxAge: config.securityOpts.maxTokenAge,
+          subject: config.securityOpts.validSubjectsMap.sockAuthCW,
+          ignoreNotBefore: true
+        }
+      );
+
+      if (!decoded.utk || typeof decoded.utk !== "string") {
+        next(new Error("Missing unique token!"));
+        return;
+      } else if (!config.securityOpts.passPhrases.includes(decoded.pssPhrs)) {
+        next(new Error("Invalid passphrase!"));
+      } else if (!pendingClients.has(decoded.utk)) {
+        next(new Error("Your session does not exist."));
+      } else {
+        const pending = pendingClients.get(decoded.utk);
+        if (
+          pending.validationData.passPhrase !== decoded.pssPhrs ||
+          !config.securityOpts.passPhrases.includes(decoded.pssPhrs)
+        ) {
+          next(new Error("Invalid auth!"));
+        } else if (
+          typeof pending.playData === "object" &&
+          Object.keys(pending.playData).length < 1
+        ) {
+          next(new Error("No play data!"));
+        }
+        try {
+          init.manager.addClientToGame(
+            pending.playData.gameID,
+            socket,
+            pending.playData.clientName,
+            pending.playData.clientTeam
+          );
+        } catch (err) {
+          next(new Error(err));
+        }
+        const game = init.manager.getGame(pending.playData.gameID);
+        socket.emit(Constants.SOCKET_PROCEED, JSON.stringify({
+          playerData: {
+            gameID: pending.playData.gameID,
+            gameMap: game.mapName
+          },
+          otherData: {
+            status: "success"
+          }
+        }));
+        socket.gameID = pending.playData.gameID;
+        next();
+      }
+    } catch (err) {
+      if (
+        err instanceof jwt.NotBeforeError ||
+        err instanceof jwt.JsonWebTokenError ||
+        err instanceof jwt.TokenExpiredError
+      ) {
+        debug(err);
+        next(new Error("Unauthorized."));
+      } else {
+        ServerLogger.error(err.stack);
+        next(new Error("Server error."));
+      }
     }
-    next();
   };
 }
 
@@ -296,8 +407,7 @@ module.exports = exports = {
   sysCheckpoint,
   requestCheckpoint,
   acceptCheckpoint,
-  socketNewClientCP,
-  nspCheckPoint,
-  nspChangeStats,
-  nspCheckIsPending
+  wrapCookieParser,
+  acceptNewSocket,
+  checkSocket
 };
