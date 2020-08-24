@@ -918,7 +918,7 @@ const Constants = {
   SOCKET_SECURITY_DATA: "security-data",
   SOCKET_PROCEED: "proceed",
   // Version
-  VERSION: "0.3.8-ALPHA",
+  VERSION: "0.4.0-ALPHA",
   // UI things
   BUTTON_COOLDOWN: 500,
   BUTTON_KEYS: [
