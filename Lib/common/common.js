@@ -7,8 +7,12 @@
 const fs = require("fs");
 const path = require("path");
 const express = require("express");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 const init = require("./init");
+const debug = require("./debug");
+const config = require("../../config");
 const loggers = init.winstonLoggers;
 const SecurityLogger = loggers.get("Security-logger");
 
@@ -198,11 +202,95 @@ function logCSPReport(req, res, next) {
   })(req, res, next);
 }
 /**
+ * `jwt.sign` promisified.
+ * @param {string|object|Buffer} payload The payload.
+ * @param {jwt.Secret} secret The secret.
+ * @param {jwt.SignOptions} options Options.
+ * @returns {Promise<string>}
+ */
+function jwtSignPromise(payload, secret, options) {
+  return new Promise((resolve, reject) => {
+    jwt.sign(
+      payload, secret, options, (err, encoded) => {
+        if (err) { reject(err); }
+        resolve(encoded);
+      }
+    );
+  });
+}
+/**
+ * `jwt.verify` promisified.
+ * @param {string} token The payload.
+ * @param {jwt.Secret} secret The secret.
+ * @param {jwt.VerifyOptions} options Options.
+ * @returns {Promise<object>}
+ */
+function jwtVerifyPromise(token, secret, options) {
+  return new Promise((resolve, reject) => {
+    jwt.verify(
+      token, secret, options, (err, decoded) => {
+        if (err) { reject(err); }
+        resolve(decoded);
+      }
+    );
+  });
+}
+/**
+ * Creates a socketIOAuth JWT, and sets the client in the
+ * pendingClients map.
+ * @param {qs.ParsedQs} query The query.
+ * @param {express.request} req Request.
+ * @param {express.response} res Response.
+ * @param {express.NextFunction} next Next function.
+ */
+async function createSocketAuthJWT(query, req, res, next) {
+  const utk = crypto.randomBytes(16).toString("hex");
+  const jwtConfig = {
+    pssPhrs: query.passPhrase,
+    utk: utk,
+    sub: config.securityOpts.validSubjectsMap.sockAuthCW,
+    iss: config.serverConfig.appName,
+    aud: config.serverConfig.appName
+  };
+  let socketIoAuth = "";
+  try {
+    socketIoAuth = await jwtSignPromise(
+      jwtConfig, init.jwtSecret, { expiresIn: config.securityOpts.maxTokenAge }
+    );
+  } catch (err) {
+    sendError({
+      logOpts: {
+        doLog: true,
+        loggerID: "Server-logger",
+        logLevel: "error",
+        logMessage: err.stack
+      }
+    })(req, res, next);
+    return false;
+  }
+  init.pendingClients.set(
+    utk, {
+      connected: false,
+      joinedGame: false,
+      playData: {},
+      validationData: {
+        utk: utk,
+        passPhrase: query.passPhrase
+      }
+    }
+  );
+  return socketIoAuth;
+}
+
+/**
  * Export common server methods
  */
 module.exports = exports = {
   serveFile,
   handleOther,
   logCSPReport,
-  sendError
+  sendError,
+  jwtSignPromise,
+  jwtVerifyPromise,
+  createSocketAuthJWT
 };
