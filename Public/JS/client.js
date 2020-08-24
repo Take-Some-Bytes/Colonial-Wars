@@ -5,26 +5,45 @@
  */
 /* eslint-disable no-undef */
 
-import { Constants } from "./Constants-client.js";
-import { init } from "./common/functions.js";
+import { init, pollServer } from "./common/functions.js";
+import Constants from "./Constants-client.js";
 const pathname = window.location.pathname;
 let dialog = null;
 
 window.securityData = {};
 
 if (pathname === "/") {
-  $(document).ready(() => {
+  $(document).ready(async() => {
     // Socket.io stuff
+    try {
+      const passPhrase = JSON.parse(await pollServer({
+        url: "/xhr",
+        headers: {},
+        data: {
+          "for": "passPhrases"
+        }
+      })).passPhrase;
+      console.log(passPhrase);
+      await pollServer({
+        url: "/xhr",
+        headers: {},
+        data: {
+          "for": "socketIOAuth",
+          passPhrase: passPhrase
+        }
+      });
+    } catch (err) {
+      console.error(err);
+    }
     const socket = io();
 
     socket.on(Constants.SOCKET_SECURITY_DATA, data => {
       window.securityData = JSON.parse(data).securityData;
     });
     socket.on(Constants.SOCKET_ERROR, err => {
-      console.error(JSON.stringify(JSON.parse(err)));
       $("#error-span")
         .addClass("error")
-        .text(`${JSON.parse(err).otherData.msg}`);
+        .text(`${err}`);
     });
 
     // XHR
@@ -70,12 +89,6 @@ if (pathname === "/") {
                 return;
               }
               socket.emit(Constants.SOCKET_NEW_PLAYER, JSON.stringify({
-                securityData: {
-                  clientData: {
-                    id: window.securityData.clientData.id,
-                    token: window.securityData.clientData.token
-                  }
-                },
                 playerData: data,
                 otherData: {}
               }), error => {
