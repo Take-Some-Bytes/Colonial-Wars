@@ -4,11 +4,49 @@ This is a changelog for the whole web app.
 The format is based on [Keep a Changelog],
 and this project (kind-of) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# Pre-release
-This is the pre-release part of the changelog. All pre-release changes will be documented here.
+# Pre-production releases
+This CHANGELOG logs the pre-production releases of this app. By this project's standards, all pre-production
+release version numbers **must** start with "v0".
+
 ***NOTE:*** This new changelog was written in [v0.3.6], thus, there may be some mistakes. Please
 feel free to open an [issue](https://github.com/Take-Some-Bytes/Colonial-Wars/issues) if you find
 one.
+
+Pre-production releases are not tagged.
+## [v0.4.0] - 2020-08-23
+### Added:
+- [``jsonwebtoken``](https://www.npmjs.com/package/jsonwebtoken) for ``Socket.IO`` authentication, instead of
+the mess that I used before.
+- Added new helper functions for the new ``Socket.IO`` authentication implementation.
+### Changed:
+- Changed client files to use default exports instead of plain old exports when possible.
+- Changed how the ``Socket.IO`` server works! Before, it was something like this:
+  1. Client connects to the root ``Socket.IO`` namespace (`"/"`),
+  2. Server creates a new wsSession for the client, and adds the client
+    to an internal clients map.
+  4. Client sends data to join a game,
+  5. Server creates an entry in an object that stores data about the 
+    data that the client sent. Then, the server tells the client to
+    proceed, meanwhile with the client saving the previous ``socket.id``
+    in the localStorage,
+  6. Client connects to the ``play`` namespace, along with their previous ``socket.id``,
+  7. Server does a bunch of ID swapping, eventually allowing the client into the game.
+
+  Now, it's like this:
+  1. Client aquires ``socketIOAuth`` from a XHR route in the form as a cookie,
+  2. On that request, the server creates an entry in the pendingClients ``Map``,
+    with data about whether the client is connected and such.
+  3. Client connects to the root ``Socket.IO`` namespace (`"/"`),
+  4. Server verifies the client's ``socketIOAuth`` cookie, and updates the client's
+    entry in the pendingClients ``Map``,
+  5. Client sends data to join a game,
+  6. Server updates the client's entry in the pendingClients ``Map``,
+  7. Client connects to the ``play`` namespace.
+  8. Server verifies ``socketIOAuth`` cookie again, and allows the client
+    in.
+- Updated all files to adhere to this new authentication process.
+### Removed:
+- Removed what's left of the ``/Lib/Security`` directory.
 ## [v0.3.8] - 2020-08-16
 ### Added:
 - [``helmet``](https://www.npmjs.com/package/helmet) for securing this Node.JS
@@ -221,4 +259,5 @@ GPL v3.0 license file in the ``Docs`` directory (Note that this changelog was wr
 [v0.3.5]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/81e45a97785d9c4aa4c307513da86367094d0f93
 [v0.3.6]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/e2cd2abd89d14c05637b79f805fbfd78e0e1b3d5
 [v0.3.7]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/cce20d72524caf3df247d98e54f9047510115577
-[v0.3.8]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/dev
+[v0.3.8]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/fc615a74a5228a266e44f7ecb46ffdeead983cad
+[v0.4.0]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/dev
