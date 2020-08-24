@@ -4,14 +4,14 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-import { Constants } from "../Constants-client.js";
-import { Vector } from "./Physics/Vector.js";
-import { Viewport } from "./Viewport.js";
+import Constants from "../Constants-client.js";
+import Vector from "./Physics/Vector.js";
+import Viewport from "./Viewport.js";
 
 /**
  * Drawing class
  */
-export class Drawing {
+export default class Drawing {
   /**
    * Constructor for the Drawing class.
    * @param {CanvasRenderingContext2D} context The canvas context to draw to
