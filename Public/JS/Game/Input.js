@@ -3,12 +3,12 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-import { EventEmitter } from "../common/EventEmitter.js";
+import EventEmitter from "../common/EventEmitter.js";
 /**
  * Input class
  * @extends EventEmitter
  */
-export class Input extends EventEmitter {
+export default class Input extends EventEmitter {
   /**
    * Constructor for an Input class
    */
