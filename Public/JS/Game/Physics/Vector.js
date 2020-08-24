@@ -6,7 +6,7 @@
 /**
  * Vector class.
  */
-export class Vector {
+export default class Vector {
   /**
     * Constructor for a Vector object.
     * @constructor
