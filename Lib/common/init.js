@@ -17,7 +17,6 @@ const { makeID, mixUp, deepFreeze } = require("./util");
 const config = require("../../config");
 
 const Manager = require("../Game/Manager");
-const SessionStorage = require("../Security/SessionStorage");
 
 // Make exports the same as module.exports.
 exports = module.exports;
@@ -46,6 +45,21 @@ exports = module.exports;
  */
 /**
  * @typedef {Object<string, string>} ServerCache
+ */
+/**
+ * @typedef {Map<string, PendingClientEntry>} PendingClients
+ */
+/**
+ * @typedef {Object} PendingClientEntry
+ * @prop {Boolean} connected
+ * @prop {Boolean} joinedGame
+ * @prop {Object} playData
+ * @prop {String} playData.clientName
+ * @prop {String} playData.clientTeam
+ * @prop {String} playData.gameID
+ * @prop {Object} validationData
+ * @prop {String} validationData.utk
+ * @prop {String} validationData.passPhrase
  */
 
 // Create a token in morgan
@@ -230,20 +244,6 @@ const serverToken = crypto.randomBytes(32).toString("hex");
  */
 exports.serverToken = serverToken;
 
-// Initialize SessionStorage instances
-const wsSessions = new SessionStorage(
-  crypto.randomBytes(16).toString("hex"),
-  serverToken,
-  8 * 60 * 1000
-);
-/**
- * Export session storages
- * @readonly
- */
-exports.sessionStorages = {
-  wsSessions
-};
-
 // Create the cookie secret
 const cookieSecret = mixUp(
   config.secrets.cookieSecret || crypto.randomBytes(16).toString("utf-8"),
@@ -259,7 +259,7 @@ exports.cookieSecret = cookieSecret;
 // Create the JWT secret
 const jwtSecret = mixUp(
   config.secrets.jwtSecret || crypto.randomBytes(16).toString("utf-8"),
-  "POoqm(1023]32\\",
+  "POoqm(1023]32\\no",
   30
 );
 /**
@@ -284,6 +284,17 @@ cache.errorPage = errorPage;
  * @readonly
  */
 exports.cache = cache;
+
+// Declare pendingClients map for game connections.
+/**
+ * @type {PendingClients}
+ */
+const pendingClients = new Map();
+/**
+ * Export pendingClients map.
+ * @readonly
+ */
+exports.pendingClients = pendingClients;
 
 // Initialize helmet module
 /**
