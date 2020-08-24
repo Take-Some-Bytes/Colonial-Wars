@@ -11,6 +11,12 @@
  * @returns {void}
  */
 /**
+ * @typedef {Object} AJAXOpts
+ * @prop {String} url
+ * @prop {{}|String|Array} data
+ * @prop {Object<string, string>} headers
+ */
+/**
  * @typedef {Object<string, string|boolean|number>} ParsedCookies
  */
 
@@ -180,4 +186,28 @@ export async function init(cb) {
     return;
   }
   cb(err, data);
+}
+
+/**
+ * Polls the server for something, and returns a promise
+ * with the value as the response that the server sent.
+ * Method is always GET.
+ * @param {AJAXOpts} opts Options.
+ * @returns {Promise<string>}
+ */
+export function pollServer(opts) {
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      data: opts.data,
+      headers: opts.headers,
+      url: opts.url,
+      method: "GET"
+    })
+      .done(data => {
+        resolve(data);
+      })
+      .fail(err => {
+        reject(err);
+      });
+  });
 }
