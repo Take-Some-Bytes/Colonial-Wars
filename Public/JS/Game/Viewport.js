@@ -3,14 +3,14 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-import { Constants } from "../Constants-client.js";
-import { Entity } from "./Physics/Entity.js";
-import { Vector } from "./Physics/Vector.js";
+import Constants from "../Constants-client.js";
+import Entity from "./Physics/Entity.js";
+import Vector from "./Physics/Vector.js";
 
 /**
  * Viewport class
  */
-export class Viewport extends Entity {
+export default class Viewport extends Entity {
   /**
    * Constructor for a Viewport object. The position of the viewport will hold
    * the absolute world coordinates for the top left of the view (which
