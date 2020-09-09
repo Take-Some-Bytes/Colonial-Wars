@@ -1,9 +1,9 @@
 /**
- * @fileoverview The express router for the server
+ * @fileoverview The express router for the server.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-// Dependencies and stuff
+// Dependencies and modules.
 const express = require("express");
 const path = require("path");
 const jwt = require("jsonwebtoken");
@@ -24,7 +24,9 @@ const morganLoggers = init.morganLoggers;
 // Route logger.
 router.use(morganLoggers.consoleLogger, morganLoggers.fileLogger);
 
-// Homepage
+// HTML page routing.
+// TODO: Add HTML files for the About and Version page.
+// Lobby page.
 router.route("/")
   .get((req, res, next) => {
     const filePath = path.join(
@@ -37,8 +39,7 @@ router.route("/")
       "<h3>Somehow the home page isn't where it used to be</h3>"
     );
   });
-
-// Game page
+// Game page.
 router.route("/play")
   .get((req, res, next) => {
     const filePath = path.join(
@@ -51,8 +52,7 @@ router.route("/play")
       "<h3>Somehow the play page isn't where it used to be</h3>"
     );
   });
-
-// About page
+// About page.
 router.route("/about")
   .get((req, res, next) => {
     const filePath = path.join(
@@ -65,8 +65,7 @@ router.route("/about")
       "<h3>Somehow the about page isn't where it used to be</h3>"
     );
   });
-
-// Version page
+// Version page.
 router.route("/version")
   .get((req, res, next) => {
     const filePath = path.join(
@@ -79,8 +78,7 @@ router.route("/version")
       "<h3>Somehow the version page isn't where it used to be</h3>"
     );
   });
-
-// License Page
+// License page.
 router.route("/license")
   .get((req, res, next) => {
     const filePath = path.join(
@@ -93,26 +91,29 @@ router.route("/license")
     "<h3>Somehow the license page isn't where it used to be</h3>"
     );
   });
-
-// CSP report uri
+// CSP report route.
 router.route("/CSP-report")
   .post((req, res, next) => {
     logCSPReport(req, res, next);
   });
 
-// XHR route
+// XHR route for requests made by client-side JavaScript.
 router.route("/xhr")
   .get(async(req, res, next) => {
+    // IDEA: Should we implement a check to MAKE SURE that the
+    // request made to this route is made by client-side JS?
+    // Like checking for a specific header?
     const query = req.query;
     /**
-     * @type {{}}
+     * @type {Object<string, string>}
      */
     const cookies = req.signedCookies;
+    // This is used to determine the real client IP, and shouldn't be needed.
     const clientIP = req.ips.length < 1 ?
       req.ip :
       req.ips[0];
 
-    // Security
+    // YOU MUST HAVE A QUERY!
     if (Object.keys(query).length === 0 && query.constructor === Object) {
       sendError({
         httpOpts: {
@@ -147,6 +148,10 @@ router.route("/xhr")
 
     switch (query.for) {
     case "games_available": {
+      // Get statistics about the available games, and send
+      // it to the client.
+      // IDEA: Maybe we should add a getter method to get all the
+      // available games?
       const gamesAvailable = manager.allGames.filter(game => {
         const isGameClosed = game.status === "Game is open";
         return isGameClosed;
@@ -155,6 +160,7 @@ router.route("/xhr")
       const dataToSend = {};
 
       for (let i = 0; i < arrayLength; i++) {
+        // TODO: Also send a game name and what teams are available.
         dataToSend[gamesAvailable[i].id] = {
           id: gamesAvailable[i].id,
           mode: gamesAvailable[i].mode,
@@ -164,6 +170,7 @@ router.route("/xhr")
         };
       }
 
+      // TODO: Check if this should use `res.json();`.
       const stringifiedData = JSON.stringify(dataToSend);
       res
         .status(200)
@@ -182,6 +189,7 @@ router.route("/xhr")
     }
     case "socketIOAuth": {
       let socketIoAuth = "";
+      // YOU MUST HAVE A PASSPHRASE!
       if (typeof query.passPhrase !== "string") {
         sendError({
           httpOpts: {
@@ -194,10 +202,15 @@ router.route("/xhr")
         return;
       }
       if (typeof cookies.socketIOAuth !== "string" || !cookies.socketIOAuth) {
+        // The client does not have a socketIOAuth cookie. Create one.
         socketIoAuth = await createSocketAuthJWT(query, req, res, next);
         if (!socketIoAuth) { return; }
       } else {
+        // The client does have a socketIOAuth cookie. Verify it.
         try {
+          // BUG: This is NOT right. We are not supposed to assign
+          // the decoded socketIOAuth payload to the socketIoAuth
+          // variable. It will accidentally be set.
           socketIoAuth = await jwtVerifyPromise(
             cookies.socketIOAuth, init.jwtSecret,
             {
@@ -214,6 +227,7 @@ router.route("/xhr")
             err instanceof jwt.JsonWebTokenError ||
             err instanceof jwt.TokenExpiredError
           ) {
+            // TODO: See if this is what we want to do.
             socketIoAuth = await createSocketAuthJWT(query, req, res, next);
             if (!socketIoAuth) { return; }
           } else {
@@ -229,6 +243,8 @@ router.route("/xhr")
           }
         }
       }
+      // TODO: See if we should check the type of the `socketIoAuth` variable.
+      // By checking it, we could avoid setting a non-intended value.
       if (socketIoAuth) {
         res.cookie(
           "socketIOAuth", socketIoAuth,
@@ -246,6 +262,7 @@ router.route("/xhr")
       break;
     }
     case "passPhrases": {
+      // Not sure why this won't be an array, but it doesn't hurt to check.
       if (!(config.securityOpts.passPhrases instanceof Array)) {
         sendError({
           logOpts: {
@@ -258,11 +275,13 @@ router.route("/xhr")
         })(req, res, next);
         return;
       }
+      // Get a random pass phrase.
       const passPhrase =
         config.securityOpts.passPhrases[bind(
           Math.floor(Math.random() * config.securityOpts.passPhrases.length),
           0, config.securityOpts.passPhrases.length
         )];
+      // If the pass phrase is not a string, then... that's not good.
       if (typeof passPhrase !== "string") {
         sendError({
           logOpts: {
@@ -275,6 +294,7 @@ router.route("/xhr")
         })(req, res, next);
         return;
       }
+      // TODO: Check if this should use `res.json();`.
       res
         .status(200)
         .send(JSON.stringify({
@@ -283,6 +303,7 @@ router.route("/xhr")
       break;
     }
     default:
+      // By default, we'll send an error.
       sendError({
         httpOpts: {
           status: 400
@@ -299,12 +320,12 @@ router.route("/xhr")
     }
   });
 
-// All other routes
+// Handling all other routes.
 router.route("*")
   .get((req, res, next) => {
     handleOther(req, res, next);
   });
 /**
- * Module exports
+ * Module exports.
  */
 module.exports = exports = router;
