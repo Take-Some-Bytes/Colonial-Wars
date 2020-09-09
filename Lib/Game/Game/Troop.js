@@ -1,10 +1,9 @@
 /**
- * @fileoverview A Troops class to manage troop
- * physics
+ * @fileoverview A Troops class to manage troop physics.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-// Imports
+// Imports.
 const Projectile = require("./Projectile");
 const Entity = require("../Physics/Entity");
 const Vector = require("../Physics/Vector");
@@ -13,20 +12,23 @@ const Util = require("../../common/util");
 const Constants = require("../../common/constants");
 
 /**
- * Troop class
- * @extends {Entity}
+ * Troop class.
+ * @extends Entity
  */
 class Troop extends Entity {
   /**
-    * Troop constructor
-    * @param {Vector} position The current position of the Troop
-    * @param {String} [type="light_infantry"] The type of the Troop
-    * @param {Boolean} [isHuman=true] Is the troop human?
-    * @param {String} [team="Neutral"] The troop's team
-    */
+   * Troop constructor.
+   * @class
+   * @param {Vector} position The current position of the Troop.
+   * @param {string} [type="light_infantry"] The type of the Troop.
+   * @param {boolean} [isHuman=true] Is the troop human?.
+   * @param {string} [team="Neutral"] The troop's team.
+   */
   constructor(position, type = "light_infantry",
     isHuman = true, team = "Neutral"
   ) {
+    // TODO: See if this constructor could be cleaned up a bit.
+    // It looks like there's lots of unneeded junk here.
     const stats = Constants.TROOP_STATS[type];
     super(position, Vector.zero(), stats.mass, stats.hitbox_size);
 
@@ -84,38 +86,38 @@ class Troop extends Entity {
     this.destroyed = false;
   }
   /**
-    * Returns a boolean based on whether the
-    * troop can attack
-    * @returns {Boolean}
-    */
+   * Returns a boolean based on whether the troop can attack.
+   * @returns {boolean}
+   */
   canAttack() {
     return this.lastUpdateTime > this.lastShotTime + this.shotCoolDown;
   }
   /**
-    * Damages the current troop
-    * @param {Number} amount The amount to damage the Troop
-    */
+   * Damages the current troop.
+   * @param {number} amount The amount to damage the Troop.
+   */
   damage(amount) {
     this.health -= amount;
   }
   /**
    * Returns a boolean determining if the troop is dead or not.
-   * @return {Boolean}
+   * @returns {boolean}
    */
   isDead() {
     return this.health <= 0;
   }
   /**
-    * Updates this troop on input from the Troop AI
-    * @param {{
-    * up: Boolean,
-    * down: Boolean,
-    * right: Boolean,
-    * left: Boolean,
-    * angle: Number
-    * }} data A JSON object containing the movement data
-    */
+   * Updates this troop on input from the Troop AI.
+   * @param {{
+   * up: boolean,
+   * down: boolean,
+   * right: boolean,
+   * left: boolean,
+   * angle: number
+   * }} data A JSON object containing the movement data.
+   */
   updateOnInput(data) {
+    // TODO: CREATE THE TROOP AI!!!
     if (data.up) {
       this.velocity = Vector.fromPolar(
         this.movementSpeed, Util.degreeToRadian(this.angle)
@@ -140,33 +142,35 @@ class Troop extends Entity {
   }
   /**
    * Performs a physics update.
-   * @param {Number} lastUpdateTime The last timestamp an update occurred
-   * @param {Number} deltaTime The timestep to compute the update with
+   * @param {number} lastUpdateTime The last timestamp an update occurred.
+   * @param {number} deltaTime The timestep to compute the update with.
    */
   update(lastUpdateTime, deltaTime) {
     this.lastUpdateTime = lastUpdateTime;
     this.position.add(Vector.scale(this.velocity, deltaTime));
     this.bindToWorld();
+    // FIXME: Make this code look better.
     this.angle = Util.normalizeAngle(
       this.angle + this.turnRate * deltaTime);
   }
   /**
-    * Returns a Projectile instance. This function
-    * does not do a shot cooldown check
-    * @returns {Projectile}
-    */
+   * Returns a Projectile instance. This function
+   * does not do a shot cooldown check.
+   * @returns {Projectile}
+   */
   getProjectileFromShot() {
     const projectile = Projectile.createFromTroop(this);
     return projectile;
   }
   /**
-    * Creates a troop from a building
-    * @param {Building} building The building to create the troop from
-    * @param {String} type The type of the Troop to spawn
-    * @param {Vector} spawnPoint The spawn point of the troop
-    * @returns {Troop}
-    */
+   * Creates a troop from a building.
+   * @param {Building} building The building to create the troop from.
+   * @param {string} type The type of the Troop to spawn.
+   * @param {Vector} spawnPoint The spawn point of the troop.
+   * @returns {Troop}
+   */
   static createFromBuilding(building, type, spawnPoint) {
+  // TODO: See this function is needed.
     const buildingSpawnedTroopLength = building.spawnedTroops.length;
     const buildingSpawnedTroops = building.spawnedTroops;
     let isHuman = null;
@@ -204,6 +208,6 @@ class Troop extends Entity {
 }
 
 /**
- * Module exports
+ * Module exports.
  */
 module.exports = exports = Troop;
