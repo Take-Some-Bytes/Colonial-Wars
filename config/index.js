@@ -209,6 +209,7 @@ const envVars = {
     // name. It will be used for signing JWTs.
   },
   // TODO: Add a `securityOpts` object for security configurations.
+  // TODO: Add a `secrets` object for storing server secrets.
   /**
    * @type {string}
    */
