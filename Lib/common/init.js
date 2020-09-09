@@ -1,8 +1,8 @@
 /**
- * @fileoverview Winston logger and stuff initialization file
+ * @fileoverview Winston logger and stuff initialization file.
  * @author Horton Cheng <horton0712@gmail.com>
  */
-// Import required 3rd party modules.
+// Imports.
 const winston = require("winston");
 const morgan = require("morgan");
 const fs = require("fs");
@@ -11,7 +11,6 @@ const crypto = require("crypto");
 const express = require("express");
 const helmet = require("helmet");
 
-// Import required custom modules
 const Constants = require("./constants");
 const { makeID, mixUp, deepFreeze } = require("./util");
 const config = require("../../config");
@@ -19,7 +18,8 @@ const config = require("../../config");
 const Manager = require("../Game/Manager");
 
 // Make exports the same as module.exports.
-exports = module.exports;
+// TODO: See if this is necessary.
+exports = module.exports = {};
 
 /**
  * @typedef {Object} MorganLoggers
@@ -51,19 +51,19 @@ exports = module.exports;
  */
 /**
  * @typedef {Object} PendingClientEntry
- * @prop {Boolean} connected
- * @prop {Boolean} joinedGame
+ * @prop {boolean} connected
+ * @prop {boolean} joinedGame
  * @prop {Object} playData
- * @prop {String} playData.clientName
- * @prop {String} playData.clientTeam
- * @prop {String} playData.gameID
+ * @prop {string} playData.clientName
+ * @prop {string} playData.clientTeam
+ * @prop {string} playData.gameID
  * @prop {Object} validationData
- * @prop {String} validationData.utk
- * @prop {String} validationData.passPhrase
+ * @prop {string} validationData.utk
+ * @prop {string} validationData.passPhrase
  */
 
-// Create a token in morgan
-morgan.token("reqPath", (req, res) => {
+// Create a token in morgan.
+morgan.token("reqPath", req => {
   const protocol = config.httpsConfig.isHttps ? "https:" : "http:";
   const url = new URL(
     req.url, `${protocol}//${req.headers.host}`
@@ -71,19 +71,20 @@ morgan.token("reqPath", (req, res) => {
   const reqPath = url.pathname;
   return reqPath;
 });
-// Initialize winston format stuff
+// Initialize winston format.
 const { combine, timestamp, label, printf, colorize } = winston.format;
 // eslint-disable-next-line no-shadow
 const winstonFormat = printf(({ level, message, label, timestamp }) => {
   return `${timestamp} [${label}] ${level}: ${message}`;
 });
-// Add logging colours
+// Add logging colours.
 winston.addColors(Constants.WINSTON_LOGGING_LEVELS.colors);
+// TODO: See if we should use functions, or just make the loggers
+// and be done with them.
 /**
- * Makes the winston transports
- * @param {Boolean} logToFile Whether to log to a file.
- * @param {Boolean} isProd Whether the app environment is
- * production.
+ * Makes the winston transports.
+ * @param {boolean} logToFile Whether to log to a file.
+ * @param {boolean} isProd Whether the app environment is production.
  * @returns {WinstonTransports}
  */
 function makeTransports(logToFile, isProd) {
@@ -115,6 +116,8 @@ function makeTransports(logToFile, isProd) {
     consoleTransports: consoleTransports,
     fileTransports: (() => {
       const transportsToReturn = {};
+      // Dynamically iterate through the log files, and create transports
+      // for each of them.
       for (const fileName of Constants.WINSTON_LOG_FILE_NAMES) {
         transportsToReturn[fileName] = new winston.transports.File({
           filename: path.join(dirName, `${fileName}.log`),
@@ -126,20 +129,21 @@ function makeTransports(logToFile, isProd) {
   };
 }
 /**
- * Makes the morgan and winston loggers
- * @param {String} env The environment this app is operating in.
+ * Makes the morgan and winston loggers.
+ * @param {string} env The environment this app is operating in.
  * Must be either `production` or `development`.
  * @returns {Loggers}
  */
 function makeLoggers(env) {
-  // Make transports
+  // Make transports dynamically.
   const transports = makeTransports(
     !config.logOpts.noLog,
     env === "production"
   );
-  // Add winston loggers
+  // Add winston loggers dynamically.
   Constants.WINSTON_LOGGER_INFO.forEach(loggerInfo => {
     const currentLoggerTransports = (() => {
+      // Dynamically get the winston transports.
       if (!transports.fileTransports) {
         return [
           transports.consoleTransports.allLevelConsole
@@ -156,6 +160,7 @@ function makeLoggers(env) {
         ...Object.values(transports.fileTransports).slice(3)
       ];
     })();
+    // And then... add a new logger.
     winston.loggers.add(loggerInfo.id, {
       levels: Constants.WINSTON_LOGGING_LEVELS.levels,
       format: combine(
@@ -171,6 +176,7 @@ function makeLoggers(env) {
       transports: currentLoggerTransports
     });
   });
+  // Next, make the morgan loggers.
   /**
    * @type {MorganLoggers}
    */
@@ -189,7 +195,8 @@ function makeLoggers(env) {
         fileLogger: (req, res, next) => { next(); }
       };
     }
-    // Add morgan loggers
+    // Make the write stream that the file morgan logger is going
+    // to use, if needed.
     const writeS = fs.createWriteStream(
       path.join(
         config.logOpts.logTo, "request.log"
@@ -213,62 +220,65 @@ function makeLoggers(env) {
 }
 const { winstonLoggers, morganLoggers } = makeLoggers(config.environment);
 /**
- * Export winston loggers
+ * Export winston loggers.
  * @readonly
  */
 exports.winstonLoggers = winstonLoggers;
 /**
- * Export morgan loggers
+ * Export morgan loggers.
  * @readonly
  */
 exports.morganLoggers = morganLoggers;
 
-// Initialize manager instance
+// Initialize manager instance.
 const manager = Manager.create();
 
+// TODO: Make game creation dynamic and use configurations from
+// a JSON file.
 manager.addNewGame(
   "test", makeID(20),
   "testing", Constants.START_POSITIONS_TEAM_MAP_1
 );
 /**
- * Export manager
+ * Export manager.
  * @readonly
  */
 exports.manager = manager;
 
-// Create the server token
+// TODO: See if the `serverToken` is needed.
+// Create the server token.
 const serverToken = crypto.randomBytes(32).toString("hex");
 /**
- * Export server token
+ * Export server token.
  * @readonly
  */
 exports.serverToken = serverToken;
 
-// Create the cookie secret
+// Create the cookie secret.
 const cookieSecret = mixUp(
   config.secrets.cookieSecret || crypto.randomBytes(16).toString("utf-8"),
   "PadflPW@(/'123m_syc",
   26
 );
 /**
- * Export cookie secret
+ * Export cookie secret.
  * @readonly
  */
 exports.cookieSecret = cookieSecret;
 
-// Create the JWT secret
+// Create the JWT secret.
 const jwtSecret = mixUp(
   config.secrets.jwtSecret || crypto.randomBytes(16).toString("utf-8"),
-  "POoqm(1023]32\\no",
+  "QjhOoqm(1023]32\\no",
   30
 );
 /**
- * Export JWT secret
+ * Export JWT secret.
  * @readonly
  */
 exports.jwtSecret = jwtSecret;
 
-// Declare server cache
+// Declare server cache.
 /**
  * @type {ServerCache}
  */
@@ -296,7 +306,7 @@ const pendingClients = new Map();
  */
 exports.pendingClients = pendingClients;
 
-// Initialize helmet module
+// Initialize helmet functions.
 /**
  * @type {Array<express.Handler>}
  */
@@ -309,9 +319,10 @@ const helmetFunctions = [
   helmet.referrerPolicy(Constants.HEADERS.REFERRER_POLICY)
 ];
 /**
- * Export helmet functions
+ * Export helmet functions.
  * @readonly
  */
 exports.helmetFunctions = helmetFunctions;
 
+// Make exports read-only.
 deepFreeze(exports);
