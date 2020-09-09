@@ -3,33 +3,35 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-// Imports
+// Imports.
 const UIElement = require("./UIElement");
 const Vector = require("../Physics/Vector");
 const Constants = require("../../common/constants");
 
+// TODO: Move this class to the client-side.
 /**
- * Icon class
+ * Icon class.
  * @extends UIElement
  */
 class Icon extends UIElement {
   /**
-   * Constructor for a StatBoardElem class
+   * Constructor for a Icon class.
+   * @class
    * @param {{
-   * image: String,
+   * image: string,
    * position: Vector,
-   * infoText: String,
+   * infoText: string,
    * value: any,
-   * valueIncrease: Number,
-   * name: String,
-   * clickable: Boolean,
+   * valueIncrease: number,
+   * name: string,
+   * clickable: boolean,
    * textOffset: Vector,
    * textOffset2: Vector,
    * onClick: function():void,
    * onHover: function():void,
    * onNotClick: function():void,
    * onNotHover: function():void
-   * }} config Configurations
+   * }} config Configurations.
    */
   constructor(config) {
     super({
@@ -57,8 +59,8 @@ class Icon extends UIElement {
   }
   /**
    * Returns a boolean based on whether this button could be
-   * clicked or not
-   * @returns {Boolean}
+   * clicked or not.
+   * @returns {boolean}
    */
   canClick() {
     const canClick =
@@ -66,7 +68,7 @@ class Icon extends UIElement {
     return canClick;
   }
   /**
-   * Updates this icon's ```value``` property
+   * Updates this icon's ```value``` property.
    */
   updateValue() {
     let parsedValue = typeof this.value === "number" ?
@@ -81,9 +83,9 @@ class Icon extends UIElement {
     this.value = parsedValue;
   }
   /**
-   * Updates the value increase of this icon
-   * @param {Number|String} newIncrease The new number to increase by. Must
-   * be a number or a string that could be parsed into a number
+   * Updates the value increase of this icon.
+   * @param {number|string} newIncrease The new number to increase by. Must
+   * be a number or a string that could be parsed into a number.
    */
   updateValueIncrease(newIncrease) {
     const parsedValue =
@@ -106,12 +108,12 @@ class Icon extends UIElement {
     this.valueIncrease = parsedValue;
   }
   /**
-   * Handles a mouse event
+   * Handles a mouse event.
    * @param {{
-   * mouseX: Number,
-   * mouseY: Number,
-   * clicked: Boolean
-   * }} event The mouse event that happened
+   * mouseX: number,
+   * mouseY: number,
+   * clicked: boolean
+   * }} event The mouse event that happened.
    */
   handleMouseEvent(event) {
     const isMouseInside = this.isMouseInside(event);
@@ -137,6 +139,6 @@ class Icon extends UIElement {
 }
 
 /**
- * Module exports
+ * Module exports.
  */
 module.exports = exports = Icon;
