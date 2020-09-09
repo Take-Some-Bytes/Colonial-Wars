@@ -3,16 +3,17 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
+// Dependencies.
 const path = require("path");
 const fs = require("fs");
 
 /**
  * @typedef {Object} ParsedArgs
- * @prop {Array<any>} _
- * @prop {Object.<string, any>} keyedValues
+ * @prop {Array<string>} _
+ * @prop {Object.<string, string>} keyedValues
  */
 /**
- * @typedef {Object.<string, any>} ParsedEnvFile
+ * @typedef {Object<string, string>} ParsedEnvFile
  */
 /**
  * @typedef {"map"|"object"} EnvOutAsFormat
@@ -30,11 +31,16 @@ function parseArgs(args) {
   };
   args
     .filter(arg => {
+      // Filter the arguments passed to the program.
+      // All arguments that want to be parsed must start
+      // with a flag ("-" or "--").
       const doesArgStartWithFlag = arg.startsWith("-") || arg.startsWith("--");
       return doesArgStartWithFlag;
     })
     .forEach(arg => {
+      // Remove the flags, and split the argument by an equal sign.
       const splitArg = arg.replace(/-+/, "").split("=", 2);
+      // Sort the arguments into keyed values and "boolean" values.
       if (splitArg.length < 2) {
         if (!splitArg[0]) { return; }
         parsedArgs._.push(splitArg[0]);
@@ -44,14 +50,15 @@ function parseArgs(args) {
     });
   return parsedArgs;
 }
+// TODO: Make the `parseEnvFile` function only return Objects.
 /**
- * Parses an ``.env`` file.
- * @param {String} filePath The path to the ``.env`` file. May be absolute
+ * Parses a ``.env`` file.
+ * @param {string} filePath The path to the ``.env`` file. May be absolute
  * or relative.
- * @param {Boolean} [useSync] Whether to use synchronous ``fs`` methods.
+ * @param {boolean} [useSync] Whether to use synchronous ``fs`` methods.
  * @param {EnvOutAsFormat} [outAs] The format to return the environment
  * variables.
- * @returns {ParsedEnvFile|Map<String, any>|Promise<ParsedEnvFile>}
+ * @returns {ParsedEnvFile|Promise<ParsedEnvFile>}
  */
 function parseEnvFile(filePath, useSync, outAs) {
   const realFilePath = path.isAbsolute(filePath) ?
@@ -59,6 +66,7 @@ function parseEnvFile(filePath, useSync, outAs) {
     path.resolve(filePath);
   let result = null;
 
+  // Determine the end result's format.
   switch (outAs) {
   case "map":
     result = new Map();
@@ -73,8 +81,8 @@ function parseEnvFile(filePath, useSync, outAs) {
 
   /**
    * Private method to parse the .env file.
-   * @param {String} file The file to parse.
-   * @returns {Map<string, any>|Object<string, any>}
+   * @param {string} file The file to parse.
+   * @returns {Map<string, string>|Object<string, string>}
    * @private
    */
   function parse(file) {
@@ -84,6 +92,8 @@ function parseEnvFile(filePath, useSync, outAs) {
       .filter(line => !line.startsWith("#"))
       .forEach(line => {
         const pieces = line.split("=", 2);
+        // FIXME: Add ANOTHER `.trim()` call to trim whitespace before
+        // we replace outer qoutes.
         pieces[1] = (pieces[1] ? pieces[1] : "")
           .replace(/^["'`](.+)["'`]$/, "$1")
           .trim();
@@ -116,6 +126,8 @@ function parseEnvFile(filePath, useSync, outAs) {
       ));
     });
     readS.on("end", () => {
+      // Concatenate the array of bytes made into a single
+      // string, parse it, and resolve the promise.
       const file = Buffer.concat(chunks).toString("utf-8");
       result = parse(file);
       resolve(result);
@@ -123,6 +135,7 @@ function parseEnvFile(filePath, useSync, outAs) {
   });
 }
 
+// Parse the arguments and environment variables.
 let parsedArgs = null;
 let envVariables = null;
 try {
@@ -132,19 +145,21 @@ try {
     true, "object"
   );
 } catch (err) {
+  // TODO: Give more information about the error was thrown.
   throw new Error("Failed to load configurations.");
 }
 
+// Declare the actual environment variables that will be exported.
 const envVars = {
   logOpts: {
     /**
-     * @type {Boolean}
+     * @type {boolean}
      */
     noLog:
       parsedArgs._.includes("nolog") || parsedArgs._.includes("noLog") ||
       !envVariables.NO_LOG,
     /**
-     * @type {String}
+     * @type {string}
      */
     logTo:
       parsedArgs.keyedValues.logTo ||
@@ -159,13 +174,13 @@ const envVars = {
   },
   httpsConfig: {
     /**
-     * @type {Boolean}
+     * @type {boolean}
      */
     isHttps:
       parsedArgs.keyedValues.isHttps === "true" ||
       envVariables.IS_HTTPS === "true",
     /**
-     * @type {String}
+     * @type {string}
      */
     httpsConfigPath:
       parsedArgs.httpsConfigPath ||
@@ -174,14 +189,14 @@ const envVars = {
   },
   serverConfig: {
     /**
-     * @type {String}
+     * @type {string}
      */
     host:
       process.env.HOST ||
       envVariables.HOST ||
       parsedArgs.keyedValues.host,
     /**
-     * @type {Number}
+     * @type {number}
      */
     port:
       parseInt(
@@ -190,9 +205,12 @@ const envVars = {
         parsedArgs.keyedValues.port,
         10
       )
+    // TODO: Add another property for this web application's
+    // name. It will be used for signing JWTs.
   },
+  // TODO: Add a `securityOpts` object for security configurations.
   /**
-   * @type {String}
+   * @type {string}
    */
   environment:
     process.env.NODE_ENV ||
@@ -201,6 +219,6 @@ const envVars = {
     "development"
 };
 /**
- * Module exports
+ * Module exports.
  */
 module.exports = exports = envVars;
