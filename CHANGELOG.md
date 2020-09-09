@@ -1,18 +1,32 @@
-# APP CHANGELOG
+# COLONIALWARS CHANGELOG
 This is a changelog for the whole web app.
 
 The format is based on [Keep a Changelog],
 and this project (kind-of) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Pre-production releases
-This CHANGELOG logs the pre-production releases of this app. By this project's standards, all pre-production
-release version numbers **must** start with "v0".
+This CHANGELOG logs the pre-production releases of this app. Pre-production releases are not
+guaranteed to be stable, and are in active development. By this project's standards, all pre-production
+release version numbers **must** start with `v0`.
 
 ***NOTE:*** This new changelog was written in [v0.3.6], thus, there may be some mistakes. Please
 feel free to open an [issue](https://github.com/Take-Some-Bytes/Colonial-Wars/issues) if you find
 one.
 
-Pre-production releases are not tagged.
+Pre-production releases are not tagged on github.
+## [v0.4.1] - 2020-09-08
+### Added:
+- Added comments in all the JavaScript files to describe and clarify code, and also
+added codetags, inspired by [python codetags](https://www.python.org/dev/peps/pep-0350/),
+to remind me of what I need to do.
+- Officially added ESLint and its required plugins as [Development Dependencies](https://docs.npmjs.com/files/package.json#devdependencies).
+### Changed:
+- Changed ESLint rules:
+  1. Removed deprecated rules, and replaced them with their replacement plugins.
+  2. Reviewed current rules, and changed some to suit the needs of this project.
+- Updated README. Removed `Note on the different branches` section, added `Status of this Project`
+section.
+- Updated all files to use `CRLF`, as opposed to `LF`.
 ## [v0.4.0] - 2020-08-23
 ### Added:
 - [``jsonwebtoken``](https://www.npmjs.com/package/jsonwebtoken) for ``Socket.IO`` authentication, instead of
@@ -260,4 +274,5 @@ GPL v3.0 license file in the ``Docs`` directory (Note that this changelog was wr
 [v0.3.6]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/e2cd2abd89d14c05637b79f805fbfd78e0e1b3d5
 [v0.3.7]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/cce20d72524caf3df247d98e54f9047510115577
 [v0.3.8]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/fc615a74a5228a266e44f7ecb46ffdeead983cad
-[v0.4.0]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/dev
+[v0.4.0]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/0c1ef2ba053425cb204fffa1b718c88448f81c6b
+[v0.4.1]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/dev
