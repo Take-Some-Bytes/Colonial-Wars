@@ -12,12 +12,12 @@
  */
 /**
  * @typedef {Object} AJAXOpts
- * @prop {String} url
- * @prop {{}|String|Array} data
+ * @prop {string} url
+ * @prop {Object<string, any>|string|Array<any>} data
  * @prop {Object<string, string>} headers
  */
 /**
- * @typedef {Object<string, string|boolean|number>} ParsedCookies
+ * @typedef {Object<string, string>} ParsedCookies
  */
 
 /**
@@ -28,10 +28,10 @@ export const signedCookieRegExp = /^s:(.+)\..+/;
  * Given a value, a minimum, and a maximum, returns true if value is
  * between the minimum and maximum, inclusive of both bounds. This
  * function will still work if min and max are switched.
- * @param {Number} val The value to compare
- * @param {Number} min The minumum bound
- * @param {Number} max The maximum bound
- * @returns {Boolean}
+ * @param {number} val The value to compare.
+ * @param {number} min The minumum bound.
+ * @param {number} max The maximum bound.
+ * @returns {boolean}
  */
 export function inBound(val, min, max) {
   if (min > max) { return val >= max && val <= min; }
@@ -40,30 +40,30 @@ export function inBound(val, min, max) {
 /**
  * Binds a number to the given minimum and maximum, inclusive of both
  * binds. This function will still work if min and max are switched.
- * @param {Number} val The value to check.
- * @param {Number} min The minimum number to bound to.
- * @param {Number} max The maximum number to bound to.
- * @return {Number}
+ * @param {number} val The value to check.
+ * @param {number} min The minimum number to bound to.
+ * @param {number} max The maximum number to bound to.
+ * @returns {number}
  */
 export function bind(val, min, max) {
   if (min > max) { return Math.min(Math.max(val, max), min); }
   return Math.min(Math.max(val, min), max);
 }
 /**
- * Converts an angle in degrees into an angle in radians
- * @param {Number} degree The angle in degrees
- * @returns {Number}
+ * Converts an angle in degrees into an angle in radians.
+ * @param {number} degree The angle in degrees.
+ * @returns {number}
  */
 export function degreeToRadian(degree) {
   return degree * (Math.PI / 180);
 }
 /**
  * Normalizes an angle into radians that are equvilent to 0 degrees,
- * 90 degrees, 180 degrees, and 270 degrees
- * @param {Number} angle The angle in either degrees or radians
- * @param {Boolean} [isDegree] Is the angle supplied in degrees?
+ * 90 degrees, 180 degrees, and 270 degrees.
+ * @param {number} angle The angle in either degrees or radians.
+ * @param {boolean} [isDegree] Is the angle supplied in degrees?
  * Default is false
- * @returns {Number}
+ * @returns {number}
  */
 export function normalizeAngle(angle, isDegree = false) {
   if (isDegree) {
@@ -77,7 +77,7 @@ export function normalizeAngle(angle, isDegree = false) {
   }
 }
 /**
- * Changes the viewport stats in the Constants object
+ * Changes the viewport stats in the Constants object.
  */
 export function changeViewportStats() {
   try {
@@ -107,15 +107,15 @@ export function changeViewportStats() {
   }
 }
 /**
- * Deep seals an object
- * @param {*} obj The object to deep seal
+ * Deep seals an object.
+ * @param {*} obj The object to deep seal.
  * @returns {*}
  */
 export function deepSeal(obj) {
-  // Retrieve the property names defined on object
+  // Retrieve the property names defined on object.
   const propNames = Object.getOwnPropertyNames(obj);
 
-  // Freeze properties before freezing self
+  // Freeze properties before freezing self.
   for (const name of propNames) {
     const value = obj[name];
 
@@ -128,7 +128,7 @@ export function deepSeal(obj) {
 }
 /**
  * Parses the non-http only cookies.
- * @param {String} cookies The document cookies.
+ * @param {string} cookies The document cookies.
  * @returns {ParsedCookies}
  */
 export function parseCookies(cookies) {
@@ -136,6 +136,8 @@ export function parseCookies(cookies) {
   cookies
     .split("; ")
     .forEach(cookie => {
+      // TODO: Just don't try to parse the cookie value into
+      // anything special, only strings, please.
       const splitCookie = cookie.split("=");
       const key = splitCookie[0];
       let val = decodeURIComponent(splitCookie[1]);
@@ -163,12 +165,16 @@ export function parseCookies(cookies) {
   return objToReturn;
 }
 
+// TODO: Update the method that gets the client's play info, and give
+// it a better name.
 /**
- * Gets this client's game info
+ * Gets this client's game info.
  * @param {AJAXCallback} cb The callback to run when
- * the function is done
+ * the function is done.
  */
 export async function init(cb) {
+  // Yes, I know this gives me a warning with ESLint... but I
+  // don't want to change the code right now. Maybe in v0.4.2
   const data = {
     name: $("#name-input").val(),
     game: $("input[name='game']:checked", "#game-select").val(),
