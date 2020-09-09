@@ -1,14 +1,12 @@
 /**
- * @fileoverview This is a player class to handle the players
+ * @fileoverview This is a player class to handle player logic.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-// Imports
+// Imports.
 // const Troop = require("./Game/Troop");
 // const Building = require("./Game/Building");
 // const Projectile = require("./Game/Projectile");
-const Button = require("./UI/Button");
-const Icon = require("./UI/Icon");
 const Vector = require("./Physics/Vector");
 const Constants = require("../common/constants");
 const {
@@ -17,19 +15,20 @@ const {
 const debug = require("../common/debug");
 const { makeUI } = require("../common/gameCommon");
 const UIElement = require("./UI/UIElement");
-const util = require("util");
 
+// TODO: Remove the UI management nonsense in this class.
 /**
- * Player class
+ * Player class.
  */
 class Player {
   /**
-    * Constructor for a player
-    * @param {Vector} position The starting position of the player
-    * @param {String} name The name of the player
-    * @param {String} socketID The socketID associated with this player
-    * @param {String} team The team of the player
-    */
+   * Constructor for a player.
+   * @class
+   * @param {Vector} position The starting position of the player.
+   * @param {string} name The name of the player.
+   * @param {string} socketID The socketID associated with this player.
+   * @param {string} team The team of the player.
+   */
   constructor(position, name, socketID, team = "British") {
     this.position = position;
     this.name = name;
@@ -40,6 +39,10 @@ class Player {
     this.buildings = [];
     // this.buttons = [];
     // this.icons = [];
+    // TODO: Move UI management to the client side.
+    /**
+     * @type {Map<string, UIElement>}
+     */
     this.ui = new Map();
 
     this.resources = {
@@ -68,12 +71,14 @@ class Player {
     this.pastBuildings = null;
     this.pastTroops = null;
   }
+  // TODO: Remove the following function. We won't be needing it
+  // once we move UI management to the client side.
   /**
-   * Adds the UI elements this player is going to interact with
+   * Adds the UI elements this player is going to interact with.
    */
   addUIElements() {
     debug("Making UI elements...");
-    // Declaration stuff
+    // Declarations.
     const uiBGs = Constants.UI_BACKGROUND_KEYS;
     for (const bGround of uiBGs) {
       const baseStats = Constants.UI_BASE_STATS[bGround];
@@ -99,10 +104,12 @@ class Player {
     }
   }
   /**
-    * Binds this player's position within the world if it is outside of the
-    * game world
-    */
+   * Binds this player's position within the world if it is outside of the
+   * game world.
+   */
   bindToWorld() {
+    // We have to declare this method because the `Player` class does
+    // not inherit from `Entity`.
     this.position.x = bind(
       this.position.x, Constants.WORLD_MIN, Constants.WORLD_MAX
     );
@@ -111,15 +118,15 @@ class Player {
     );
   }
   /**
-    * Calculates this player's resource rates
-    * @returns {{
-      * wood: number,
-      * stone: number,
-      * food: number,
-      * coins: number,
-      * ammo: number
-      * }}
-      */
+   * Calculates this player's resource rates.
+   * @returns {{
+   * wood: number,
+   * stone: number,
+   * food: number,
+   * coins: number,
+   * ammo: number
+   * }}
+   */
   calculateResourceRates() {
     const buildings = this.buildings;
     const troops = this.troops;
@@ -148,6 +155,9 @@ class Player {
       ammoIncrease: 0
     };
 
+    // Determine the resouce generation, resource consumption, and
+    // resource bonus that each building and troop that the player
+    // has gives.
     buildings.forEach(building => {
       const stats = Constants.BUILDING_STATS[building.type];
 
@@ -169,6 +179,7 @@ class Player {
       }
     });
 
+    // Calculate the total resource rate for the player.
     totalResourceRate.wood = multiplySomething([
       resourceGen.wood, resourceBonus.woodIncrease
     ]) - resourceMin.wood;
@@ -195,9 +206,10 @@ class Player {
     return totalResourceRate;
   }
   /**
-    * Updates this player's resources
-    */
+   * Updates this player's resources.
+   */
   updateResources() {
+    // TODO: See if `Object.keys()` would work here.
     const resourceRates = Object.getOwnPropertyNames(this.resourceRate);
     const resource = Object.getOwnPropertyNames(this.resources);
 
@@ -214,16 +226,17 @@ class Player {
     }
   }
   /**
-    * Increases this player's resource rates
-    * @param {{
-    * wood: Number,
-    * stone: Number,
-    * food: Number,
-    * coins: Number,
-    * ammo: Number
-    * }} amounts The amounts to increase this player's resource rates by
-    */
+   * Increases this player's resource rates.
+   * @param {{
+   * wood: number,
+   * stone: number,
+   * food: number,
+   * coins: number,
+   * ammo: number
+   * }} amounts The amounts to increase this player's resource rates by.
+   */
   updateResourceRate(amounts) {
+    // TODO: See if `Object.keys()` would work here.
     const newResourceRates = Object.getOwnPropertyNames(amounts);
     const resourceRates = Object.getOwnPropertyNames(this.resourceRate);
     const newResourceRatesLength = newResourceRates.length;
@@ -233,18 +246,18 @@ class Player {
     }
   }
   /**
-    * Update this player given the client's input data from Input.js
-    * @param {{
-    * up: Boolean,
-    * down: Boolean,
-    * right: Boolean,
-    * left: Boolean,
-    * mouse: {
-    *  leftMousePressed: Boolean,
-    *  rightMousePressed: Boolean,
-    *  absMouseCoords: Vector,
-    *  rltvMouseCoords: Vector
-    * }}} data An Object storing the input state
+   * Update this player given the client's input data from Input.js.
+   * @param {{
+   * up: boolean,
+   * down: boolean,
+   * right: boolean,
+   * left: boolean,
+   * mouse: {
+   *  leftMousePressed: boolean,
+   *  rightMousePressed: boolean,
+   *  absMouseCoords: Vector,
+   *  rltvMouseCoords: Vector
+   * }}} data An Object storing the input state.
    */
   updateOnInput(data) {
     if (data.up) {
@@ -269,11 +282,12 @@ class Player {
     });
   }
   /**
-    * Performs an update
-    * @param {Number} lastUpdateTime The last time an update occured
-    * @param {Number} deltaTime The current timestamp
-    */
+   * Performs an update.
+   * @param {number} lastUpdateTime The last time an update occured.
+   * @param {number} deltaTime The current timestamp.
+   */
   update(lastUpdateTime, deltaTime) {
+    // TODO: Don't perform updates for the UI.
     this.lastUpdateTime = lastUpdateTime;
     this.position.add(Vector.scale(this.velocity, deltaTime));
     if (this.pastTroops !== this.troops ||
@@ -293,13 +307,14 @@ class Player {
       this.updateResources();
       this.ui.get("resource_stat_background").updateChildren();
     }
+    // TODO: See if `.bindToWorld` should appear at the top of the function.
     this.bindToWorld();
 
     this.pastBuildings = this.buildings;
     this.pastTroops = this.troops;
   }
   /**
-   * Initializes the player
+   * Initializes the player.
    * @returns {Player}
    */
   init() {
@@ -319,6 +334,6 @@ class Player {
   }
 }
 /**
- * Module exports
+ * Module exports.
  */
 module.exports = exports = Player;
