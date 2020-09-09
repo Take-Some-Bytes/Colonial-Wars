@@ -1,6 +1,5 @@
 /**
- * @fileoverview Drawing class to handle game-drawing on client
- * side
+ * @fileoverview Drawing class to handle game-drawing on the client side.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
@@ -9,16 +8,17 @@ import Vector from "./Physics/Vector.js";
 import Viewport from "./Viewport.js";
 
 /**
- * Drawing class
+ * Drawing class.
  */
 export default class Drawing {
   /**
    * Constructor for the Drawing class.
-   * @param {CanvasRenderingContext2D} context The canvas context to draw to
-   * @param {Object<string, Image>} images The image assets for each entity
+   * @class
+   * @param {CanvasRenderingContext2D} context The canvas context to draw to.
+   * @param {Object<string, Image>} images The image assets for each entity.
    * @param {Viewport} viewport The viewport class to translate from absolute
-   * world coordinates to relative player coordinates.
-   * @param {String} mapName The map name of the map that the player is playing
+   * world coordinates to relative player coordinates..
+   * @param {string} mapName The map name of the map that the player is playing.
    * on
    */
   constructor(context, images, viewport, mapName) {
@@ -35,7 +35,7 @@ export default class Drawing {
         [""];
   }
   /**
-   * Clears the canvas
+   * Clears the canvas.
    */
   clear() {
     this.context.clearRect(0, 0, this.width, this.height);
@@ -44,6 +44,8 @@ export default class Drawing {
    * Draws the background tiles to the canvas.
    */
   drawTiles() {
+    // TODO: Make this function take directions from the server, instead
+    // of deciding itself of what to draw.
     if (this.mapName === "testing") {
       const start = this.viewport.toCanvas(
         { x: Constants.WORLD_MIN, y: Constants.WORLD_MIN });
@@ -56,9 +58,11 @@ export default class Drawing {
       }
     }
   }
+  // TODO: Comment out the `drawBuilding`, `drawButton`, `drawUIBackground`,
+  // `drawIcon`, `drawStats`, and `drawStat` functions. We don't need them.
   /**
-   * Draws a building to the game world
-   * @param {Building} building The building to draw
+   * Draws a building to the game world.
+   * @param {Building} building The building to draw.
    */
   drawBuilding(building) {
     this.context.save();
@@ -84,8 +88,8 @@ export default class Drawing {
     this.context.restore();
   }
   /**
-   * Draws a button to the player's viewport
-   * @param {Button} button The button to draw
+   * Draws a button to the player's viewport.
+   * @param {Button} button The button to draw.
    */
   drawButton(button) {
     const canvasPosition = button.position;
@@ -143,9 +147,9 @@ export default class Drawing {
     }
   }
   /**
-   * Draws a section of the UI background
+   * Draws a section of the UI background.
    * @param {UIElement} bGround The section of the UI background that
-   * you want to draw
+   * you want to draw.
    */
   drawUIBackground(bGround) {
     this.context.drawImage(
@@ -155,8 +159,8 @@ export default class Drawing {
     );
   }
   /**
-   * Draws an icon to the game world
-   * @param {Icon} icon The icon to draw
+   * Draws an icon to the game world.
+   * @param {Icon} icon The icon to draw.
    */
   drawIcon(icon) {
     const position = icon.position;
@@ -177,16 +181,16 @@ export default class Drawing {
     );
   }
   /**
-   * Draws the stats on to the canvas
+   * Draws the stats on to the canvas.
    * @param {{
-   * wood: Number,
-   * stone: Number,
-   * food: Number,
-   * coins: Number,
-   * ammo: Number,
-   * peopleMax: Number,
-   * peopleUsed: Number
-   * }} stats The stats to draw
+   * wood: number,
+   * stone: number,
+   * food: number,
+   * coins: number,
+   * ammo: number,
+   * peopleMax: number,
+   * peopleUsed: number
+   * }} stats The stats to draw.
    */
   drawStats(stats) {
     if (stats) {
@@ -213,8 +217,8 @@ export default class Drawing {
     }
   }
   /**
-   * Draws a stat to the canvas
-   * @param {Icon} icon The icon to draw
+   * Draws a stat to the canvas.
+   * @param {Icon} icon The icon to draw.
    */
   drawStat(icon) {
     const iconPosition = icon.position;
@@ -275,18 +279,18 @@ export default class Drawing {
     }
   }
   /**
-   * Draws a centered image
-   * @param {Image} image The image to draw
-   * @param {Boolean} [isSection] Is the image you want to draw
+   * Draws a centered image.
+   * @param {Image} image The image to draw.
+   * @param {boolean} [isSection] Is the image you want to draw
    * a section of a sprite sheet?
    * @param {{
    * framePosition: Array<number>,
    * size: {
-   *  width: Number,
-   *  height: Number
+   *  width: number,
+   *  height: number
    * }
    * }} [config] The configurations if the image you
-   * want to draw is a section of a sprite sheet
+   * want to draw is a section of a sprite sheet.
    */
   drawCenteredImage(image, isSection = false, config = {}) {
     if (isSection) {
@@ -303,18 +307,18 @@ export default class Drawing {
     this.context.drawImage(image, -image.width / 2, -image.height / 2);
   }
   /**
-   * Draws a section of an image
-   * @param {Image} image The image to draw
-   * @param {Array<number>} framePosition The frame position to draw from
+   * Draws a section of an image.
+   * @param {Image} image The image to draw.
+   * @param {Array<number>} framePosition The frame position to draw from.
    * @param {{
-   * width: Number,
-   * height: Number
-   * }} dsize The size to draw the image
+   * width: number,
+   * height: number
+   * }} dsize The size to draw the image.
    * @param {{
-   * width: Number,
-   * height: Number
-   * }} ssize The size to cut the image
-   * @param {Vector} drawingPosition The position to draw the image
+   * width: number,
+   * height: number
+   * }} ssize The size to cut the image.
+   * @param {Vector} drawingPosition The position to draw the image.
    */
   drawImageSection(image, framePosition, dsize, ssize, drawingPosition) {
     this.context.drawImage(
@@ -327,17 +331,17 @@ export default class Drawing {
     );
   }
   /**
-   * Creates a Drawing class
-   * @param {HTMLCanvasElement} canvas The canvas element to draw to
-   * @param {Viewport} viewport The viewport object for coordinate translation
-   * @param {String} mapName The map name of the map that the player is playing
-   * on
+   * Creates a Drawing class.
+   * @param {HTMLCanvasElement} canvas The canvas element to draw to.
+   * @param {Viewport} viewport The viewport object for coordinate translation.
+   * @param {string} mapName The map name of the map that the player is playing
+   * on.
    * @returns {Drawing}
    */
   static create(canvas, viewport, mapName) {
     const context = canvas.getContext("2d");
     const images = {};
-    // Add UI elements
+    // Add UI elements.
     for (const ui of Constants.DRAWING_UI_KEYS) {
       images[ui] = new Image();
       images[ui].src =
@@ -349,7 +353,7 @@ export default class Drawing {
       images[bg].src =
         `${Constants.DRAWING_UI_BASE_PATH}/backgrounds/${bg}.png`;
     }
-    // Add tiles
+    // Add tiles.
     if (mapName === "testing") {
       images.test_tile = new Image();
       images.test_tile.src =
@@ -360,7 +364,7 @@ export default class Drawing {
         images[tile].src = `${Constants.DRAWING_TILE_BASE_PATH}/${tile}.png`;
       }
     }
-    // Add buildings
+    // Add buildings.
     for (const building of Constants.DRAWING_BUILDING_KEYS) {
       images[building] = new Image();
       images[building].src =
