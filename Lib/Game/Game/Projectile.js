@@ -1,10 +1,9 @@
 /**
- * @fileoverview Projectile class to handle the projectiles
- * in the game
+ * @fileoverview Projectile class to handle the projectiles physics in the game.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-// Imports
+// Imports.
 const Entity = require("../Physics/Entity");
 const Vector = require("../Physics/Vector");
 const Building = require("./Building");
@@ -14,19 +13,21 @@ const Constants = require("../../common/constants");
 
 /**
  * Projectile class to control projectile physics
+ * @extends Entity
  */
 class Projectile extends Entity {
   /**
-    * Constructor for the Projectile class
-    * @param {Vector} position The position of the projectile
-    * @param {Vector} velocity The velocity of the projectile
-    * @param {Number} mass The mass of the projectile
-    * @param {Number} hitbox The circular hitbox of the projectile
-    * @param {Number} angle The orientation of the projectile(in degrees)
-    * @param {Building|Troop} source The Troop or Building object
-    * firing the projectile
-    * @param {String} type The type of projectile
-    */
+   * Constructor for the Projectile class.
+   * @class
+   * @param {Vector} position The position of the projectile.
+   * @param {Vector} velocity The velocity of the projectile.
+   * @param {number} mass The mass of the projectile.
+   * @param {number} hitbox The circular hitbox of the projectile.
+   * @param {number} angle The orientation of the projectile(in degrees).
+   * @param {Building|Troop} source
+   * The Troop or Building object firing the projectile.
+   * @param {string} type The type of projectile.
+   */
   constructor(position, velocity, mass, hitbox, angle, source, type) {
     const stats = Constants.BULLET_STATS[type];
     const splashStats = Constants.SPLASH_STATS[type];
@@ -47,10 +48,10 @@ class Projectile extends Entity {
     this.lastUpdateTime = 0;
   }
   /**
-    * Does a physics update
-    * @param {Number} lastUpdateTime The last update time
-    * @param {Number} deltaTime The time now
-    */
+   * Does a physics update.
+   * @param {number} lastUpdateTime The last update time.
+   * @param {number} deltaTime The timestamp to compute the update with.
+   */
   update(lastUpdateTime, deltaTime) {
     this.lastUpdateTime = lastUpdateTime;
     const distanceStep = Vector.scale(this.velocity, deltaTime);
@@ -67,13 +68,14 @@ class Projectile extends Entity {
       this.destroyed = true;
     }
   }
+  // TODO: See if the following functions can be combined into one.
   /**
-    * Creates a new Projectile from a Troop
-    * @param {Troop} troop The Troop object to create the Projectile from
-    * @param {Number} [angleDeviation=0] The angle deviation if the projectile
-    * is not traveling in the direction of the Troop
-    * @returns {Projectile}
-    */
+   * Creates a new Projectile from a Troop.
+   * @param {Troop} troop The Troop object to create the Projectile from.
+   * @param {number} [angleDeviation=0] The angle deviation if the projectile
+   * is not traveling in the direction of the Troop.
+   * @returns {Projectile}
+   */
   static createFromTroop(troop, angleDeviation = 0) {
     const angle = Util.degreeToRadian(troop.angle + angleDeviation);
     const firedProjectile = troop.firedProjectile;
@@ -89,13 +91,13 @@ class Projectile extends Entity {
     );
   }
   /**
-    * Creates a new Projectile from a Building
-    * @param {Building} building The Building object to create the
-    * Projectile from
-    * @param {Number} [angleDeviation=0] The angle deviation if the projectile
-    * is not traveling in the direction of the Building
-    * @returns {Projectile}
-    */
+   * Creates a new Projectile from a Building.
+   * @param {Building} building The Building object to create the
+   * Projectile from.
+   * @param {number} [angleDeviation=0] The angle deviation if the projectile
+   * is not traveling in the direction of the Building.
+   * @returns {Projectile}
+   */
   static createFromBuilding(building, angleDeviation = 0) {
     const angle = Util.degreeToRadian(building.turretAngle + angleDeviation);
     const firedProjectile = building.firedProjectile;
@@ -113,6 +115,6 @@ class Projectile extends Entity {
 }
 
 /**
- * Module exports
+ * Module exports.
  */
 module.exports = exports = Projectile;
