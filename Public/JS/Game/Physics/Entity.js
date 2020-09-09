@@ -1,5 +1,5 @@
 /**
- * @fileoverview Entity object to control entities in the game
+ * @fileoverview Entity object to control entities in the game.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
@@ -8,17 +8,18 @@ import Constants from "../../Constants-client.js";
 import Vector from "./Vector.js";
 
 /**
- * Entity class
+ * Entity class.
  */
 export default class Entity {
   /**
-    * Constructor for the Entity class
-    * @param {Vector} position The current position of the entity
-    * @param {Vector} velocity The current velocity of the entity
-    * @param {Vector} acceleration The acceleration of the entity
-    * @param {Number} mass The mass of the entity
-    * @param {Number} hitbox The circular hitbox of the entity
-    */
+   * Constructor for the Entity class.
+   * @class
+   * @param {Vector} position The current position of the entity.
+   * @param {Vector} velocity The current velocity of the entity.
+   * @param {Vector} acceleration The acceleration of the entity.
+   * @param {number} mass The mass of the entity.
+   * @param {number} hitbox The circular hitbox of the entity.
+   */
   constructor(position, velocity, acceleration, mass, hitbox) {
     this.position = position || Vector.zero();
     this.velocity = velocity || Vector.zero();
@@ -27,20 +28,21 @@ export default class Entity {
     this.hitbox = hitbox;
   }
   /**
-    * Tests if an entity has collided with another one
-    * @param {Entity} other The other Entity
-    * @returns {Boolean}
-    */
+   * Tests if an entity has collided with another one.
+   * @param {Entity} other The other Entity.
+   * @returns {boolean}
+   */
   collided(other) {
     const minDistance = other.hitbox + this.hitbox;
     return Vector.sub(this.position, other.position).mag2 <=
       minDistance * minDistance;
   }
   /**
-    * Tests if an entity is inside the world bounds
-    * @returns {Boolean}
-    */
+   * Tests if an entity is inside the world bounds.
+   * @returns {boolean}
+   */
   inWorld() {
+    // TODO: Clean up this expression.
     return Util.inBound(
       this.position.x, Constants.WORLD_MIN, Constants.WORLD_MAX
     ) &&
@@ -49,9 +51,9 @@ export default class Entity {
       );
   }
   /**
-    * Binds this entity's position within the world if it is outside of the
-    * game world
-    */
+   * Binds this entity's position within the world if it is outside of the
+   * game world.
+   */
   bindToWorld() {
     this.position.x = Util.bind(
       this.position.x, Constants.WORLD_MIN, Constants.WORLD_MAX
