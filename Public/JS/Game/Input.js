@@ -1,16 +1,18 @@
 /**
- * @fileoverview Input class for managing client input
+ * @fileoverview Input class for managing client input.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
 import EventEmitter from "../common/EventEmitter.js";
+
 /**
- * Input class
+ * Input class.
  * @extends EventEmitter
  */
 export default class Input extends EventEmitter {
   /**
-   * Constructor for an Input class
+   * Constructor for an Input class.
+   * @class
    */
   constructor() {
     super();
@@ -22,13 +24,16 @@ export default class Input extends EventEmitter {
     this.leftMouseDown = false;
     this.rightMouseDown = false;
     this.mousePosition = [0, 0];
+    // TODO: See if this property is needed.
     this.pastMousePosition = [0, 0];
   }
   /**
-   * Event handler for the `keydown` event
-   * @param {KeyboardEvent} event The event to handle
+   * Event handler for the `keydown` event.
+   * @param {KeyboardEvent} event The event to handle.
    */
   onKeyDown(event) {
+    // TODO: See if this should use `event.code` instead. The current code
+    // won't work if the client does NOT have a QWERTY keyboard.
     switch (event.key) {
     case "a":
     case "A":
@@ -67,10 +72,12 @@ export default class Input extends EventEmitter {
     this.emit("input", state);
   }
   /**
-   * Event handler for the `keyup` event
-   * @param {KeyboardEvent} event The event to handle
+   * Event handler for the `keyup` event.
+   * @param {KeyboardEvent} event The event to handle.
    */
   onKeyUp(event) {
+    // TODO: See if this should use `event.code` instead. The current code
+    // won't work if the client does NOT have a QWERTY keyboard.
     switch (event.key) {
     case "a":
     case "A":
@@ -109,8 +116,8 @@ export default class Input extends EventEmitter {
     this.emit("input", state);
   }
   /**
-   * Handles a `mousedown` event
-   * @param {MouseEvent} event The Mouse event to handle
+   * Handles a `mousedown` event.
+   * @param {MouseEvent} event The Mouse event to handle.
    */
   onMouseDown(event) {
     if (event.button === 0) {
@@ -135,8 +142,8 @@ export default class Input extends EventEmitter {
     this.emit("input", state);
   }
   /**
-   * Handles a `mouseup` event
-   * @param {MouseEvent} event The Mouse event to handle
+   * Handles a `mouseup` event.
+   * @param {MouseEvent} event The Mouse event to handle.
    */
   onMouseUp(event) {
     if (event.button === 0) {
@@ -161,8 +168,8 @@ export default class Input extends EventEmitter {
     this.emit("input", state);
   }
   /**
-   * Handles a `mousemove` event
-   * @param {MouseEvent} event The Mouse event to handle
+   * Handles a `mousemove` event.
+   * @param {MouseEvent} event The Mouse event to handle.
    */
   onMouseMove(event) {
     this.mousePosition[0] = event.offsetX;
@@ -185,10 +192,10 @@ export default class Input extends EventEmitter {
   }
   /**
    * Applies the event handlers to elements in the DOM.
-   * @param {Element} keyElement The element to track keypresses on
-   * @param {Element} mouseClickElement The element to track mouse clicks on
+   * @param {Element} keyElement The element to track keypresses on.
+   * @param {Element} mouseClickElement The element to track mouse clicks on.
    * @param {Element} mouseMoveElement The element to track mouse movement
-   *   relative to
+   * relative to.
    */
   applyEventHandlers(keyElement, mouseClickElement, mouseMoveElement) {
     keyElement.addEventListener("keydown", this.onKeyDown.bind(this));
@@ -201,11 +208,11 @@ export default class Input extends EventEmitter {
     mouseMoveElement.addEventListener("mousemove", this.onMouseMove.bind(this));
   }
   /**
-   * Factory method for a Input class
+   * Factory method for a Input class.
    * @param {Element} keyElement The element to listen for keypresses and
-   * mouse clicks on
+   * mouse clicks on.
    * @param {Element} mouseMoveElement The element to track mouse coordinates
-   * relative to
+   * relative to.
    * @returns {Input}
    */
   static create(keyElement, mouseMoveElement) {
