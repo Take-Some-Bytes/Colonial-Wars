@@ -1,9 +1,9 @@
 /**
- * @fileoverview Manager class to manage to games running on the server
+ * @fileoverview Manager class to manage to games running on the server.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-// Imports
+// Imports.
 const crypto = require("crypto");
 const socketIO = require("socket.io");
 
@@ -12,25 +12,29 @@ const Vector = require("./Physics/Vector");
 const { deepClear } = require("../common/util");
 const Constants = require("../common/constants");
 
+// TODO: Clean up this class. Remove unneeded code, methods, and such.
 /**
- * Manager class
+ * Manager class.
  */
 class Manager {
   /**
-    * Constructor for the manager class
-    */
+   * Constructor for the manager class.
+   * @class
+   */
   constructor() {
     /**
      * This is a Map containing all of the games running
-     * on the server
+     * on the server.
+     * @type {Map<string, Game>}
      */
     this.games = new Map();
 
+    // TODO: See if the following properties are needed.
     this.deltaTime = 0;
     this.lastUpdateTime = 0;
   }
   /**
-   * Gets all the games as an array
+   * Gets all the games as an array.
    * @returns {Array<Game>}
    */
   get allGames() {
@@ -41,31 +45,35 @@ class Manager {
     return games;
   }
   /**
-    * Initializes the Manager state
-    */
+   * Initializes the Manager state.
+   */
   init() {
+    // TODO: See if this is even needed.
     this.lastUpdateTime = Date.now();
 
     deepClear(this.games, true);
   }
   /**
-    * Adds a new game, then returns the made game
-    * @param {String} mode The game mode
-    * @param {String} gameID The game ID
-    * @param {String} mapName The name of the map that the game is
-    * going to take place in
-    * @param {{
-    * British: Vector,
-    * French: Vector,
-    * Russian: Vector,
-    * German: Vector,
-    * American: Vector,
-    * Italian: Vector
-    * }} startPositions The start positions of the players
-    * that join a team
-    * @returns {Game}
-    */
+   * Adds a new game, then returns the made game.
+   * @param {string} mode The game mode.
+   * @param {string} gameID The game ID.
+   * @param {string} mapName The name of the map that the game is
+   * going to take place in.
+   * @param {{
+   * British: Vector,
+   * French: Vector,
+   * Russian: Vector,
+   * German: Vector,
+   * American: Vector,
+   * Italian: Vector
+   * }} startPositions The start positions of the players
+   * that join a team.
+   * @returns {Game}
+   */
   addNewGame(mode, gameID, mapName, startPositions) {
+    // TODO: Add a new `Manager` property stating the maximum number
+    // of games this manager should manage.
+    // TODO: Update this method to remove unneeded parameters.
     if (this.games.size === Constants.MAX_GAMES) {
       throw new Error("Max number of games is reached; cannot add game");
     }
@@ -75,20 +83,23 @@ class Manager {
     return game;
   }
   /**
-    * Removes an existing game
-    * @param {String} gameID The ID associated with the game
-    */
+   * Removes an existing game.
+   * @param {string} gameID The ID associated with the game.
+   */
   removeGame(gameID) {
+    // TODO: See if this is good enough or additional cleaning needs to
+    // be done. I don't think clients will like the game suddenly freezing
+    // on them or something.
     if (this.games.has(gameID)) {
       this.games.delete(gameID);
     }
   }
   /**
-    * Gets the game with the specified game ID
-    * @param {String} gameID The game ID associated with the game
-    * you want to get
-    * @returns {Game}
-    */
+   * Gets the game with the specified game ID.
+   * @param {string} gameID The game ID associated with the game
+   * you want to get.
+   * @returns {Game}
+   */
   getGame(gameID) {
     if (this.games.has(gameID)) {
       const game = this.games.get(gameID);
@@ -97,7 +108,7 @@ class Manager {
     throw new Error("Game does not exist; cannot get game.");
   }
   /**
-   * Performs a game update
+   * Performs updates for all the games this manager is managing.
    */
   update() {
     for (const game of this.games.values()) {
@@ -105,7 +116,8 @@ class Manager {
     }
   }
   /**
-   * Sends the player state to all clients
+   * Sends the game state of all the games this manager is managing
+   * to the clients that are connected.
    */
   sendState() {
     for (const game of this.games.values()) {
@@ -113,12 +125,12 @@ class Manager {
     }
   }
   /**
-   * Adds a new client to the specified game
-   * @param {String} gameID The game's ID
+   * Adds a new client to the specified game.
+   * @param {string} gameID The game's ID.
    * @param {socketIO.Socket} client The socket object associated with the
-   * client
-   * @param {String} name The display name of the client
-   * @param {String} team The team of the player
+   * client.
+   * @param {string} name The display name of the client.
+   * @param {string} team The team of the player.
    */
   addClientToGame(gameID, client, name, team) {
     if (this.games.has(gameID)) {
@@ -129,29 +141,32 @@ class Manager {
     throw new Error("Game does not exist; cannot add player to game.");
   }
   /**
-   * Removes a client from the specified game
-   * @param {String} gameID The game's ID
+   * Removes a client from the specified game.
+   * @param {string} gameID The game's ID.
    * @param {socketIO.Socket} client The socket object associated with the
-   * client
+   * client.
    */
   removeClientFromGame(gameID, client) {
     if (this.games.has(gameID)) {
       const game = this.games.get(gameID);
       game.removePlayer(client.id);
     }
+    // TODO: See if we should throw an error in case the game doesn't exist,
+    // or do something else.
   }
   /**
-    * Create a new game manager
-    * @returns {Manager}
-    */
+   * Create a new game manager.
+   * @returns {Manager}
+   */
   static create() {
     const manager = new Manager();
+    // I think the manager `.init()` function is useless.
     manager.init();
     return manager;
   }
 }
 
 /**
- * Module exports
+ * Module exports.
  */
 module.exports = exports = Manager;
