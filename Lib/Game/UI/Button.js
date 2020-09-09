@@ -3,28 +3,30 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-// Imports
+// Imports.
 const Vector = require("../Physics/Vector");
 const Constants = require("../../common/constants");
 const UIElement = require("./UIElement");
 
+// TODO: Move this class to the client-side.
 /**
- * Button class
+ * Button class.
  * @extends UIElement
  */
 class Button extends UIElement {
   /**
-   * Constructor for a Button class
+   * Constructor for a Button class.
+   * @class
    * @param {{
-   * width: Number,
-   * height: Number,
-   * image: String,
+   * width: number,
+   * height: number,
+   * image: string,
    * position: Vector,
    * onClick: function():void,
    * onHover: function():void,
    * onNotClick: function():void,
    * onNotHover: function():void
-   * }} config Button config
+   * }} config Button config.
    */
   constructor(config) {
     super({
@@ -42,12 +44,14 @@ class Button extends UIElement {
     this.onNotClick = config.onNotClick;
 
     this.clicked = false;
+    // We need the `lastClickTime` property to make sure the button
+    // gets clicked properly.
     this.lastClickTime = 0;
   }
   /**
    * Returns a boolean based on whether this button could be
-   * clicked or not
-   * @returns {Boolean}
+   * clicked or not.
+   * @returns {boolean}
    */
   canClick() {
     const canClick =
@@ -55,14 +59,17 @@ class Button extends UIElement {
     return canClick;
   }
   /**
-   * Handles a mouse event
+   * Handles a mouse event.
    * @param {{
-   * mouseX: Number,
-   * mouseY: Number,
-   * clicked: Boolean
-   * }} event The mouse event that happened
+   * mouseX: number,
+   * mouseY: number,
+   * clicked: boolean
+   * }} event The mouse event that happened.
    */
   handleMouseEvent(event) {
+    // We need to check if the mouse is inside this button,
+    // and whether this button could be clicked at this specific moment,
+    // and then act accordingly.
     const isMouseInside = this.isMouseInside(event);
     const canClick = this.canClick();
     if (
@@ -85,6 +92,6 @@ class Button extends UIElement {
 }
 
 /**
- * Module exports
+ * Module exports.
  */
 module.exports = exports = Button;
