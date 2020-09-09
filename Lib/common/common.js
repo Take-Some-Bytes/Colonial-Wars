@@ -1,9 +1,9 @@
 /**
- * @fileoverview A file containing all of the common functions
+ * @fileoverview A file containing all of the common functions to the server.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-// Dependencies
+// Imports.
 const fs = require("fs");
 const path = require("path");
 const express = require("express");
@@ -11,7 +11,8 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
 const init = require("./init");
-const debug = require("./debug");
+// Keep the debug require here just so that if we need it, we'll have it.
+// const debug = require("./debug");
 const config = require("../../config");
 const loggers = init.winstonLoggers;
 const SecurityLogger = loggers.get("Security-logger");
@@ -19,17 +20,17 @@ const SecurityLogger = loggers.get("Security-logger");
 /**
  * @typedef {Object} SendErrorOpts Options.
  * @prop {Object} [httpOpts]
- * @prop {Number} [httpOpts.status=500] HTTP status code. Default is 500.
- * @prop {String} [httpOpts.contentType="text/html"] HTTP content type.
+ * @prop {number} [httpOpts.status=500] HTTP status code. Default is 500.
+ * @prop {string} [httpOpts.contentType="text/html"] HTTP content type.
  * Only required if ``opts.messageToSend`` is a ``Buffer`` or if the
  * content type is not HTML.
  * @prop {Object} [logOpts]
- * @prop {String} [logOpts.logMessage=""] The message to log. No default.
- * @prop {Boolean} [logOpts.doLog=false] Whether to log or not to log.
+ * @prop {string} [logOpts.logMessage=""] The message to log. No default.
+ * @prop {boolean} [logOpts.doLog=false] Whether to log or not to log.
  * Default is false.
- * @prop {String} [logOpts.loggerID] The ID of the winston logger to use.
- * @prop {String} [logOpts.logLevel] The level to log at.
- * @prop {String|Buffer} [messageToSend] The error message to send. Default is
+ * @prop {string} [logOpts.loggerID] The ID of the winston logger to use.
+ * @prop {string} [logOpts.logLevel] The level to log at.
+ * @prop {string|Buffer} [messageToSend] The error message to send. Default is
  * the cached error page from ``init.js``.
  */
 
@@ -39,6 +40,7 @@ const SecurityLogger = loggers.get("Security-logger");
  * @returns {express.Handler}
  */
 function sendError(opts) {
+  // Defaults for the options.
   /**
    * @type {SendErrorOpts}
    */
@@ -52,14 +54,18 @@ function sendError(opts) {
     },
     messageToSend: init.cache.errorPage
   };
+  // Create an internal `_opts` variable to actually use
+  // without modifying the original `opts` parameter.
   /**
    * @type {SendErrorOpts}
    */
   let _opts = {};
 
+  // No options? let's go to defaults.
   if (!opts) {
     _opts = defaults;
   } else {
+    // Lots of option determination.
     _opts = {
       httpOpts: opts.httpOpts ?
         {
@@ -82,13 +88,16 @@ function sendError(opts) {
     };
   }
 
-  return (req, res, next) => {
+  return (req, res) => {
     res.type(_opts.httpOpts.contentType);
     res.cookie(
       "statusCode", _opts.httpOpts.status,
       { signed: true, sameSite: "strict" }
     );
+    // Cehck if we need to log or not.
     if (_opts.logOpts.doLog) {
+      // TODO: See if we should check if a logger exists or not before
+      // attempting to log a message.
       loggers
         .get(_opts.logOpts.loggerID)[
           _opts.logOpts.logLevel
@@ -101,15 +110,15 @@ function sendError(opts) {
   };
 }
 /**
- * Automatically handles the requests that the server approves of.
- * @param {express.request} req Client Request
- * @param {express.response} res Server Response
- * @param {express.NextFunction} next Next function
- * @param {String} file The file to read
- * @param {Boolean} sendType Whether to send the `Content-Type` header.
+ * Serves a single file.
+ * @param {express.request} req Client Request.
+ * @param {express.response} res Server Response.
+ * @param {express.NextFunction} next Next function.
+ * @param {string} file The file to read.
+ * @param {boolean} sendType Whether to send the `Content-Type` header.
  */
 function serveFile(req, res, next, file, sendType) {
-  // File reading
+  // Open and pipe the file to the client.
   const s = fs.createReadStream(file);
   s.on("open", () => {
     if (sendType) {
@@ -133,13 +142,15 @@ function serveFile(req, res, next, file, sendType) {
   });
 }
 /**
- * Automatically handles the requests that requests for a file that is
- * not for public viewing and/or not found.
- * @param {express.request} req Client Request
- * @param {express.response} res Server Response
- * @param {express.NextFunction} next Next function
+ * Handles all other requests in which the server did not have
+ * an explicit route for.
+ * @param {express.request} req Client Request.
+ * @param {express.response} res Server Response.
+ * @param {express.NextFunction} next Next function.
  */
 function handleOther(req, res, next) {
+  // The following code constructs the actual path that we are going
+  // to serve the file from.
   const protocol = req.socket.encrypted ? "https:" : "http:";
   const reqPath = new URL(req.url, `${protocol}//${req.headers.host}`);
   const includesFavicon = reqPath.pathname.includes("/favicon.ico");
@@ -160,13 +171,13 @@ function handleOther(req, res, next) {
   );
 }
 /**
- * Logs a CSP report
- * @param {express.request} req Client Request
- * @param {express.response} res Server Response
- * @param {express.NextFunction} next Next function
+ * Logs a CSP report.
+ * @param {express.request} req Client Request.
+ * @param {express.response} res Server Response.
+ * @param {express.NextFunction} next Next function.
  */
 function logCSPReport(req, res, next) {
-  // Check if req.body is existent
+  // Check if req.body is existent.
   if (
     req.body &&
     typeof req.body === "object" &&
@@ -183,6 +194,7 @@ function logCSPReport(req, res, next) {
       SecurityLogger.warning(JSON.stringify(req.body, null, 3));
       return;
     }
+    // TODO: Check if the double `sendError()` call is needed.
     sendError({
       httpOpts: {
         status: 400
@@ -201,6 +213,8 @@ function logCSPReport(req, res, next) {
     }
   })(req, res, next);
 }
+// TODO: See if there's an automatic way of promisifying
+// async functions. `util.promisify` may be of interest.
 /**
  * `jwt.sign` promisified.
  * @param {string|object|Buffer} payload The payload.
@@ -238,12 +252,14 @@ function jwtVerifyPromise(token, secret, options) {
 /**
  * Creates a socketIOAuth JWT, and sets the client in the
  * pendingClients map.
- * @param {qs.ParsedQs} query The query.
+ * @param {import("qs").ParsedQs} query The query.
  * @param {express.request} req Request.
  * @param {express.response} res Response.
  * @param {express.NextFunction} next Next function.
+ * @returns {Promise<string|false>}
  */
 async function createSocketAuthJWT(query, req, res, next) {
+  // Generate the required parameters for the signing of the JWT.
   const utk = crypto.randomBytes(16).toString("hex");
   const jwtConfig = {
     pssPhrs: query.passPhrase,
@@ -268,6 +284,7 @@ async function createSocketAuthJWT(query, req, res, next) {
     })(req, res, next);
     return false;
   }
+  // Add the client to our pendingClients list.
   init.pendingClients.set(
     utk, {
       connected: false,
@@ -283,7 +300,7 @@ async function createSocketAuthJWT(query, req, res, next) {
 }
 
 /**
- * Export common server methods
+ * Module exports.
  */
 module.exports = exports = {
   serveFile,
