@@ -1,10 +1,9 @@
 /**
- * @fileoverview A Buildings class to manage buildings
- * physics
+ * @fileoverview A Buildings class to manage buildings physics.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-// Imports
+// Imports.
 const Projectile = require("./Projectile");
 const Entity = require("../Physics/Entity");
 const Vector = require("../Physics/Vector");
@@ -12,15 +11,17 @@ const Util = require("../../common/util");
 const Constants = require("../../common/constants");
 
 /**
- * Building class
+ * Building class.
+ * @extends Entity
  */
 class Building extends Entity {
   /**
-    * Constructor for a Building object
-    * @param {Vector} position The current position of the Building
-    * @param {String} [type="tent"] The type of the Building
-    * @param {String} [team="Neutral"] The team of the building
-    */
+   * Constructor for a Building object.
+   * @class
+   * @param {Vector} position The current position of the Building.
+   * @param {string} [type="tent"] The type of the Building.
+   * @param {string} [team="Neutral"] The team of the building.
+   */
   constructor(position, type = "tent", team = "Neutral") {
     const stats = Constants.BUILDING_STATS[type];
 
@@ -58,8 +59,8 @@ class Building extends Entity {
   }
   /**
    * Performs a physics update.
-   * @param {Number} lastUpdateTime The last timestamp an update occurred
-   * @param {Number} deltaTime The timestep to compute the update with
+   * @param {number} lastUpdateTime The last timestamp an update occurred.
+   * @param {number} deltaTime The timestep to compute the update with.
    */
   update(lastUpdateTime, deltaTime) {
     this.lastUpdateTime = lastUpdateTime;
@@ -69,21 +70,21 @@ class Building extends Entity {
       );
     }
   }
+  // /**
+  //  * Updates the building on input from the player or building defense AI.
+  //  * @param {Object} data The JSON object that is storing the movement data.
+  //  */
+  // updateOnInput(data) {
+  //   // TODO: CODE THE BUILDING DEFENSE AI!!!
+  //   if (data.from === "Player") {
+  //     //
+  //   }
+  // }
   /**
-    * Updates the building on input from the player or building defense AI
-    * @param {Object} data The JSON object that is storing the movement data
-    */
-  updateOnInput(data) {
-    if (data.from === "Player") {
-      //
-    }
-  }
-  /**
-    * Returns a boolean based on whether the
-    * building can attack. Only works if the building is a
-    * defensive automated machine
-    * @returns {Boolean}
-    */
+   * Returns a boolean based on whether the building can attack.
+   * Only works if the building is a defensive automated machine.
+   * @returns {boolean}
+   */
   canAttack() {
     if (this.type === "cannon_tower") {
       return this.lastUpdateTime > this.lastShotTime + this.shotCoolDown;
@@ -91,10 +92,10 @@ class Building extends Entity {
     throw new Error("Building type is not a cannon tower; Cannot attack.");
   }
   /**
-    * Returns a Projectile instance. This function
-    * does not do a shot cooldown check
-    * @returns {Projectile}
-    */
+   * Returns a Projectile instance.
+   * This function does not do a shot cooldown check.
+   * @returns {Projectile}
+   */
   getProjectileFromShot() {
     if (this.type === "cannon_tower") {
       const projectile = Projectile.createFromBuilding(this);
@@ -105,33 +106,34 @@ class Building extends Entity {
     );
   }
   /**
-    * Damages the current building
-    * @param {Number} amount The amount to damage the Building
-    */
+   * Damages the current building.
+   * @param {number} amount The amount to damage the Building.
+   */
   damage(amount) {
     this.health -= amount;
   }
   /**
-   * Returns a boolean determining if the building is dead or not
-   * @return {Boolean}
+   * Returns a boolean determining if the building is dead or not.
+   * @returns {boolean}
    */
   isDead() {
     return this.health <= 0;
   }
   /**
-   * Factory method for a building object
-   * @param {Vector} position The position of the building
-   * @param {String} type The type of the building
-   * @param {String} team The team the building is on
+   * Factory method for a building object.
+   * @param {Vector} position The position of the building.
+   * @param {string} type The type of the building.
+   * @param {string} team The team the building is on.
    * @returns {Building}
    */
   static create(position, type, team) {
+    // TODO: See if this factory function is necessary.
     const building = new Building(position, type, team);
     return building;
   }
 }
 
 /**
- * Module exports
+ * Module exports.
  */
 module.exports = exports = Building;
