@@ -1,12 +1,12 @@
 /**
- * @fileoverview File to store utility methods used
- * throughout this project
+ * @fileoverview File to store utility methods used throughout this project.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-// Imports
+// Imports.
 const debug = require("./debug");
 
+// JSDoc typedefs for VSCode.
 /**
  * @typedef {"array"|"object"|"nested array"} OutAsFormat
  */
@@ -23,10 +23,10 @@ const stringifiedArrayRegex = /^\[(.+)\]$/;
  * Given a value, a minimum, and a maximum, returns true if value is
  * between the minimum and maximum, inclusive of both bounds. This
  * function will still work if min and max are switched.
- * @param {Number} val The value to compare
- * @param {Number} min The minumum bound
- * @param {Number} max The maximum bound
- * @returns {Boolean}
+ * @param {number} val The value to compare.
+ * @param {number} min The minumum bound.
+ * @param {number} max The maximum bound.
+ * @returns {boolean}
  */
 function inBound(val, min, max) {
   if (min > max) { return val >= max && val <= min; }
@@ -35,28 +35,30 @@ function inBound(val, min, max) {
 /**
  * Binds a number to the given minimum and maximum, inclusive of both
  * binds. This function will still work if min and max are switched.
- * @param {Number} val The value to check.
- * @param {Number} min The minimum number to bound to.
- * @param {Number} max The maximum number to bound to.
- * @return {Number}
+ * @param {number} val The value to check.
+ * @param {number} min The minimum number to bound to.
+ * @param {number} max The maximum number to bound to.
+ * @returns {number}
  */
 function bind(val, min, max) {
   if (min > max) { return Math.min(Math.max(val, max), min); }
   return Math.min(Math.max(val, min), max);
 }
+// TODO: Remove the following function. It isn't needed.
 /**
- * Converts an angle in degrees into an angle in radians
- * @param {Number} degree The angle in degrees
- * @returns {Number}
+ * Converts an angle in degrees into an angle in radians.
+ * @param {number} degree The angle in degrees.
+ * @returns {number}
  */
 function degreeToRadian(degree) {
   return degree * (Math.PI / 180);
 }
+// TODO: Remove this also.
 /**
  * Given an angle in radians, this function normalizes the angle to the range
  * 0 to 2 PI and returns the normalized angle.
- * @param {number} angle The angle to normalize
- * @return {number}
+ * @param {number} angle The angle to normalize.
+ * @returns {number}
  */
 function normalizeAngle(angle) {
   while (angle < 0) {
@@ -65,9 +67,9 @@ function normalizeAngle(angle) {
   return angle % (Math.PI * 2);
 }
 /**
- * An ID maker function
- * @param {Number} length Length of the ID
- * @returns {String}
+ * An ID maker function.
+ * @param {number} length Length of the ID.
+ * @returns {string}
  */
 function makeID(length) {
   let result = "";
@@ -80,15 +82,15 @@ function makeID(length) {
   return result;
 }
 /**
- * Deep-freezes an object
- * @param {{}} object The object to deep freeze
+ * Deep-freezes an object.
+ * @param {{}} object The object to deep freeze.
  * @returns {*}
  */
 function deepFreeze(object) {
-  // Retrieve the property names defined on object
+  // Retrieve the property names defined on object.
   const propNames = Object.getOwnPropertyNames(object);
 
-  // Freeze properties before freezing self
+  // Freeze properties before freezing self.
   for (const name of propNames) {
     const value = object[name];
 
@@ -99,14 +101,16 @@ function deepFreeze(object) {
 
   return Object.freeze(object);
 }
+// TODO: Remove the following function. It is completely useless.
 /**
  * Clears all of a object's stuff. Could delete properties if you want it to,
- * but by default it only gives them the value of `undefined`
- * @param {Map|Array|{}} variable Whatever object variable you need to clear
- * @param {Boolean} [deleteProperties=false] Delete properties?
+ * but by default it only gives them the value of `undefined`.
+ * @param {Map|Array|{}} variable Whatever object variable you need to clear.
+ * @param {boolean} [deleteProperties=false] Delete properties?
  * @returns {*}
  */
 function deepClear(variable, deleteProperties = false) {
+  // I'm not even going to put comments here.
   if (variable instanceof Map) {
     if (deleteProperties) {
       return variable.clear();
@@ -145,11 +149,16 @@ function deepClear(variable, deleteProperties = false) {
   }
 }
 /**
-   * Multiplies stuff. Skips a number if it is zero or negative
-   * @param {Array<number>} factors Factors to multiply
-   * @returns {number}
-   */
+ * Multiplies stuff. Skips a number if it is zero or negative.
+ * @param {Array<number>} factors Factors to multiply.
+ * @returns {number}
+ */
 function multiplySomething(factors) {
+  // TODO: Do more testing on this function to see if it works as
+  // intended. You'll be surprised how hard it is to multiply numbers
+  // without getting a "0" as the product.
+  // TODO: See if this function leaks memory. It is used for an important
+  // function, and if it does leak memory... Well, that isn't good.
   let factor1 = 0;
   let factor2 = 0;
   let factor = 0;
@@ -157,6 +166,8 @@ function multiplySomething(factors) {
   let product = 0;
   let i = 0;
 
+  // We use a while loop here because we need to conditionally
+  // increment the counter.
   while (i < factors.length) {
     if (!preProduct) {
       if (!factor1) {
@@ -201,21 +212,24 @@ function multiplySomething(factors) {
 }
 /**
  * Checks an object's properties. Returns true if the object's
- * properties are true, otherwise returns false
- * @param {{}} obj The object to check for the properties
- * @returns {Boolean}
+ * properties are true, otherwise returns false.
+ * @param {Object<string, any>} obj The object to check for the properties.
+ * @returns {boolean}
  */
 function checkProperties(obj) {
   for (const key in obj) {
     const property = obj[key];
+    // TODO: THIS IS NOT RIGHT! We only have to see if the property
+    // is truthy, not if it is the literal value `true`.
     if (!property === true) {
       return false;
     }
   }
   return true;
 }
+// TODO: Find a better way to log the memory usage.
 /**
- * Logs the memory usage of the current node js process
+ * Logs the memory usage of the current node js process.
  */
 function logMemoryUsage() {
   debug("----Memory Usage----");
@@ -224,11 +238,10 @@ function logMemoryUsage() {
     debug(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
   }
 }
-
+// TODO: See if the following function is needed.
 /**
- * Gets all the non-callable (Non-function) properties of an object
- * @param {Object} obj The object to get the non-callable properties
- * from
+ * Gets all the non-callable (Non-function) properties of an object.
+ * @param {Object} obj The object to get the non-callable properties from.
  * @returns {Object}
  */
 function getNonCallableProps(obj) {
@@ -250,11 +263,11 @@ function getNonCallableProps(obj) {
 }
 /**
  * Mixes up a string real good.
- * @param {String} string The string to mix up
- * @param {String} additionalLetters Any additional letters to mix the
- * string up with
- * @param {Number} maxLength The max length of the string that is returned
- * @returns {String}
+ * @param {string} string The string to mix up.
+ * @param {string} additionalLetters Any additional letters to mix the
+ * string up with.
+ * @param {number} maxLength The max length of the string that is returned.
+ * @returns {string}
  */
 function mixUp(string, additionalLetters, maxLength) {
   const splitString = string.split("");
@@ -275,19 +288,23 @@ function mixUp(string, additionalLetters, maxLength) {
       Math.round(Math.random() * stringLength)
     );
 
+    // TODO: Maybe we should ACTUALLY mix up the string with additional letters?
+    // Because all we are doing is adding it on to the result.
     result += additionalLetter;
   }
 
   return result;
 }
 /**
- * Gets all the values of a map, and returns them in the specified format
+ * Gets all the values of a map, and returns them in the specified format.
  * @param {Map} map The map to get values as.
- * @param {OutAsFormat} outAs The format to output the
- * values.
+ * @param {OutAsFormat} outAs The format to output the values.
  * @returns {Array<any>|Array<Array<any>>|{}}
  */
 function getMapValues(map, outAs) {
+  // TODO: Implement typechecks on the parameters of this function, because
+  // an exception will be thrown if the parameters are not the type
+  // they are supposed to be.
   if (
     outAs.toLowerCase() === "nested array" || outAs.toLowerCase() === "object"
   ) {
@@ -295,6 +312,8 @@ function getMapValues(map, outAs) {
       {} :
       [];
 
+    // FIXME: Fix this to use `map.entries()`. Just iterating over the
+    // map does not do anything.
     for (const [key, value] of map) {
       if (valueToReturn instanceof Array) {
         valueToReturn.push([key, value]);
@@ -314,32 +333,9 @@ function getMapValues(map, outAs) {
   throw new TypeError("Invalid outAs parameter!");
 }
 /**
- * Creates a map from a value
- * @param {{}|Array<Array<any>>} val The value to create the map from.
- * @param {InAsFormat} inAs The format that the map is to be created from.
- * @returns {Map}
- */
-function createMapFrom(val, inAs) {
-  if (inAs.toLowerCase() === "object") {
-    const arr = [];
-
-    for (const key in val) {
-      arr.push([
-        key, val[key]
-      ]);
-    }
-
-    return new Map(arr);
-  } else if (inAs.toLowerCase() === "nested array") {
-    return new Map(val);
-  }
-  throw new TypeError("Invalid inAs parameter!");
-}
-/**
- * Parses a stringified array. Returns false if
- * string cannot be parsed. Trims whitespace and removes
- * inner quotes.
- * @param {String} str The string to parse.
+ * Parses a stringified array. Returns false if string cannot be parsed.
+ * Trims whitespace and removes inner quotes.
+ * @param {string} str The string to parse.
  * @returns {Array<string>|false}
  */
 function parseArray(str) {
