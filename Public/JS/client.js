@@ -1,8 +1,11 @@
 /**
  * @fileoverview Client init file. This should be one of the only files that
- * have `no-undef` in eslint disabled
+ * have `no-undef` in eslint disabled.
  * @author Horton Cheng <horton0712@gmail.com>
  */
+// TODO: Remove the `eslint-disable no-undef` statement. We won't be
+// needing it now that we enabled jQuery globals in eslint.
+// TODO: Get type definitions for Socket.IO client.
 /* eslint-disable no-undef */
 
 import { init, pollServer } from "./common/functions.js";
@@ -14,7 +17,7 @@ window.securityData = {};
 
 if (pathname === "/") {
   $(document).ready(async() => {
-    // Socket.io stuff
+    // Get Socket.IO auth.
     try {
       const passPhrase = JSON.parse(await pollServer({
         url: "/xhr",
@@ -35,18 +38,23 @@ if (pathname === "/") {
     } catch (err) {
       console.error(err);
     }
+    // Now connect to the root Socket.IO namespace.
     const socket = io();
 
     socket.on(Constants.SOCKET_SECURITY_DATA, data => {
       window.securityData = JSON.parse(data).securityData;
     });
     socket.on(Constants.SOCKET_ERROR, err => {
+      // TODO: Find another way to report errors. With the way this
+      // is currently set up, the error message would be cleared once the
+      // `Play` dialog is opened.
       $("#error-span")
         .addClass("error")
         .text(`${err}`);
     });
 
-    // XHR
+    // TODO: Make this use `pollServer` instead.
+    // Make a request to the server to get the available games.
     const params = {
       "for": "games_available"
     };
@@ -66,13 +74,14 @@ if (pathname === "/") {
       }
     });
 
-    // Version display
+    // Display the version.
     $("#version").html(
       `<a href="/version">Version ${Constants.VERSION}</a>.
       Licensed under the <a href="/license">AGPL-3.0 license.</a>`
     );
 
-    // Dialog
+    // Create the `Play` dialog.
+    // TODO: Move the code to create the `Play` dialog to another function.
     dialog = $("#dialog-form-container")
       .dialog({
         autoOpen: false,
@@ -98,6 +107,8 @@ if (pathname === "/") {
                     .text(`${error}`);
                   return;
                 }
+                // TODO: Remove this call to set the client's previous
+                // socket ID in localStorage.
                 localStorage.setItem(
                   "prevSocketID",
                   socket.id
@@ -115,6 +126,7 @@ if (pathname === "/") {
           }
         }
       });
+    // Handle when the client opens the `Play` dialog.
     $("#play").click(() => {
       dialog.dialog("open");
       $("#error-span")
@@ -129,6 +141,7 @@ if (pathname === "/") {
       $("#name-input").focus();
     });
 
+    // Make sure the play "form" does not submit.
     $("#dialog-form").submit(e => {
       e.preventDefault();
       init((err, data) => {
@@ -140,6 +153,7 @@ if (pathname === "/") {
         }
         socket.emit(Constants.SOCKET_NEW_PLAYER, JSON.stringify({
           securityData: {
+            // TODO: Remove the need for the old security system.
             clientData: {
               id: window.securityData.clientData.id,
               token: window.securityData.clientData.token
@@ -168,6 +182,7 @@ if (pathname === "/") {
   });
 } else if (pathname === "/license") {
   $(document).ready(() => {
+    // TODO: Also make this use `pollServer`.
     const params = {
       "for": "license_text.html"
     };
