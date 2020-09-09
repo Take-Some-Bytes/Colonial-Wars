@@ -1,25 +1,25 @@
 /**
- * @fileoverview Express and Socket.IO middleware for stuff
+ * @fileoverview File to store middleware for Socket.IO and Express.
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-// Imports
-const crypto = require("crypto");
+// Imports.
 const express = require("express");
 const jwt = require("jsonwebtoken");
+// eslint-disable-next-line no-unused-vars
 const socketIO = require("socket.io");
 const cookieParser = require("cookie-parser");
 
 const config = require("../config");
 const init = require("./common/init");
 const debug = require("./common/debug");
-const Manager = require("./Game/Manager");
 const Constants = require("./common/constants");
 const { sendError, jwtVerifyPromise } = require("./common/common");
 
 const loggers = init.winstonLoggers;
 const ServerLogger = loggers.get("Server-logger");
 
+// JSDoc typedefs to make development easier.
 /**
  * @callback SocketIONext
  * @param {*} [err]
@@ -29,53 +29,59 @@ const ServerLogger = loggers.get("Server-logger");
  * @callback SocketIOHandler
  * @param {socketIO.Socket} socket
  * @param {SocketIONext} next
- * @returns {void|Promise<void>}
+ * @returns {Promise<void>}
  */
 /**
  * @typedef {Object} AcceptOpts
- * @prop {Array<String>} type
- * @prop {Array<String>} lang
- * @prop {Array<String>} charset
- * @prop {Array<String>} encoding
- * @prop {Boolean} ignoreAcceptMismatch
+ * @prop {Array<string>} type
+ * @prop {Array<string>} lang
+ * @prop {Array<string>} charset
+ * @prop {Array<string>} encoding
+ * @prop {boolean} ignoreAcceptMismatch
  */
 /**
  * @typedef {Object} CheckAcceptOpts
  * @prop {"type"|"lang"|"charset"|"encoding"} whichAccept
- * @prop {Array<String>} acceptedTypes
+ * @prop {Array<string>} acceptedTypes
  */
 /**
  * @typedef {Object} MockedRequest
  * @prop {Object} headers
- * @prop {String} headers.cookie
- * @prop {String} secret
+ * @prop {string} headers.cookie
+ * @prop {string} secret
  * @prop {Object<string, string>} cookies
  * @prop {Object<string, string>} signedCookies
  */
 /**
  * @typedef {Object} SocketIOAuthPayload
- * @prop {String} sub
- * @prop {String} iss
- * @prop {String} aud
- * @prop {String} utk
- * @prop {Number} exp
- * @prop {String} pssPhrs
+ * @prop {string} sub
+ * @prop {string} iss
+ * @prop {string} aud
+ * @prop {string} utk
+ * @prop {number} exp
+ * @prop {string} pssPhrs
  */
 
 /**
- * System part of the request decision making.
- * @param {Array<String>} implementedMethods Array of methods that this
+ * System part of HTTP decision making.
+ * @param {Array<string>} implementedMethods Array of methods that this
  * server supports. Must be all upper-case.
  * @returns {express.Handler}
  * @public
  */
 function sysCheckpoint(implementedMethods) {
+  // IDEA: Maybe we should add some code to make the elements in
+  // the `implementedMethods` array all uppercase strings.
   return (req, res, next) => {
     const reqUrlLength = req.url.length;
+    // TODO: Maybe we should not have this? The following code
+    // tries to get the client's real IP, if the app is behind a
+    // reverse proxy, which it should not be.
     const clientIP = req.ips.length < 1 ?
       req.ip :
       req.ips[0];
 
+    // YOUR REQUEST URL MUST NOT BE SUPER LONG!
     if (reqUrlLength > Constants.REQ_URL_MAX_LEN) {
       sendError({
         httpOpts: {
@@ -105,17 +111,20 @@ function sysCheckpoint(implementedMethods) {
   };
 }
 /**
- * Request part of the decision making.
+ * Request part of HTTP decision making.
  * @returns {express.Handler}
  */
 function requestCheckpoint() {
   return (req, res, next) => {
+    // The following code dynamically checks the request url,
+    // matches to a regex made from an object's keys, and checks
+    // if the request method matches the allowed methods on that route.
     for (
       const path of Object.getOwnPropertyNames(Constants.ALLOWED_METHODS_MAP)
     ) {
       const pathRegex = new RegExp(path);
       /**
-       * @type {Array<String>}
+       * @type {Array<string>}
        */
       const methods = Constants.ALLOWED_METHODS_MAP[path];
       if (pathRegex.test(req.url)) {
@@ -134,6 +143,8 @@ function requestCheckpoint() {
       }
     }
 
+    // Send a 204 response right here if the method is OPTIONS.
+    // TODO: See if we need to support the OPTIONS HTTP method.
     if (req.method === "OPTIONS") {
       res
         .status(204)
@@ -145,13 +156,13 @@ function requestCheckpoint() {
   };
 }
 /**
- * Checkpoint for the accept part of decision making.
+ * Checkpoint for the accept part of HTTP decision making.
  * @param {AcceptOpts} acceptOpts Options.
  * @returns {express.Handler}
  */
 function acceptCheckpoint(acceptOpts) {
   /**
-   * Checks accept. Private.
+   * Checks what the client accepts. Private.
    * @param {express.request} req Request.
    * @param {express.response} res Response.
    * @param {CheckAcceptOpts} opts Options.
@@ -159,8 +170,11 @@ function acceptCheckpoint(acceptOpts) {
    * @private
    */
   function checkAccept(req, res, opts) {
+    // This dynamically gets the accept function that
+    // is needed and calls it.
     let acceptFunction = null;
 
+    // TODO: See if we could use a object instead.
     switch (opts.whichAccept) {
     case "type":
       acceptFunction = req.accepts;
@@ -186,6 +200,8 @@ function acceptCheckpoint(acceptOpts) {
     const accepted = [];
 
     Object.getOwnPropertyNames(acceptOpts).forEach(key => {
+      // Do not execute the following function for the
+      // `ignorAcceptMismatch` key.
       if (key === "ignoreAcceptMismatch") { return; }
       const acceptsType = checkAccept(req, res, {
         whichAccept: key,
@@ -193,6 +209,9 @@ function acceptCheckpoint(acceptOpts) {
       });
       accepted.push(acceptsType);
     });
+    // If there is even one unacceptable asset, see if we are supposed to
+    // ignore accept mismatch, and send a 406 Not Acceptable response if
+    // we don't ignore accept mismatch.
     if (accepted.some(type => !type) && !acceptOpts.ignoreAcceptMismatch) {
       sendError({
         httpOpts: {
@@ -208,29 +227,34 @@ function acceptCheckpoint(acceptOpts) {
   };
 }
 /**
- * Wraps the `cookie-parser` middleware for non-express
- * environments.
- * @param {String|Array<string>} secrets Cookie secrets, if any.
- * @param {String} cookies The `Cookie` header from the HTTP request.
+ * Wraps the `cookie-parser` middleware for non-express environments.
+ * @param {string|Array<string>} secrets Cookie secrets, if any.
+ * @param {string} cookie The `Cookie` header from the HTTP request.
  * @returns {MockedRequest}
  */
-function wrapCookieParser(secrets, cookies) {
+function wrapCookieParser(secrets, cookie) {
   const cookieParserFn = cookieParser(secrets, {});
+  // Here, we mock the request, with just enough properties
+  // to run the cookie parser.
   /**
    * @type {MockedRequest}
    */
   const _req = {
     headers: {
-      cookie: cookies
+      cookie
     },
     secret: ""
   };
 
   try {
+    // Pass in the mocked request, pass in null as the response object,
+    // and pass a function for the `next()` function.
     cookieParserFn(_req, null, err => {
       if (err) { throw err; }
     });
   } catch (err) {
+    // TODO See if we want to handle the error in this function, or let
+    // the caller handle it.
     ServerLogger.error(`Failed to wrap cookie-parser. Error is: ${err}.`);
     return {};
   }
@@ -238,7 +262,7 @@ function wrapCookieParser(secrets, cookies) {
 }
 /**
  * Accept a new ``SocketIO.Socket`` socket.
- * @param {String|Array<string>} secrets The cookie secrets, if any.
+ * @param {string|Array<string>} secrets The cookie secrets, if any.
  * @param {init.PendingClients} pendingClients Pending clients.
  * @returns {SocketIOHandler}
  */
@@ -247,6 +271,7 @@ function acceptNewSocket(secrets, pendingClients) {
     const req = wrapCookieParser(secrets, socket.request.headers.cookie);
     const cookies = req.signedCookies;
 
+    // YOU MUST HAVE A socketIOAuth COOKIE, AND IT MUST BE A STRING!
     if (typeof cookies.socketIOAuth !== "string") {
       next(new Error("No Socket.IO authorization!"));
       return;
@@ -266,6 +291,8 @@ function acceptNewSocket(secrets, pendingClients) {
         }
       );
 
+      // TODO: See if this could be refactored.
+      // Check the unique token, passphrase, and if the client's session exists.
       if (!decoded.utk || typeof decoded.utk !== "string") {
         next(new Error("Missing unique token!"));
         return;
@@ -274,6 +301,8 @@ function acceptNewSocket(secrets, pendingClients) {
       } else if (!pendingClients.has(decoded.utk)) {
         next(new Error("Your session does not exist."));
       } else {
+        // We have to check whether the client has joined a game to avoid
+        // overriding their `pendingClients` entry.
         const joinedGame = pendingClients.get(
           decoded.utk
         ).joinedGame;
@@ -281,6 +310,7 @@ function acceptNewSocket(secrets, pendingClients) {
           next();
           return;
         }
+        // Define the auth.
         const auth = {
           connected: true,
           joinedGame: false,
@@ -295,6 +325,7 @@ function acceptNewSocket(secrets, pendingClients) {
         next();
       }
     } catch (err) {
+      // TODO: See if this could be refactored.
       if (
         err instanceof jwt.NotBeforeError ||
         err instanceof jwt.JsonWebTokenError ||
@@ -311,9 +342,8 @@ function acceptNewSocket(secrets, pendingClients) {
 }
 /**
  * Checks if a `Socket.IO` socket exists in the pending clients
- * queue when a new connection to the `play` namespace is
- * received.
- * @param {String|Array<string>} secrets The cookie secrets, if any.
+ * queue when a new connection to the `play` namespace is received.
+ * @param {string|Array<string>} secrets The cookie secrets, if any.
  * @param {init.PendingClients} pendingClients Pending clients.
  * @returns {SocketIOHandler}
  */
@@ -322,6 +352,7 @@ function checkSocket(secrets, pendingClients) {
     const req = wrapCookieParser(secrets, socket.request.headers.cookie);
     const cookies = req.signedCookies;
 
+    // YOU ALSO STILL MUST HAVE A socketIOAuth COOKIE!
     if (typeof cookies.socketIOAuth !== "string") {
       next(new Error("No Socket.IO authorization!"));
       return;
@@ -341,6 +372,8 @@ function checkSocket(secrets, pendingClients) {
         }
       );
 
+      // TODO: See if this could be refactored.
+      // Check the unique token, passphrase, and client session.
       if (!decoded.utk || typeof decoded.utk !== "string") {
         next(new Error("Missing unique token!"));
         return;
@@ -349,6 +382,8 @@ function checkSocket(secrets, pendingClients) {
       } else if (!pendingClients.has(decoded.utk)) {
         next(new Error("Your session does not exist."));
       } else {
+        // Here, we check the socketIOAuth's passPhrase against
+        // the passPhrase in the client's entry in the pendingClients Map.
         const pending = pendingClients.get(decoded.utk);
         if (
           pending.validationData.passPhrase !== decoded.pssPhrs ||
@@ -369,8 +404,11 @@ function checkSocket(secrets, pendingClients) {
             pending.playData.clientTeam
           );
         } catch (err) {
+          // TODO: See if we need to be less verbose with the error.
           next(new Error(err));
         }
+        // Emit the "proceed" event to get the client to proceed with
+        // tasks.
         const game = init.manager.getGame(pending.playData.gameID);
         socket.emit(Constants.SOCKET_PROCEED, JSON.stringify({
           playerData: {
@@ -385,6 +423,7 @@ function checkSocket(secrets, pendingClients) {
         next();
       }
     } catch (err) {
+      // TODO: See if this could be refactored.
       if (
         err instanceof jwt.NotBeforeError ||
         err instanceof jwt.JsonWebTokenError ||
@@ -401,7 +440,7 @@ function checkSocket(secrets, pendingClients) {
 }
 
 /**
- * Module exports
+ * Module exports.
  */
 module.exports = exports = {
   sysCheckpoint,
