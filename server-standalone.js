@@ -31,16 +31,13 @@ const socketIO = require("socket.io");
 const router = require("./Lib/router");
 const middleware = require("./Lib/middleware");
 const init = require("./Lib/common/init");
+const util = require("./Lib/common/util");
 const Constants = require("./Lib/common/constants");
-// TODO: Find a better way to report memory usage of the current
-// Node.JS process. This is way to verbose.
-const { logMemoryUsage } = require("./Lib/common/util");
 
 // Variables.
 const PROTOCOL = config.httpsConfig.isHttps ? "https" : "http";
 const PORT = config.serverConfig.port || (PROTOCOL === "http" ? 8000 : 4430);
 const HOST = config.serverConfig.host || "localhost";
-const pendingClients = init.pendingClients;
 // Keep an array of intervals so we could stop them later.
 const intervals = [];
 // Keep an array of existing Socket.IO connections, so that
@@ -88,59 +85,65 @@ app.use(middleware.acceptCheckpoint({
 }));
 
 // Static assets.
-// FIXME: Pass the `Constants.EXPRESS_STATIC_OPTS` object into
-// the `express.static` functions.
-// TODO: Remove the middleware for the "/dist" path.
-app.use("/dist", express.static(path.join(__dirname, "dist")));
-app.use("/shared", express.static(path.join(__dirname, "Shared")));
-app.use("/JS", express.static(path.join(__dirname, "Public/JS")));
-app.use("/CSS", express.static(path.join(__dirname, "Public/CSS")));
-app.use("/imgs", express.static(path.join(__dirname, "Public/Images")));
+app.use("/shared", express.static(
+  path.join(__dirname, "Shared"),
+  Constants.EXPRESS_STATIC_OPTS
+));
+app.use("/JS", express.static(
+  path.join(__dirname, "Public/JS"),
+  Constants.EXPRESS_STATIC_OPTS
+));
+app.use("/CSS", express.static(
+  path.join(__dirname, "Public/CSS"),
+  Constants.EXPRESS_STATIC_OPTS
+));
+app.use("/imgs", express.static(
+  path.join(__dirname, "Public/Images"),
+  Constants.EXPRESS_STATIC_OPTS
+));
 // Actual routing to HTML pages and such.
 app.use("/", router);
 // TODO: Add a custom error handler for express.
 
 // Root Socket.IO namespace.
-io.use(middleware.acceptNewSocket(cookieSecret, pendingClients));
+io.use(middleware.acceptNewSocket(cookieSecret));
 io.on("connection", socket => {
+  const socketAuth = socket.auth;
   connections.push(socket);
   debug("Connection!", socket.id);
-  socket.on(Constants.SOCKET_NEW_PLAYER, (data, cb) => {
-    let err = null;
+  socket.on(Constants.SOCKET_NEW_PLAYER, async(data, cb) => {
     try {
       // A player wants to join a game, so try to parse
       // the data sent.
       const playData = JSON.parse(data).playerData;
       const gameToJoin = manager.getGame(playData.game);
-      const socketAuth = socket.auth;
 
       if (!gameToJoin) {
         cb("Selected game does not exist.");
       } else if (!socketAuth) {
         cb("Not authorized.");
       } else {
-        // If the client has passed all the checks above, remember
-        // them in a `pendingClients` Map, and send them on their way.
-        init.pendingClients.set(
+        await init.wsSessions.set(
           socketAuth.validationData.utk,
           {
-            connected: true,
-            joinedGame: true,
-            playData: {
-              clientName: playData.name,
-              clientTeam: playData.team,
-              gameID: playData.game
-            },
-            validationData: {
-              utk: socketAuth.validationData.utk,
-              passPhrase: socketAuth.validationData.passPhrase
+            sessionData: {
+              connected: true,
+              joinedGame: true,
+              playData: {
+                clientName: playData.name,
+                clientTeam: playData.team,
+                gameID: playData.game
+              },
+              validationData: {
+                utk: socketAuth.validationData.utk,
+                passPhrase: socketAuth.validationData.passPhrase
+              }
             }
           }
         );
         cb(null);
       }
-    } catch (error) {
-      err = error;
+    } catch (err) {
       ServerLogger.error(err);
 
       // Intentionally be vague with the error message.
@@ -149,33 +152,49 @@ io.on("connection", socket => {
   });
   socket.on(Constants.SOCKET_DISCONNECT, () => {
     debug("Client Disconnected!", socket.id);
-    // TODO: Add checks to remove the client from the
-    // `pendingClients` Map if they haven't joined a game.
+    util.removeFromArray(connections, socket);
+    clearInterval(socket.touchInterval);
   });
 });
 
 // Play namespace, where game-related stuff happens.
-playIO.use(middleware.checkSocket(cookieSecret, pendingClients));
+playIO.use(middleware.checkSocket(cookieSecret));
 playIO.on("connection", socket => {
   // Keep the game ID for later. We'll need it.
   const gameID = socket.gameID;
+  const socketAuth = socket.auth;
   connections.push(socket);
-  debug("Connection!", socket.id);
-  // TODO: Remove this following call to `logMemoryUsage`.
-  // This is too verbose.
-  logMemoryUsage();
+  debug("Connection@/play!", socket.id);
   socket.on(Constants.SOCKET_PLAYER_ACTION, data => {
     const parsedData = JSON.parse(data);
     const game = manager.getGame(gameID);
     game.updatePlayerOnInput(socket.id, parsedData.playerData.actionData);
   });
-  socket.on(Constants.SOCKET_DISCONNECT, reason => {
-    debug("Client disconnected!", socket.id);
-    if (reason !== "server namespace disconnect") {
-      manager.removeClientFromGame(gameID, socket);
-    }
-    // TODO: Add logic to remove the client from the
-    // `pendingClients` Map.
+  socket.on(Constants.SOCKET_DISCONNECT, () => {
+    debug("Client Disconnected@/play!", socket.id);
+    manager.removeClientFromGame(gameID, socket);
+    init.wsSessions.get(socketAuth.validationData.utk)
+      .then(async session => {
+        if (typeof session === "boolean" && !session) {
+          // Hmm... I'm actually not sure what to do here. How
+          // did the client get a Socket.IO connection anyways?
+          return;
+        }
+        session.sessionData = Object.assign(
+          session.sessionData, {
+            joinedGame: false,
+            playData: {}
+          }
+        );
+        await init.wsSessions.set(
+          socketAuth.validationData.utk, session
+        );
+      })
+      .catch(err => {
+        ServerLogger.error(err);
+      });
+    util.removeFromArray(connections, socket);
+    clearInterval(socket.touchInterval);
   });
 });
 
@@ -192,10 +211,6 @@ server.listen(PORT, HOST, 20, err => {
   );
   debug(`Server started on ${PROTOCOL}://${HOST}:${PORT}.`);
   debug(`Protocol is: ${PROTOCOL}.`);
-  // TODO: And again, remove the following two lines.
-  // They are too verbose.
-  debug(`Is server listening? ${server.listening}`);
-  logMemoryUsage();
 });
 
 // Start the update loop.
@@ -216,8 +231,6 @@ process.on("SIGINT", signal => {
   connections.forEach(socket => {
     socket.disconnect(true);
   });
-  // TODO: Remove the following line.
-  debug(`Is server listening? ${server.listening}`);
   debug(`Received signal ${signal}. Shutting down server...`);
   ServerLogger.info(
     `Received signal ${signal} from user. Shutting down server...`
@@ -257,7 +270,7 @@ process.on("uncaughtException", err => {
   ServerLogger.fatal("Exiting...");
   debug(`Is server listening? ${server.listening}`);
   debug("Server crashed. Error is:");
-  debug(err);
+  debug(err.stack);
   debug("Exiting...");
   // Allow the async functions to finish.
   setTimeout(() => {
