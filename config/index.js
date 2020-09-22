@@ -20,6 +20,11 @@ const fs = require("fs");
  */
 
 /**
+ * Regex to test for a stringified array.
+ */
+const stringifiedArrayRegex = /^\[(.*)\]$/;
+
+/**
  * Parses process arguments.
  * @param {Array<string>} args The process arguments.
  * @returns {ParsedArgs}
@@ -134,6 +139,27 @@ function parseEnvFile(filePath, useSync, outAs) {
     });
   });
 }
+/**
+ * Parses a stringified array. Returns false if string cannot be parsed.
+ * Trims whitespace and removes inner quotes.
+ * @param {string} str The string to parse.
+ * @returns {Array<string>|false}
+ */
+function parseArray(str) {
+  if (typeof str !== "string") {
+    throw new TypeError(
+      `Attempting to parse a stringified array from ${typeof str}`
+    );
+  } else if (!str) {
+    return false;
+  } else if (!stringifiedArrayRegex.test(str)) {
+    return false;
+  }
+
+  return str.replace(stringifiedArrayRegex, "$1")
+    .split(",")
+    .map(val => val.trim().replace(/^["'`](.+)["'`]$/, "$1").trim());
+}
 
 // Parse the arguments and environment variables.
 let parsedArgs = null;
@@ -156,14 +182,14 @@ const envVars = {
      * @type {boolean}
      */
     noLog:
-      parsedArgs._.includes("nolog") || parsedArgs._.includes("noLog") ||
-      !envVariables.NO_LOG,
+      parsedArgs._.includes("noLog") ||
+      envVariables.NO_LOG === "true",
     /**
      * @type {string}
      */
     logTo:
       parsedArgs.keyedValues.logTo ||
-      (envVariables.LOG_TO.startsWith("~") ?
+      (typeof envVariables === "string" && envVariables.LOG_TO.startsWith("~") ?
         path.join(
           require("os").homedir(),
           envVariables.LOG_TO.substring(2)
@@ -192,7 +218,6 @@ const envVars = {
      * @type {string}
      */
     host:
-      process.env.HOST ||
       envVariables.HOST ||
       parsedArgs.keyedValues.host,
     /**
@@ -200,21 +225,50 @@ const envVars = {
      */
     port:
       parseInt(
-        process.env.PORT ||
         envVariables.PORT ||
         parsedArgs.keyedValues.port,
         10
-      )
-    // TODO: Add another property for this web application's
-    // name. It will be used for signing JWTs.
+      ),
+    /**
+     * @type {string}
+     */
+    appName:
+      parsedArgs.keyedValues.appName ||
+      envVariables.APP_NAME ||
+      "app"
   },
-  // TODO: Add a `securityOpts` object for security configurations.
-  // TODO: Add a `secrets` object for storing server secrets.
+  securityOpts: {
+    maxTokenAge:
+      parseInt(
+        parsedArgs.keyedValues.maxTokenAge ||
+        envVariables.MAX_TOKEN_AGE ||
+        1000 * 60 * 60 * 2,
+        10
+      ),
+    validSubjectsMap: {
+      sockAuthCW: "SocketIOAuth@Colonialwars"
+    },
+    passPhrases:
+      parseArray(
+        parsedArgs.keyedValues.passPhrases ||
+        envVariables.PASSPHRASES
+      ) || null
+  },
+  secrets: {
+    /**
+     * @type {string}
+     */
+    cookieSecret:
+      parsedArgs.keyedValues.cookieSecret ||
+      envVariables.COOKIE_SECRET,
+    jwtSecret:
+      parsedArgs.keyedValues.jwtSecret ||
+      envVariables.JWT_SECRET
+  },
   /**
    * @type {string}
    */
   environment:
-    process.env.NODE_ENV ||
     envVariables.NODE_ENV ||
     parsedArgs.keyedValues.nodeEnv ||
     "development"
