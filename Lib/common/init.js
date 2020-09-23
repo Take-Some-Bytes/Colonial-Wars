@@ -3,17 +3,18 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 // Imports.
-const winston = require("winston");
-const morgan = require("morgan");
 const fs = require("fs");
 const path = require("path");
+const morgan = require("morgan");
 const crypto = require("crypto");
-const express = require("express");
 const helmet = require("helmet");
+const express = require("express");
+const winston = require("winston");
 
-const Constants = require("./constants");
-const { makeID, mixUp, deepFreeze } = require("./util");
 const config = require("../../config");
+const Constants = require("./constants");
+const SessionStore = require("../store");
+const { makeID, mixUp, deepFreeze, no_freeze } = require("./util");
 
 const Manager = require("../Game/Manager");
 
@@ -46,22 +47,6 @@ exports = module.exports = {};
 /**
  * @typedef {Object<string, string>} ServerCache
  */
-/**
- * @typedef {Map<string, PendingClientEntry>} PendingClients
- */
-/**
- * @typedef {Object} PendingClientEntry
- * @prop {boolean} connected
- * @prop {boolean} joinedGame
- * @prop {Object} playData
- * @prop {string} playData.clientName
- * @prop {string} playData.clientTeam
- * @prop {string} playData.gameID
- * @prop {Object} validationData
- * @prop {string} validationData.utk
- * @prop {string} validationData.passPhrase
- */
-
 // Create a token in morgan.
 morgan.token("reqPath", req => {
   const protocol = config.httpsConfig.isHttps ? "https:" : "http:";
@@ -245,14 +230,6 @@ manager.addNewGame(
  */
 exports.manager = manager;
 
-// TODO: See if the `serverToken` is needed.
-// Create the server token.
-const serverToken = crypto.randomBytes(32).toString("hex");
-/**
- * Export server token.
- * @readonly
- */
-exports.serverToken = serverToken;
 
 // Create the cookie secret.
 const cookieSecret = mixUp(
@@ -295,16 +272,18 @@ cache.errorPage = errorPage;
  */
 exports.cache = cache;
 
-// Declare pendingClients map for game connections.
+// Initialize Socket.IO session store.
+const wsSessions = new SessionStore(null, {
+  checkRate: 1000 * 60 * 20,
+  ttl: config.securityOpts.maxTokenAge
+});
+// Don't freeze the `wsSessions` SessionStore.
+wsSessions[no_freeze] = true;
 /**
- * @type {PendingClients}
- */
-const pendingClients = new Map();
-/**
- * Export pendingClients map.
+ * Export Socket.IO session store.
  * @readonly
  */
-exports.pendingClients = pendingClients;
+exports.wsSessions = wsSessions;
 
 // Initialize helmet functions.
 /**
