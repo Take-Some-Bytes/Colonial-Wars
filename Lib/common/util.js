@@ -15,10 +15,9 @@ const debug = require("./debug");
  */
 
 /**
- * Regex to test for a stringified array.
+ * Special `NO_FREEZE` symbol.
  */
-const stringifiedArrayRegex = /^\[(.+)\]$/;
-
+const no_freeze = Symbol("NO_FREEZE");
 /**
  * Given a value, a minimum, and a maximum, returns true if value is
  * between the minimum and maximum, inclusive of both bounds. This
@@ -44,7 +43,6 @@ function bind(val, min, max) {
   if (min > max) { return Math.min(Math.max(val, max), min); }
   return Math.min(Math.max(val, min), max);
 }
-// TODO: Remove the following function. It isn't needed.
 /**
  * Converts an angle in degrees into an angle in radians.
  * @param {number} degree The angle in degrees.
@@ -53,7 +51,6 @@ function bind(val, min, max) {
 function degreeToRadian(degree) {
   return degree * (Math.PI / 180);
 }
-// TODO: Remove this also.
 /**
  * Given an angle in radians, this function normalizes the angle to the range
  * 0 to 2 PI and returns the normalized angle.
@@ -89,12 +86,20 @@ function makeID(length) {
 function deepFreeze(object) {
   // Retrieve the property names defined on object.
   const propNames = Object.getOwnPropertyNames(object);
+  // Check for a special "NO_FREEZE" symbol.
+  if (object[no_freeze] === true) {
+    return;
+  }
 
   // Freeze properties before freezing self.
   for (const name of propNames) {
     const value = object[name];
 
     if (value && typeof value === "object") {
+      // Check for a special "NO_FREEZE" symbol.
+      if (value[no_freeze] === true) {
+        return;
+      }
       deepFreeze(value);
     }
   }
@@ -219,9 +224,7 @@ function multiplySomething(factors) {
 function checkProperties(obj) {
   for (const key in obj) {
     const property = obj[key];
-    // TODO: THIS IS NOT RIGHT! We only have to see if the property
-    // is truthy, not if it is the literal value `true`.
-    if (!property === true) {
+    if (!property) {
       return false;
     }
   }
@@ -333,31 +336,43 @@ function getMapValues(map, outAs) {
   throw new TypeError("Invalid outAs parameter!");
 }
 /**
- * Parses a stringified array. Returns false if string cannot be parsed.
- * Trims whitespace and removes inner quotes.
- * @param {string} str The string to parse.
- * @returns {Array<string>|false}
+ * Removes a specific value from an array. Returns true if the value
+ * was removed, false otherwise.
+ * @param {Array<any>} array The array to remove the value from.
+ * @param {any} val The value to remove from the array.
+ * @returns {boolean}
  */
-function parseArray(str) {
-  if (typeof str !== "string") {
-    throw new TypeError(
-      `Attempting to parse a stringified array from ${typeof str}`
-    );
-  } else if (!str) {
-    return false;
-  } else if (!stringifiedArrayRegex.test(str)) {
+function removeFromArray(array, val) {
+  const index = array.indexOf(val);
+  if (index > -1) {
+    array.splice(index, 1);
+    return true;
+  }
+  return false;
+}
+/**
+ * Checks if a string is valid JSON. If it is, return it. If not,
+ * return false.
+ * @param {string} str The string to check.
+ * @returns {Object<string, any>|false}
+ */
+function isJson(str) {
+  try {
+    const obj = JSON.parse(str);
+
+    if (obj && typeof obj === "object") {
+      return obj;
+    }
+  } catch (err) {
     return false;
   }
-
-  return str.replace(stringifiedArrayRegex, "$1")
-    .split(",")
-    .map(val => val.trim().replace(/^["'`](.+)["'`]$/, "$1").trim());
 }
 
 /**
- * Export utility methods
+ * Export utility methods.
  */
 module.exports = exports = {
+  // Functions.
   inBound,
   bind,
   degreeToRadian,
@@ -371,5 +386,8 @@ module.exports = exports = {
   getNonCallableProps,
   mixUp,
   getMapValues,
-  parseArray
+  removeFromArray,
+  isJson,
+  // Symbols.
+  no_freeze
 };
