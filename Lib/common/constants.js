@@ -4,9 +4,6 @@
  */
 
 // Imports.
-const express = require("express");
-const path = require("path");
-
 const { deepFreeze } = require("./util");
 const Vector = require("../Game/Physics/Vector");
 
@@ -14,8 +11,8 @@ const Vector = require("../Game/Physics/Vector");
 // This is a little crammed right now.
 const Constants = {
   // World max and min.
-  WORLD_MIN: -4500,
-  WORLD_MAX: 4500,
+  WORLD_MIN: 0,
+  WORLD_MAX: 9000,
   // Declaration arrays.
   TROOPS: [
     "militia",
@@ -898,12 +895,12 @@ const Constants = {
   MAX_GAMES: 6,
   GAME_UPDATE_SPEED: 1000 / 25,
   START_POSITIONS_TEAM_MAP_1: {
-    British: new Vector(-3800, -3220),
-    French: new Vector(-2200, -2800),
-    Russian: new Vector(-1100, -1100),
-    Prussian: new Vector(3800, 3220),
-    American: new Vector(0, 0),
-    Italian: new Vector(2300, 1900)
+    British: new Vector(700, 1280),
+    French: new Vector(2300, 1700),
+    Russian: new Vector(3300, 3300),
+    Prussian: new Vector(8300, 7720),
+    American: new Vector(4500, 4500),
+    Italian: new Vector(6800, 6400)
   },
   TILE_SIZE: 100,
   MAP_1: "testing",
@@ -919,7 +916,7 @@ const Constants = {
   SOCKET_SECURITY_DATA: "security-data",
   SOCKET_PROCEED: "proceed",
   // Version.
-  VERSION: "0.4.1-DEV",
+  VERSION: "0.4.2-DEV",
   // UI things.
   BUTTON_COOLDOWN: 500,
   BUTTON_KEYS: [
@@ -1013,21 +1010,8 @@ const Constants = {
   },
   EXPRESS_STATIC_OPTS: {
     dotfiles: "allow",
-    etag: true,
-    extensions: ".js",
     index: false,
-    redirect: false,
-    /**
-     * @param {express.response} res Response.
-     * @param {string} filePath File path.
-     */
-    setHeaders: (res, filePath) => {
-      const contentType =
-        Constants.CONTENT_TYPES[path.extname(filePath)] ?
-          Constants.CONTENT_TYPES[path.extname(filePath)] :
-          "text/html";
-      res.set("Content-Type", contentType);
-    }
+    redirect: false
   },
   CONTENT_TYPES: {
     ".js": "text/javascript",
