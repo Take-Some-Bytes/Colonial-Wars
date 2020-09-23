@@ -327,9 +327,6 @@ async function createSocketAuthJWT(query, payload, req, res, next) {
   }
   await init.wsSessions.set(
     utk, {
-      meta: {
-        maxAge: 1000 * 60 * 5
-      },
       sessionData: {
         connected: false,
         joinedGame: false,
