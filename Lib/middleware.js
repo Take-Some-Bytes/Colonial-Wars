@@ -12,12 +12,13 @@ const cookieParser = require("cookie-parser");
 
 const config = require("../config");
 const init = require("./common/init");
-const debug = require("./common/debug");
 const Constants = require("./common/constants");
+const debug = require("./common/debug");
 const { sendError, jwtVerifyPromise } = require("./common/common");
 
 const loggers = init.winstonLoggers;
 const ServerLogger = loggers.get("Server-logger");
+const SecurityLogger = loggers.get("Security-logger");
 
 // JSDoc typedefs to make development easier.
 /**
@@ -74,7 +75,7 @@ function sysCheckpoint(implementedMethods) {
   // the `implementedMethods` array all uppercase strings.
   return (req, res, next) => {
     const reqUrlLength = req.url.length;
-    // TODO: Maybe we should not have this? The following code
+    // IDEA: Maybe we should not have this? The following code
     // tries to get the client's real IP, if the app is behind a
     // reverse proxy, which it should not be.
     const clientIP = req.ips.length < 1 ?
@@ -92,7 +93,8 @@ function sysCheckpoint(implementedMethods) {
           logLevel: "notice",
           loggerID: "Security-logger",
           logMessage:
-          `${clientIP} tried to get ${req.url} with a very long request URL.`
+          `${clientIP} tried to get a page on this server with a very ` +
+          `long request URL. URL that they tried to get:\r\n${req.url}`
         }
       })(req, res, next);
       return;
@@ -119,6 +121,7 @@ function requestCheckpoint() {
     // The following code dynamically checks the request url,
     // matches to a regex made from an object's keys, and checks
     // if the request method matches the allowed methods on that route.
+    let allowedMethods = [];
     for (
       const path of Object.getOwnPropertyNames(Constants.ALLOWED_METHODS_MAP)
     ) {
@@ -139,6 +142,7 @@ function requestCheckpoint() {
           })(req, res, next);
           return;
         }
+        allowedMethods = methods;
         break;
       }
     }
@@ -148,7 +152,7 @@ function requestCheckpoint() {
     if (req.method === "OPTIONS") {
       res
         .status(204)
-        .header("Allow", Constants.SEC_ALLOWED_METHODS)
+        .header("Allow", allowedMethods.join(", "))
         .end();
       return;
     }
@@ -172,26 +176,12 @@ function acceptCheckpoint(acceptOpts) {
   function checkAccept(req, res, opts) {
     // This dynamically gets the accept function that
     // is needed and calls it.
-    let acceptFunction = null;
-
-    // TODO: See if we could use a object instead.
-    switch (opts.whichAccept) {
-    case "type":
-      acceptFunction = req.accepts;
-      break;
-    case "lang":
-      acceptFunction = req.acceptsLanguages;
-      break;
-    case "charset":
-      acceptFunction = req.acceptsCharsets;
-      break;
-    case "encoding":
-      acceptFunction = req.acceptsEncodings;
-      break;
-    default:
-      acceptFunction = req.accepts;
-      break;
-    }
+    const acceptFunction = {
+      type: req.accepts,
+      lang: req.acceptsLanguages,
+      charset: req.acceptsCharsets,
+      encoding: req.acceptsEncodings
+    }[opts.whichAccept] || req.accepts;
 
     return acceptFunction.call(req, opts.acceptedTypes);
   }
@@ -263,16 +253,16 @@ function wrapCookieParser(secrets, cookie) {
 /**
  * Accept a new ``SocketIO.Socket`` socket.
  * @param {string|Array<string>} secrets The cookie secrets, if any.
- * @param {init.PendingClients} pendingClients Pending clients.
  * @returns {SocketIOHandler}
  */
-function acceptNewSocket(secrets, pendingClients) {
+function acceptNewSocket(secrets) {
   return async(socket, next) => {
     const req = wrapCookieParser(secrets, socket.request.headers.cookie);
     const cookies = req.signedCookies;
 
     // YOU MUST HAVE A socketIOAuth COOKIE, AND IT MUST BE A STRING!
     if (typeof cookies.socketIOAuth !== "string") {
+      debug("No Socket.IO authorization!");
       next(new Error("No Socket.IO authorization!"));
       return;
     }
@@ -294,34 +284,32 @@ function acceptNewSocket(secrets, pendingClients) {
       // TODO: See if this could be refactored.
       // Check the unique token, passphrase, and if the client's session exists.
       if (!decoded.utk || typeof decoded.utk !== "string") {
+        debug("Missing unique token!");
         next(new Error("Missing unique token!"));
         return;
       } else if (!config.securityOpts.passPhrases.includes(decoded.pssPhrs)) {
+        debug("Invalid passphrase!");
         next(new Error("Invalid passphrase!"));
-      } else if (!pendingClients.has(decoded.utk)) {
-        next(new Error("Your session does not exist."));
       } else {
-        // We have to check whether the client has joined a game to avoid
-        // overriding their `pendingClients` entry.
-        const joinedGame = pendingClients.get(
-          decoded.utk
-        ).joinedGame;
-        if (joinedGame) {
-          next();
+        const pending = await init.wsSessions.get(decoded.utk);
+        if (typeof pending === "boolean" && !pending) {
+          debug("Your session does not exist.");
+          next(new Error("Your session does not exist."));
           return;
         }
-        // Define the auth.
-        const auth = {
-          connected: true,
-          joinedGame: false,
-          playData: {},
-          validationData: {
-            utk: decoded.utk,
-            passPhrase: decoded.pssPhrs
-          }
-        };
-        pendingClients.set(decoded.utk, auth);
+        if (pending.sessionData.joinedGame) {
+          socket.auth = pending.sessionData;
+        }
+        const auth = Object.assign(
+          pending.sessionData, { connected: true }
+        );
+        init.wsSessions.set(decoded.utk, {
+          sessionData: auth
+        });
         socket.auth = auth;
+        socket.touchInterval = setInterval(() => {
+          init.wsSessions.touch(decoded.utk);
+        }, 1000 * 60 * 19);
         next();
       }
     } catch (err) {
@@ -331,7 +319,10 @@ function acceptNewSocket(secrets, pendingClients) {
         err instanceof jwt.JsonWebTokenError ||
         err instanceof jwt.TokenExpiredError
       ) {
-        debug(err);
+        SecurityLogger.notice(
+          `Socket ${socket.id} failed authentication. Error is: ` +
+          `${err.stack}`
+        );
         next(new Error("Unauthorized."));
       } else {
         ServerLogger.error(err.stack);
@@ -344,16 +335,16 @@ function acceptNewSocket(secrets, pendingClients) {
  * Checks if a `Socket.IO` socket exists in the pending clients
  * queue when a new connection to the `play` namespace is received.
  * @param {string|Array<string>} secrets The cookie secrets, if any.
- * @param {init.PendingClients} pendingClients Pending clients.
  * @returns {SocketIOHandler}
  */
-function checkSocket(secrets, pendingClients) {
+function checkSocket(secrets) {
   return async(socket, next) => {
     const req = wrapCookieParser(secrets, socket.request.headers.cookie);
     const cookies = req.signedCookies;
 
     // YOU ALSO STILL MUST HAVE A socketIOAuth COOKIE!
     if (typeof cookies.socketIOAuth !== "string") {
+      debug("No Socket.IO authorization!");
       next(new Error("No Socket.IO authorization!"));
       return;
     }
@@ -379,47 +370,54 @@ function checkSocket(secrets, pendingClients) {
         return;
       } else if (!config.securityOpts.passPhrases.includes(decoded.pssPhrs)) {
         next(new Error("Invalid passphrase!"));
-      } else if (!pendingClients.has(decoded.utk)) {
-        next(new Error("Your session does not exist."));
       } else {
-        // Here, we check the socketIOAuth's passPhrase against
-        // the passPhrase in the client's entry in the pendingClients Map.
-        const pending = pendingClients.get(decoded.utk);
+        const pending = await init.wsSessions.get(decoded.utk);
+        if (typeof pending === "boolean" && !pending) {
+          next(new Error("Your session does not exist."));
+          return;
+        }
         if (
-          pending.validationData.passPhrase !== decoded.pssPhrs ||
+          pending.sessionData.validationData.passPhrase !== decoded.pssPhrs ||
           !config.securityOpts.passPhrases.includes(decoded.pssPhrs)
         ) {
           next(new Error("Invalid auth!"));
+          return;
         } else if (
-          typeof pending.playData === "object" &&
-          Object.keys(pending.playData).length < 1
+          typeof pending.sessionData.playData === "object" &&
+          Object.keys(pending.sessionData.playData).length < 1
         ) {
           next(new Error("No play data!"));
+          return;
         }
         try {
           init.manager.addClientToGame(
-            pending.playData.gameID,
+            pending.sessionData.playData.gameID,
             socket,
-            pending.playData.clientName,
-            pending.playData.clientTeam
+            pending.sessionData.playData.clientName,
+            pending.sessionData.playData.clientTeam
           );
         } catch (err) {
           // TODO: See if we need to be less verbose with the error.
           next(new Error(err));
+          return;
         }
         // Emit the "proceed" event to get the client to proceed with
         // tasks.
-        const game = init.manager.getGame(pending.playData.gameID);
+        const game = init.manager.getGame(pending.sessionData.playData.gameID);
         socket.emit(Constants.SOCKET_PROCEED, JSON.stringify({
           playerData: {
-            gameID: pending.playData.gameID,
+            gameID: pending.sessionData.playData.gameID,
             gameMap: game.mapName
           },
           otherData: {
             status: "success"
           }
         }));
-        socket.gameID = pending.playData.gameID;
+        socket.gameID = pending.sessionData.playData.gameID;
+        socket.auth = pending.sessionData;
+        socket.touchInterval = setInterval(() => {
+          init.wsSessions.touch(decoded.utk);
+        }, 1000 * 60 * 19);
         next();
       }
     } catch (err) {
@@ -429,7 +427,10 @@ function checkSocket(secrets, pendingClients) {
         err instanceof jwt.JsonWebTokenError ||
         err instanceof jwt.TokenExpiredError
       ) {
-        debug(err);
+        SecurityLogger.notice(
+          `Socket ${socket.id} failed authentication. Error is: ` +
+          `${err.stack}`
+        );
         next(new Error("Unauthorized."));
       } else {
         ServerLogger.error(err.stack);
