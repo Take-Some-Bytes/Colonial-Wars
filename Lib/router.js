@@ -6,15 +6,14 @@
 // Dependencies and modules.
 const express = require("express");
 const path = require("path");
-const jwt = require("jsonwebtoken");
 
 const init = require("./common/init");
-const {
-  serveFile, handleOther, logCSPReport, sendError,
-  jwtVerifyPromise, createSocketAuthJWT
-} = require("./common/common");
+const common = require("./common/common");
 const { bind } = require("./common/util");
 const config = require("../config");
+const util = require("./common/util");
+// Keep debug here just in case.
+// const debug = require("./common/debug");
 
 const router = express.Router();
 
@@ -34,7 +33,7 @@ router.route("/")
       "Public/index.html"
     );
 
-    serveFile(req, res, next, filePath,
+    common.serveFile(req, res, next, filePath,
       "<h1>Page Not Found.</h1>\n" +
       "<h3>Somehow the home page isn't where it used to be</h3>"
     );
@@ -47,7 +46,7 @@ router.route("/play")
       "Public/play.html"
     );
 
-    serveFile(req, res, next, filePath,
+    common.serveFile(req, res, next, filePath,
       "<h1>Page Not Found.</h1>\n" +
       "<h3>Somehow the play page isn't where it used to be</h3>"
     );
@@ -60,7 +59,7 @@ router.route("/about")
       "Public/about.html"
     );
 
-    serveFile(req, res, next, filePath,
+    common.serveFile(req, res, next, filePath,
       "<h1>Page Not Found.</h1>\n" +
       "<h3>Somehow the about page isn't where it used to be</h3>"
     );
@@ -73,7 +72,7 @@ router.route("/version")
       "Public/version.html"
     );
 
-    serveFile(req, res, next, filePath,
+    common.serveFile(req, res, next, filePath,
       "<h1>Page Not Found.</h1>\n" +
       "<h3>Somehow the version page isn't where it used to be</h3>"
     );
@@ -86,7 +85,7 @@ router.route("/license")
       "Public/license.html"
     );
 
-    serveFile(req, res, next, filePath,
+    common.serveFile(req, res, next, filePath,
       "<h1>Page Not Found.</h1>\n" +
     "<h3>Somehow the license page isn't where it used to be</h3>"
     );
@@ -94,7 +93,7 @@ router.route("/license")
 // CSP report route.
 router.route("/CSP-report")
   .post((req, res, next) => {
-    logCSPReport(req, res, next);
+    common.logCSPReport(req, res, next);
   });
 
 // XHR route for requests made by client-side JavaScript.
@@ -115,7 +114,7 @@ router.route("/xhr")
 
     // YOU MUST HAVE A QUERY!
     if (Object.keys(query).length === 0 && query.constructor === Object) {
-      sendError({
+      common.sendError({
         httpOpts: {
           status: 400
         },
@@ -124,13 +123,13 @@ router.route("/xhr")
           logLevel: "notice",
           doLog: true,
           logMessage:
-            `Someone tried to get: ${req.url} without a query. 
-            Client IP: ${clientIP}.`
+            `Someone tried to get: ${req.url} without a query. ` +
+            `Client IP: ${clientIP}.`
         }
       })(req, res, next);
       return;
     } else if (typeof query.for !== "string") {
-      sendError({
+      common.sendError({
         httpOpts: {
           status: 400
         },
@@ -139,8 +138,8 @@ router.route("/xhr")
           logLevel: "notice",
           doLog: true,
           logMessage:
-            `Someone tried to get: ${req.url} without a for field in their 
-             query. Client IP: ${clientIP}.`
+            `Someone tried to get: ${req.url} without a for field in their ` +
+            `query. Client IP: ${clientIP}.`
         }
       })(req, res, next);
       return;
@@ -170,15 +169,13 @@ router.route("/xhr")
         };
       }
 
-      // TODO: Check if this should use `res.json();`.
-      const stringifiedData = JSON.stringify(dataToSend);
       res
         .status(200)
-        .send(stringifiedData);
+        .json(dataToSend);
       break;
     }
     case "license_text.html": {
-      serveFile(
+      common.serveFile(
         req, res, next,
         path.join(
           __dirname, "../",
@@ -191,7 +188,7 @@ router.route("/xhr")
       let socketIoAuth = "";
       // YOU MUST HAVE A PASSPHRASE!
       if (typeof query.passPhrase !== "string") {
-        sendError({
+        common.sendError({
           httpOpts: {
             status: 400
           },
@@ -203,15 +200,14 @@ router.route("/xhr")
       }
       if (typeof cookies.socketIOAuth !== "string" || !cookies.socketIOAuth) {
         // The client does not have a socketIOAuth cookie. Create one.
-        socketIoAuth = await createSocketAuthJWT(query, req, res, next);
+        socketIoAuth =
+          await common.createSocketAuthJWT(query, "default", req, res, next);
+        // The above function will return false if a response has already
+        // been sent.
         if (!socketIoAuth) { return; }
       } else {
-        // The client does have a socketIOAuth cookie. Verify it.
         try {
-          // BUG: This is NOT right. We are not supposed to assign
-          // the decoded socketIOAuth payload to the socketIoAuth
-          // variable. It will accidentally be set.
-          socketIoAuth = await jwtVerifyPromise(
+          const decoded = await common.validateSocketAuthJWT(
             cookies.socketIOAuth, init.jwtSecret,
             {
               issuer: config.serverConfig.appName,
@@ -221,31 +217,81 @@ router.route("/xhr")
               ignoreNotBefore: true
             }
           );
-        } catch (err) {
-          if (
-            err instanceof jwt.NotBeforeError ||
-            err instanceof jwt.JsonWebTokenError ||
-            err instanceof jwt.TokenExpiredError
-          ) {
-            // TODO: See if this is what we want to do.
-            socketIoAuth = await createSocketAuthJWT(query, req, res, next);
-            if (!socketIoAuth) { return; }
-          } else {
-            sendError({
+          const realExpiry = new Date(decoded.exp * 1000);
+          const sess = await init.wsSessions.get(decoded.utk);
+          // If the session does not exist then stop right here.
+          if (!sess) {
+            common.sendError({
+              httpOpts: {
+                status: 401
+              },
               logOpts: {
                 doLog: true,
-                loggerID: "Server-logger",
-                logLevel: "error",
-                logMessage: err.stack
+                loggerID: "Security-logger",
+                logLevel: "notice",
+                logMessage:
+                  `${clientIP} tried to get a new JWT with an expired ` +
+                  "JWT and no existing session."
               }
             })(req, res, next);
             return;
           }
+          if (Date.now() - realExpiry <= 1000 * 60 * 5) {
+            socketIoAuth =
+              await common.createSocketAuthJWT(
+                query, {
+                  utk: decoded.utk,
+                  pssPhrs: sess.sessionData.validationData.passPhrase
+                }, req, res, next
+              );
+            // The above function will return false if a response has already
+            // been sent.
+            if (!socketIoAuth) { return; }
+          }
+        } catch (err) {
+          if (err instanceof common.ValidationError) {
+            const isJson = util.isJson(err.message);
+            if (isJson && isJson.name === "TokenExpiredError") {
+              // Unsafe decoding, but whatever.
+              const unsafeDecoded = await common.jwtDecodePromise(
+                cookies.socketIOAuth
+              );
+              // If the session does not exist then stop right here.
+              const sess = await init.wsSessions.get(
+                unsafeDecoded.utk
+              );
+              if (!sess) {
+                common.sendError({
+                  httpOpts: {
+                    status: 401
+                  },
+                  logOpts: {
+                    doLog: true,
+                    loggerID: "Security-logger",
+                    logLevel: "notice",
+                    logMessage:
+                      `${clientIP} tried to get a new JWT with an expired ` +
+                      "JWT and no existing session."
+                  }
+                })(req, res, next);
+                return;
+              }
+              // Create a new JWT for this client because it expired.
+              socketIoAuth =
+                await common.createSocketAuthJWT(
+                  query, {
+                    utk: unsafeDecoded.utk,
+                    pssPhrs: sess.sessionData.validationData.passPhrase
+                  }, req, res, next
+                );
+              // The above function will return false if a response has already
+              // been sent.
+              if (!socketIoAuth) { return; }
+            }
+          }
         }
       }
-      // TODO: See if we should check the type of the `socketIoAuth` variable.
-      // By checking it, we could avoid setting a non-intended value.
-      if (socketIoAuth) {
+      if (socketIoAuth && typeof socketIoAuth === "string") {
         res.cookie(
           "socketIOAuth", socketIoAuth,
           {
@@ -256,15 +302,16 @@ router.route("/xhr")
           }
         );
       }
+      // TODO: See if this should send HTTP 204 No Content.
       res
         .status(200)
-        .send("OK");
+        .end("OK");
       break;
     }
     case "passPhrases": {
       // Not sure why this won't be an array, but it doesn't hurt to check.
       if (!(config.securityOpts.passPhrases instanceof Array)) {
-        sendError({
+        common.sendError({
           logOpts: {
             doLog: true,
             loggerID: "Server-logger",
@@ -283,7 +330,7 @@ router.route("/xhr")
         )];
       // If the pass phrase is not a string, then... that's not good.
       if (typeof passPhrase !== "string") {
-        sendError({
+        common.sendError({
           logOpts: {
             doLog: true,
             loggerID: "Server-logger",
@@ -294,17 +341,16 @@ router.route("/xhr")
         })(req, res, next);
         return;
       }
-      // TODO: Check if this should use `res.json();`.
       res
         .status(200)
-        .send(JSON.stringify({
+        .json({
           passPhrase
-        }));
+        });
       break;
     }
     default:
       // By default, we'll send an error.
-      sendError({
+      common.sendError({
         httpOpts: {
           status: 400
         },
@@ -313,8 +359,8 @@ router.route("/xhr")
           logLevel: "notice",
           doLog: true,
           logMessage:
-            `Someone tried to get: ${req.url} with an unrecognized for field.
-            Client IP: ${clientIP}.`
+            `Someone tried to get: ${req.url} with an unrecognized for field.` +
+            ` Client IP: ${clientIP}.`
         }
       })(req, res, next);
     }
@@ -323,7 +369,7 @@ router.route("/xhr")
 // Handling all other routes.
 router.route("*")
   .get((req, res, next) => {
-    handleOther(req, res, next);
+    common.handleOther(req, res, next);
   });
 /**
  * Module exports.
