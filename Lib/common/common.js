@@ -14,6 +14,7 @@ const init = require("./init");
 // Keep the debug require here just so that if we need it, we'll have it.
 // const debug = require("./debug");
 const config = require("../../config");
+// const util = require("util");
 const loggers = init.winstonLoggers;
 const SecurityLogger = loggers.get("Security-logger");
 
@@ -33,7 +34,32 @@ const SecurityLogger = loggers.get("Security-logger");
  * @prop {string|Buffer} [messageToSend] The error message to send. Default is
  * the cached error page from ``init.js``.
  */
+/**
+ * @typedef {"EINVALID"|"EMISSING"|"ENOEXIST"|"ENOTAUTH"|"EFAILED"} ErrorCodes
+ */
+/**
+ * @typedef {import("../middleware").SocketIOAuthPayload} SocketIOAuthPayload
+ */
+/**
+ * ValidationError class.
+ * @extends Error
+ */
+class ValidationError extends Error {
+  /**
+   * Constructor for a ValidationError class.
+   * @class
+   * @param {string} msg The error message.
+   * @param {ErrorCodes} typeCode The error code.
+   * @param {string} toFix A string describing how to fix the error. This
+   * should ***not*** be too verbose.
+   */
+  constructor(msg, typeCode, toFix) {
+    super(msg);
 
+    this.typeCode = typeCode;
+    this.toFix = toFix;
+  }
+}
 /**
  * Sends an error to the client.
  * @param {SendErrorOpts} opts Options.
@@ -194,15 +220,6 @@ function logCSPReport(req, res, next) {
       SecurityLogger.warning(JSON.stringify(req.body, null, 3));
       return;
     }
-    // TODO: Check if the double `sendError()` call is needed.
-    sendError({
-      httpOpts: {
-        status: 400
-      },
-      logOpts: {
-        doLog: false
-      }
-    })(req, res, next);
   }
   sendError({
     httpOpts: {
@@ -237,7 +254,7 @@ function jwtSignPromise(payload, secret, options) {
  * @param {string} token The payload.
  * @param {jwt.Secret} secret The secret.
  * @param {jwt.VerifyOptions} options Options.
- * @returns {Promise<object>}
+ * @returns {Promise<Object<string, any>>}
  */
 function jwtVerifyPromise(token, secret, options) {
   return new Promise((resolve, reject) => {
@@ -250,24 +267,48 @@ function jwtVerifyPromise(token, secret, options) {
   });
 }
 /**
+ * `jwt.decode` promisified.
+ * @param {string} token The payload.
+ * @param {jwt.DecodeOptions} options Options.
+ * @returns {Promise<Object<string, any>>}
+ */
+function jwtDecodePromise(token, options) {
+  return new Promise((resolve, reject) => {
+    try {
+      const decoded = jwt.decode(token, options);
+      resolve(decoded);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+/**
  * Creates a socketIOAuth JWT, and sets the client in the
  * pendingClients map.
  * @param {import("qs").ParsedQs} query The query.
+ * @param {"default"|Object<string, any>} payload The payload, if needed.
+ * You could specify "default", which will use the default payload.
  * @param {express.request} req Request.
  * @param {express.response} res Response.
  * @param {express.NextFunction} next Next function.
  * @returns {Promise<string|false>}
  */
-async function createSocketAuthJWT(query, req, res, next) {
+async function createSocketAuthJWT(query, payload, req, res, next) {
   // Generate the required parameters for the signing of the JWT.
   const utk = crypto.randomBytes(16).toString("hex");
-  const jwtConfig = {
-    pssPhrs: query.passPhrase,
-    utk: utk,
-    sub: config.securityOpts.validSubjectsMap.sockAuthCW,
-    iss: config.serverConfig.appName,
-    aud: config.serverConfig.appName
-  };
+  const jwtConfig = payload === "default" ?
+    {
+      pssPhrs: query.passPhrase,
+      utk: utk,
+      sub: config.securityOpts.validSubjectsMap.sockAuthCW,
+      iss: config.serverConfig.appName,
+      aud: config.serverConfig.appName
+    } :
+    Object.assign(payload, {
+      sub: config.securityOpts.validSubjectsMap.sockAuthCW,
+      iss: config.serverConfig.appName,
+      aud: config.serverConfig.appName
+    });
   let socketIoAuth = "";
   try {
     socketIoAuth = await jwtSignPromise(
@@ -284,30 +325,77 @@ async function createSocketAuthJWT(query, req, res, next) {
     })(req, res, next);
     return false;
   }
-  // Add the client to our pendingClients list.
-  init.pendingClients.set(
+  await init.wsSessions.set(
     utk, {
-      connected: false,
-      joinedGame: false,
-      playData: {},
-      validationData: {
-        utk: utk,
-        passPhrase: query.passPhrase
+      meta: {
+        maxAge: 1000 * 60 * 5
+      },
+      sessionData: {
+        connected: false,
+        joinedGame: false,
+        playData: {},
+        validationData: {
+          utk: utk,
+          passPhrase: query.passPhrase
+        }
       }
     }
   );
   return socketIoAuth;
+}
+/**
+ * Helper function to validate a JWT.
+ * @param {string} token The JWT to validate.
+ * @param  {...any} jwtConf Configurations to pass to the `jwt.verify` function.
+ * @returns {Promise<SocketIOAuthPayload>}
+ */
+async function validateSocketAuthJWT(token, ...jwtConf) {
+  /**
+   * @type {SocketIOAuthPayload}
+   */
+  let decoded = {};
+  // First, verify the JWT.
+  try {
+    decoded = await jwtVerifyPromise(token, ...jwtConf);
+  } catch (err) {
+    throw new ValidationError(
+      JSON.stringify(err), "EFAILED",
+      "Go back to the home page, don't mess with your cookies, " +
+      "and don't mess with your JWT."
+    );
+  }
+
+  // Then, check the unique token, the passphrase, and the client session.
+  if (!decoded.utk || typeof decoded.utk !== "string") {
+    throw new ValidationError(
+      "Missing or invalid unique token!", "EMISSING",
+      "Don't mess with your JWT, and don't try to forge one!"
+    );
+  } else if (!config.securityOpts.passPhrases.includes(decoded.pssPhrs)) {
+    throw new ValidationError(
+      "Invalid passphrase!", "EINVALID",
+      "Don't mess with your JWT, and don't try to forge one!"
+    );
+  }
+
+  // If all checks have been passed, return the decoded JWT.
+  return decoded;
 }
 
 /**
  * Module exports.
  */
 module.exports = exports = {
+  // Functions.
   serveFile,
   handleOther,
   logCSPReport,
   sendError,
   jwtSignPromise,
   jwtVerifyPromise,
-  createSocketAuthJWT
+  jwtDecodePromise,
+  createSocketAuthJWT,
+  validateSocketAuthJWT,
+  // Classes.
+  ValidationError
 };
