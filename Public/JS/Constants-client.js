@@ -8,10 +8,10 @@ import { deepSeal } from "./common/functions.js";
 // IDEA: Maybe think about using a JSON file to store these constants?
 const Constants = {
   // World max and min.
-  WORLD_MIN: -4500,
-  WORLD_MAX: 4500,
+  WORLD_MIN: 0,
+  WORLD_MAX: 9000,
   // Version.
-  VERSION: "0.4.1-DEV",
+  VERSION: "0.4.2-DEV",
   // Drawing constants.
   DRAWING_TROOP_BASE_PATH: "/imgs/troops",
   DRAWING_BUILDING_BASE_PATH: "/imgs/buildings",
