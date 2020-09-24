@@ -174,13 +174,15 @@ export function parseCookies(cookies) {
  */
 export async function init(cb) {
   // Yes, I know this gives me a warning with ESLint... but I
-  // don't want to change the code right now. Maybe in v0.4.2
+  // don't want to change the code right now. Maybe in v0.4.2 or 0.4.3.
   const data = {
     name: $("#name-input").val(),
     game: $("input[name='game']:checked", "#game-select").val(),
     team: $("select#teams option:checked").val()
   };
   let err = null;
+  console.log(data.name);
+  console.log(typeof data.name);
 
   if (!data.name || data.name.length > 22) {
     err = new Error("Name is too long or blank!");
