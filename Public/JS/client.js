@@ -19,7 +19,7 @@ if (pathname === "/") {
   $(document).ready(async() => {
     // Get Socket.IO auth.
     try {
-      const passPhrase = JSON.parse(await pollServer({
+      const passPhrase = (await pollServer({
         url: "/xhr",
         headers: {},
         data: {
@@ -58,12 +58,11 @@ if (pathname === "/") {
     const params = {
       "for": "games_available"
     };
-    $.get("/xhr", params, data2 => {
-      const parsedData = JSON.parse(data2);
-      const dataKeys = Object.getOwnPropertyNames(parsedData);
+    $.get("/xhr", params, data => {
+      const dataKeys = Object.getOwnPropertyNames(data);
       const arrayLength = dataKeys.length;
       for (let i = 0; i < arrayLength; i++) {
-        const game = parsedData[dataKeys[i]];
+        const game = data[dataKeys[i]];
         const htmlToAdd =
             `<label for="game-opt-${game.id}">Game ${i + 1}
             <img src="imgs/Game_map_previews/${game.map}.png">
@@ -180,15 +179,37 @@ if (pathname === "/") {
       });
     });
   });
+
+  setInterval(async() => {
+    try {
+      const passPhrase = (await pollServer({
+        url: "/xhr",
+        headers: {},
+        data: {
+          "for": "passPhrases"
+        }
+      })).passPhrase;
+      console.log(passPhrase);
+      await pollServer({
+        url: "/xhr",
+        headers: {},
+        data: {
+          "for": "socketIOAuth",
+          passPhrase: passPhrase
+        }
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }, 1000 * 60 * 60 * 2 - 1000 * 60 * 20);
 } else if (pathname === "/license") {
-  $(document).ready(() => {
-    // TODO: Also make this use `pollServer`.
-    const params = {
-      "for": "license_text.html"
-    };
-    $.get("/xhr", params, data => {
-      const parsedData = JSON.parse(data);
-      document.body.innerHTML = parsedData.html;
+  $(document).ready(async() => {
+    document.body.innerHTML = await pollServer({
+      url: "/xhr",
+      headers: {},
+      data: {
+        "for": "license_text.html"
+      }
     });
   });
 }
