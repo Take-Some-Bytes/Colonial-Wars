@@ -7,11 +7,7 @@ import { parseCookies } from "./common/functions.js";
 
 // The error statistics are stored in JavaScript accessible cookies.
 const cookies = parseCookies(document.cookie);
-// TODO: Stop logging cookies and nonsense.
-console.log(cookies);
 const statusCode = parseFloat(cookies.statusCode);
-const reason = cookies.reason;
-console.log(statusCode);
 
 if (typeof statusCode !== "number" || isNaN(statusCode)) {
   console.error("No status code!");
@@ -42,16 +38,6 @@ if (typeof statusCode !== "number" || isNaN(statusCode)) {
   //     console.error(message);
   //   }
   // };
-  // TODO: Remove this `if` statement. Our server doesn't send HTTP 401
-  // anymore.
-  if (statusCode === 401) {
-    if (typeof reason !== "string") {
-      console.error("No reason for authentication failure!");
-    } else {
-      message = `Authentication failed. Reason: ${reason}.`;
-    }
-  } else {
-    message = `Error: status is ${statusCode}.`;
-  }
+  message = `Error: status is ${statusCode}.`;
   document.body.innerHTML = message;
 }
