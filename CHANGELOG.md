@@ -14,6 +14,17 @@ feel free to open an [issue](https://github.com/Take-Some-Bytes/Colonial-Wars/is
 one.
 
 Pre-production releases are not tagged on github.
+## [v0.4.2] - 2020-09-24
+### Added:
+- Added ``/Lib/store.js`` for the session store class.
+### Changed:
+- Bumped all dependencies up to the latest versions.
+- Used a proper session storage class instead of just a JavaScript
+[``Map``](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) to
+store "pending client data", which was, in fact, session data.
+- Added more helper functions to help out the JWT ``Socket.IO`` authentication.
+### Fixed:
+- Fixed JWT ``Socket.IO`` authentication. This is now stable.
 ## [v0.4.1] - 2020-09-08
 ### Added:
 - Added comments in all the JavaScript files to describe and clarify code, and also
@@ -275,4 +286,5 @@ GPL v3.0 license file in the ``Docs`` directory (Note that this changelog was wr
 [v0.3.7]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/cce20d72524caf3df247d98e54f9047510115577
 [v0.3.8]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/fc615a74a5228a266e44f7ecb46ffdeead983cad
 [v0.4.0]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/0c1ef2ba053425cb204fffa1b718c88448f81c6b
-[v0.4.1]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/dev
+[v0.4.1]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/a733f2b33f81cd43bed2c3503b7ff384275adb50
+[v0.4.2]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/dev
