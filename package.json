@@ -1,6 +1,6 @@
 {
    "name": "colonial-wars",
-   "version": "0.4.2",
+   "version": "0.4.3",
    "description": "Colonial Wars is a multiplayer, online game, set in the colonial era.",
    "main": "server-standalone.js",
    "scripts": {
@@ -23,8 +23,8 @@
       "email": "horton0712@gmail.com"
    },
    "devDependencies": {
-      "eslint": "^7.9.0",
-      "eslint-plugin-jsdoc": "^30.5.1",
+      "eslint": "^7.10.0",
+      "eslint-plugin-jsdoc": "^30.6.2",
       "eslint-plugin-node": "^11.1.0"
    },
    "dependencies": {
