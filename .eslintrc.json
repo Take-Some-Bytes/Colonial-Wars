@@ -31,6 +31,9 @@
         "eslint:recommended",
         "plugin:jsdoc/recommended"
       ],
+      "globals": {
+        "io": "readonly"
+      },
       "rules": {
         "no-unused-vars": "warn",
         
