@@ -3,7 +3,7 @@
  * For development environments.
  * @author Horton Cheng <horton0712@gmail.com>
  */
-// TODO: Make `debug` output less verbose.
+
 // Import debugger and configurations.
 const config = require("./config");
 const debug = require("./Lib/common/debug");
@@ -164,14 +164,14 @@ playIO.on("connection", socket => {
   const gameID = socket.gameID;
   const socketAuth = socket.auth;
   connections.push(socket);
-  debug("Connection@/play!", socket.id);
+  debug("Connection /play!", socket.id);
   socket.on(Constants.SOCKET_PLAYER_ACTION, data => {
     const parsedData = JSON.parse(data);
     const game = manager.getGame(gameID);
     game.updatePlayerOnInput(socket.id, parsedData.playerData.actionData);
   });
   socket.on(Constants.SOCKET_DISCONNECT, () => {
-    debug("Client Disconnected@/play!", socket.id);
+    debug("Client Disconnected /play!", socket.id);
     manager.removeClientFromGame(gameID, socket);
     init.wsSessions.get(socketAuth.validationData.utk)
       .then(async session => {
