@@ -42,13 +42,13 @@ export default class Entity {
    * @returns {boolean}
    */
   inWorld() {
-    // TODO: Clean up this expression.
-    return Util.inBound(
-      this.position.x, Constants.WORLD_MIN, Constants.WORLD_MAX
-    ) &&
+    return (
       Util.inBound(
+        this.position.x, Constants.WORLD_MIN, Constants.WORLD_MAX
+      ) && Util.inBound(
         this.position.y, Constants.WORLD_MIN, Constants.WORLD_MAX
-      );
+      )
+    );
   }
   /**
    * Binds this entity's position within the world if it is outside of the
