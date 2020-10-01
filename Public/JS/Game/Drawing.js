@@ -58,226 +58,224 @@ export default class Drawing {
       }
     }
   }
-  // TODO: Comment out the `drawBuilding`, `drawButton`, `drawUIBackground`,
-  // `drawIcon`, `drawStats`, and `drawStat` functions. We don't need them.
-  /**
-   * Draws a building to the game world.
-   * @param {Building} building The building to draw.
-   */
-  drawBuilding(building) {
-    this.context.save();
-    const canvasPosition = this.viewport.toCanvas(building.position);
-    this.context.translate(canvasPosition.x, canvasPosition.y);
+  // /**
+  //  * Draws a building to the game world.
+  //  * @param {Building} building The building to draw.
+  //  */
+  // drawBuilding(building) {
+  //   this.context.save();
+  //   const canvasPosition = this.viewport.toCanvas(building.position);
+  //   this.context.translate(canvasPosition.x, canvasPosition.y);
 
-    const framePosition = [
-      Constants.DRAWING_TEAM_COLUMNS[building.team],
-      0
-    ];
-    this.drawCenteredImage(
-      this.images[building.type],
-      true,
-      {
-        framePosition: framePosition,
-        size: {
-          width: building.hitbox,
-          height: building.hitbox
-        }
-      }
-    );
+  //   const framePosition = [
+  //     Constants.DRAWING_TEAM_COLUMNS[building.team],
+  //     0
+  //   ];
+  //   this.drawCenteredImage(
+  //     this.images[building.type],
+  //     true,
+  //     {
+  //       framePosition: framePosition,
+  //       size: {
+  //         width: building.hitbox,
+  //         height: building.hitbox
+  //       }
+  //     }
+  //   );
 
-    this.context.restore();
-  }
-  /**
-   * Draws a button to the player's viewport.
-   * @param {Button} button The button to draw.
-   */
-  drawButton(button) {
-    const canvasPosition = button.position;
-    const buttonRow = Constants.DRAWING_BUTTON_ROWS[button.image];
-    let framePosition = [];
+  //   this.context.restore();
+  // }
+  // /**
+  //  * Draws a button to the player's viewport.
+  //  * @param {Button} button The button to draw.
+  //  */
+  // drawButton(button) {
+  //   const canvasPosition = button.position;
+  //   const buttonRow = Constants.DRAWING_BUTTON_ROWS[button.image];
+  //   let framePosition = [];
 
-    if (!button.hovered && !button.clicked) {
-      framePosition = [0, buttonRow];
+  //   if (!button.hovered && !button.clicked) {
+  //     framePosition = [0, buttonRow];
 
-      this.drawImageSection(
-        this.images.all_buttons,
-        framePosition,
-        {
-          width: button.width,
-          height: button.height
-        },
-        {
-          width: button.width,
-          height: button.height
-        },
-        canvasPosition
-      );
-    } else if (button.hovered) {
-      framePosition = [1, buttonRow];
+  //     this.drawImageSection(
+  //       this.images.all_buttons,
+  //       framePosition,
+  //       {
+  //         width: button.width,
+  //         height: button.height
+  //       },
+  //       {
+  //         width: button.width,
+  //         height: button.height
+  //       },
+  //       canvasPosition
+  //     );
+  //   } else if (button.hovered) {
+  //     framePosition = [1, buttonRow];
 
-      this.drawImageSection(
-        this.images.all_buttons,
-        framePosition,
-        {
-          width: button.width,
-          height: button.height
-        },
-        {
-          width: button.width,
-          height: button.height
-        },
-        canvasPosition
-      );
-    } else if (button.clicked) {
-      framePosition = [1, buttonRow];
+  //     this.drawImageSection(
+  //       this.images.all_buttons,
+  //       framePosition,
+  //       {
+  //         width: button.width,
+  //         height: button.height
+  //       },
+  //       {
+  //         width: button.width,
+  //         height: button.height
+  //       },
+  //       canvasPosition
+  //     );
+  //   } else if (button.clicked) {
+  //     framePosition = [1, buttonRow];
 
-      this.drawImageSection(
-        this.images.all_buttons,
-        framePosition,
-        {
-          width: button.width,
-          height: button.height
-        },
-        {
-          width: button.width,
-          height: button.height
-        },
-        canvasPosition
-      );
-    }
-  }
-  /**
-   * Draws a section of the UI background.
-   * @param {UIElement} bGround The section of the UI background that
-   * you want to draw.
-   */
-  drawUIBackground(bGround) {
-    this.context.drawImage(
-      this.images[bGround.image],
-      bGround.position.x, bGround.position.y,
-      bGround.width, bGround.height
-    );
-  }
-  /**
-   * Draws an icon to the game world.
-   * @param {Icon} icon The icon to draw.
-   */
-  drawIcon(icon) {
-    const position = icon.position;
-    const framePosition = Constants.DRAWING_ICON_POSITIONS[icon.image];
+  //     this.drawImageSection(
+  //       this.images.all_buttons,
+  //       framePosition,
+  //       {
+  //         width: button.width,
+  //         height: button.height
+  //       },
+  //       {
+  //         width: button.width,
+  //         height: button.height
+  //       },
+  //       canvasPosition
+  //     );
+  //   }
+  // }
+  // /**
+  //  * Draws a section of the UI background.
+  //  * @param {UIElement} bGround The section of the UI background that
+  //  * you want to draw.
+  //  */
+  // drawUIBackground(bGround) {
+  //   this.context.drawImage(
+  //     this.images[bGround.image],
+  //     bGround.position.x, bGround.position.y,
+  //     bGround.width, bGround.height
+  //   );
+  // }
+  // /**
+  //  * Draws an icon to the game world.
+  //  * @param {Icon} icon The icon to draw.
+  //  */
+  // drawIcon(icon) {
+  //   const position = icon.position;
+  //   const framePosition = Constants.DRAWING_ICON_POSITIONS[icon.image];
 
-    this.drawImageSection(
-      this.images.all_icons,
-      framePosition,
-      {
-        width: icon.width,
-        height: icon.height
-      },
-      {
-        width: 50,
-        height: 50
-      },
-      position
-    );
-  }
-  /**
-   * Draws the stats on to the canvas.
-   * @param {{
-   * wood: number,
-   * stone: number,
-   * food: number,
-   * coins: number,
-   * ammo: number,
-   * peopleMax: number,
-   * peopleUsed: number
-   * }} stats The stats to draw.
-   */
-  drawStats(stats) {
-    if (stats) {
-      const statNames = Object.getOwnPropertyNames(stats);
-      const statLength = statNames.length - 2;
+  //   this.drawImageSection(
+  //     this.images.all_icons,
+  //     framePosition,
+  //     {
+  //       width: icon.width,
+  //       height: icon.height
+  //     },
+  //     {
+  //       width: 50,
+  //       height: 50
+  //     },
+  //     position
+  //   );
+  // }
+  // /**
+  //  * Draws the stats on to the canvas.
+  //  * @param {{
+  //  * wood: number,
+  //  * stone: number,
+  //  * food: number,
+  //  * coins: number,
+  //  * ammo: number,
+  //  * peopleMax: number,
+  //  * peopleUsed: number
+  //  * }} stats The stats to draw.
+  //  */
+  // drawStats(stats) {
+  //   if (stats) {
+  //     const statNames = Object.getOwnPropertyNames(stats);
+  //     const statLength = statNames.length - 2;
 
-      const y = 45;
-      let x = 735;
-      this.context.font = "20px system-ui";
+  //     const y = 45;
+  //     let x = 735;
+  //     this.context.font = "20px system-ui";
 
-      for (let i = 0; i < statLength; i++) {
-        this.context.fillText(
-          stats[statNames[i]],
-          x, y
-        );
+  //     for (let i = 0; i < statLength; i++) {
+  //       this.context.fillText(
+  //         stats[statNames[i]],
+  //         x, y
+  //       );
 
-        x += 110;
-      }
+  //       x += 110;
+  //     }
 
-      this.context.fillText(
-        `${stats.peopleUsed} /  ${stats.peopleUsed}`,
-        x, y
-      );
-    }
-  }
-  /**
-   * Draws a stat to the canvas.
-   * @param {Icon} icon The icon to draw.
-   */
-  drawStat(icon) {
-    const iconPosition = icon.position;
-    const framePosition = Constants.DRAWING_ICON_POSITIONS[icon.image];
-    const textPosition =
-      Vector.fromObject(icon.position)
-        .add(
-          Vector.fromObject(icon.textOffset)
-        );
-    const textPosition2 = textPosition
-      .copy()
-      .sub(
-        Vector.fromObject(icon.textOffset2)
-      );
+  //     this.context.fillText(
+  //       `${stats.peopleUsed} /  ${stats.peopleUsed}`,
+  //       x, y
+  //     );
+  //   }
+  // }
+  // /**
+  //  * Draws a stat to the canvas.
+  //  * @param {Icon} icon The icon to draw.
+  //  */
+  // drawStat(icon) {
+  //   const iconPosition = icon.position;
+  //   const framePosition = Constants.DRAWING_ICON_POSITIONS[icon.image];
+  //   const textPosition =
+  //     Vector.fromObject(icon.position)
+  //       .add(
+  //         Vector.fromObject(icon.textOffset)
+  //       );
+  //   const textPosition2 = textPosition
+  //     .copy()
+  //     .sub(
+  //       Vector.fromObject(icon.textOffset2)
+  //     );
 
-    this.context.font = "20px system-ui";
-    this.context.fillStyle = "black";
+  //   this.context.font = "20px system-ui";
+  //   this.context.fillStyle = "black";
 
-    this.drawImageSection(
-      this.images.all_icons,
-      framePosition,
-      {
-        width: icon.width,
-        height: icon.height
-      },
-      {
-        width: 50,
-        height: 50
-      },
-      iconPosition
-    );
-    this.context.fillText(icon.value, textPosition.x, textPosition.y);
+  //   this.drawImageSection(
+  //     this.images.all_icons,
+  //     framePosition,
+  //     {
+  //       width: icon.width,
+  //       height: icon.height
+  //     },
+  //     {
+  //       width: 50,
+  //       height: 50
+  //     },
+  //     iconPosition
+  //   );
+  //   this.context.fillText(icon.value, textPosition.x, textPosition.y);
 
 
-    if (icon.image === "people") {
-      return;
-    }
+  //   if (icon.image === "people") {
+  //     return;
+  //   }
 
-    this.context.font = "13px system-ui";
+  //   this.context.font = "13px system-ui";
 
-    if (icon.valueIncrease < 0) {
-      this.context.fillStyle = "red";
-      this.context.fillText(
-        `-${icon.valueIncrease}`,
-        textPosition2.x, textPosition2.y
-      );
-    } else if (icon.valueIncrease > 0) {
-      this.context.fillStyle = "green";
-      this.context.fillText(
-        `+${icon.valueIncrease}`,
-        textPosition2.x, textPosition2.y
-      );
-    } else {
-      this.context.fillText(
-        `+${icon.valueIncrease}`,
-        textPosition2.x, textPosition2.y
-      );
-    }
-  }
+  //   if (icon.valueIncrease < 0) {
+  //     this.context.fillStyle = "red";
+  //     this.context.fillText(
+  //       `-${icon.valueIncrease}`,
+  //       textPosition2.x, textPosition2.y
+  //     );
+  //   } else if (icon.valueIncrease > 0) {
+  //     this.context.fillStyle = "green";
+  //     this.context.fillText(
+  //       `+${icon.valueIncrease}`,
+  //       textPosition2.x, textPosition2.y
+  //     );
+  //   } else {
+  //     this.context.fillText(
+  //       `+${icon.valueIncrease}`,
+  //       textPosition2.x, textPosition2.y
+  //     );
+  //   }
+  // }
   /**
    * Draws a centered image.
    * @param {Image} image The image to draw.
