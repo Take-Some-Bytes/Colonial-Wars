@@ -13,8 +13,6 @@ const {
   degreeToRadian, bind, multiplySomething, checkProperties
 } = require("../common/util");
 const debug = require("../common/debug");
-const { makeUI } = require("../common/gameCommon");
-const UIElement = require("./UI/UIElement");
 
 // TODO: Remove the UI management nonsense in this class.
 /**
@@ -37,13 +35,6 @@ class Player {
 
     this.troops = [];
     this.buildings = [];
-    // this.buttons = [];
-    // this.icons = [];
-    // TODO: Move UI management to the client side.
-    /**
-     * @type {Map<string, UIElement>}
-     */
-    this.ui = new Map();
 
     this.resources = {
       wood: 0,
@@ -70,38 +61,6 @@ class Player {
     this.deltaTime = 0;
     this.pastBuildings = null;
     this.pastTroops = null;
-  }
-  // TODO: Remove the following function. We won't be needing it
-  // once we move UI management to the client side.
-  /**
-   * Adds the UI elements this player is going to interact with.
-   */
-  addUIElements() {
-    debug("Making UI elements...");
-    // Declarations.
-    const uiBGs = Constants.UI_BACKGROUND_KEYS;
-    for (const bGround of uiBGs) {
-      const baseStats = Constants.UI_BASE_STATS[bGround];
-
-      const elemChildren = makeUI(baseStats.children_type, {
-        playerStats: {
-          resources: this.resources,
-          resourceRate: this.resourceRate,
-          population: this.population
-        }
-      });
-      const elem = new UIElement({
-        width: baseStats.size.width,
-        height: baseStats.size.height,
-        image: bGround,
-        position: baseStats.position,
-        clickable: false,
-        value: null,
-        children: elemChildren
-      });
-
-      this.ui.set(bGround, elem);
-    }
   }
   /**
    * Binds this player's position within the world if it is outside of the
@@ -272,14 +231,11 @@ class Player {
       this.velocity = Vector.zero();
     }
 
-    const event = {
-      mouseX: data.mouse.rltvMouseCoords.x,
-      mouseY: data.mouse.rltvMouseCoords.y,
-      clicked: data.mouse.leftMousePressed
-    };
-    this.ui.forEach(elem => {
-      elem.handleMouseEvent(event);
-    });
+    // const event = {
+    //   mouseX: data.mouse.rltvMouseCoords.x,
+    //   mouseY: data.mouse.rltvMouseCoords.y,
+    //   clicked: data.mouse.leftMousePressed
+    // };
   }
   /**
    * Performs an update.
@@ -287,28 +243,20 @@ class Player {
    * @param {number} deltaTime The current timestamp.
    */
   update(lastUpdateTime, deltaTime) {
-    // TODO: Don't perform updates for the UI.
     this.lastUpdateTime = lastUpdateTime;
     this.position.add(Vector.scale(this.velocity, deltaTime));
+    this.bindToWorld();
     if (this.pastTroops !== this.troops ||
       this.pastBuildings !== this.buildings
     ) {
       const newResourceRates = this.calculateResourceRates();
       this.updateResourceRate(newResourceRates);
-
-      for (const elem of this.ui.get("resource_stats_background").children) {
-        if (elem.image === "people") { continue; }
-        elem.updateValueIncrease(newResourceRates[elem.image]);
-      }
     }
 
     const allIsTrue = checkProperties(this.resourceRate);
     if (allIsTrue) {
       this.updateResources();
-      this.ui.get("resource_stat_background").updateChildren();
     }
-    // TODO: See if `.bindToWorld` should appear at the top of the function.
-    this.bindToWorld();
 
     this.pastBuildings = this.buildings;
     this.pastTroops = this.troops;
@@ -321,13 +269,9 @@ class Player {
     debug("Initializing player...");
     this.troops = [];
     this.buildings = [];
-    // this.buttons = [];
-    // this.icons = [];
-    this.ui = new Map();
     this.lastUpdateTime = Date.now();
     this.velocity = Vector.zero();
 
-    this.addUIElements();
     this.update(this.lastUpdateTime, this.lastUpdateTime);
     debug("Done");
     return this;
