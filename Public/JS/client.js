@@ -3,22 +3,31 @@
  * have `no-undef` in eslint disabled.
  * @author Horton Cheng <horton0712@gmail.com>
  */
-// TODO: Remove the `eslint-disable no-undef` statement. We won't be
-// needing it now that we enabled jQuery globals in eslint.
-// TODO: Get type definitions for Socket.IO client.
-/* eslint-disable no-undef */
+/**
+ * Get the type definitions
+ * @typedef {import("jquery")} jQuery
+ * @typedef {import("socket.io-client")} SocketIOStatic
+ */
 
-import { init, pollServer } from "./common/functions.js";
+import {
+  createPlayDialog, pollServer, submitPlayInfo
+} from "./common/functions.js";
 import Constants from "./Constants-client.js";
 const pathname = window.location.pathname;
 let dialog = null;
-
-window.securityData = {};
+let socket = null;
 
 if (pathname === "/") {
-  $(document).ready(async() => {
+  $(window).on("resize", () => {
+    if (socket && socket.connected) {
+      dialog = createPlayDialog("#dialog-form-container", socket);
+    }
+  });
+  $(async() => {
+    const connect = io;
     // Get Socket.IO auth.
     try {
+      // TODO: See if this could use the newer `fetch` API instead.
       const passPhrase = (await pollServer({
         url: "/xhr",
         headers: {},
@@ -39,38 +48,23 @@ if (pathname === "/") {
       console.error(err);
     }
     // Now connect to the root Socket.IO namespace.
-    const socket = io();
+    socket = connect();
 
-    socket.on(Constants.SOCKET_SECURITY_DATA, data => {
-      window.securityData = JSON.parse(data).securityData;
-    });
     socket.on(Constants.SOCKET_ERROR, err => {
-      // TODO: Find another way to report errors. With the way this
-      // is currently set up, the error message would be cleared once the
-      // `Play` dialog is opened.
-      $("#error-span")
-        .addClass("error")
-        .text(`${err}`);
+      console.error(new Error(err));
     });
 
-    // TODO: Make this use `pollServer` instead.
-    // Make a request to the server to get the available games.
-    const params = {
-      "for": "games_available"
-    };
-    $.get("/xhr", params, data => {
-      const dataKeys = Object.getOwnPropertyNames(data);
-      const arrayLength = dataKeys.length;
-      for (let i = 0; i < arrayLength; i++) {
-        const game = data[dataKeys[i]];
-        const htmlToAdd =
-            `<label for="game-opt-${game.id}">Game ${i + 1}
-            <img src="imgs/Game_map_previews/${game.map}.png">
-            <label/><input type="radio" id="game-opt-${game.id}"
-            name="game" value="${game.id}">`;
-        $("#game-select")
-          .append(htmlToAdd);
-      }
+    const data =
+      await pollServer({ url: "/xhr", data: { "for": "games_available" } });
+    Object.getOwnPropertyNames(data).forEach((key, i) => {
+      const game = data[key];
+      const htmlToAdd =
+        `<label for="game-opt-${game.id}">Game ${i + 1}
+        <img src="imgs/Game_map_previews/${game.map}.png">
+        <label/><input type="radio" id="game-opt-${game.id}"
+        name="game" value="${game.id}">`;
+      $("#game-select")
+        .append(htmlToAdd);
     });
 
     // Display the version.
@@ -79,54 +73,9 @@ if (pathname === "/") {
       Licensed under the <a href="/license">AGPL-3.0 license.</a>`
     );
 
-    // Create the `Play` dialog.
-    // TODO: Move the code to create the `Play` dialog to another function.
-    dialog = $("#dialog-form-container")
-      .dialog({
-        autoOpen: false,
-        modal: true,
-        width: Math.round(Constants.VIEWPORT_WIDTH / 3),
-        height: Math.round(Constants.VIEWPORT_HEIGHT * 10 / 1.5 / 10),
-        buttons: {
-          Play: () => {
-            init((err, data) => {
-              if (err) {
-                $("#error-span")
-                  .addClass("error")
-                  .text(`${err}`);
-                return;
-              }
-              socket.emit(Constants.SOCKET_NEW_PLAYER, JSON.stringify({
-                playerData: data,
-                otherData: {}
-              }), error => {
-                if (error) {
-                  $("#error-span")
-                    .addClass("error")
-                    .text(`${error}`);
-                  return;
-                }
-                // TODO: Remove this call to set the client's previous
-                // socket ID in localStorage.
-                localStorage.setItem(
-                  "prevSocketID",
-                  socket.id
-                );
-                dialog.dialog("close");
-                window.location.href =
-                  `${window.location.protocol}//` +
-                  `${window.location.hostname}` +
-                  `:${window.location.port}/play`;
-              });
-            });
-          },
-          Cancel: () => {
-            dialog.dialog("close");
-          }
-        }
-      });
+    dialog = createPlayDialog("#dialog-form-container", socket);
     // Handle when the client opens the `Play` dialog.
-    $("#play").click(() => {
+    $("#play").on("click", () => {
       dialog.dialog("open");
       $("#error-span")
         .removeClass("error")
@@ -137,46 +86,13 @@ if (pathname === "/") {
         .selectmenu({
           disabled: false
         });
-      $("#name-input").focus();
+      $("#name-input").trigger("focus");
     });
 
     // Make sure the play "form" does not submit.
-    $("#dialog-form").submit(e => {
+    $("#dialog-form").on("submit", e => {
       e.preventDefault();
-      init((err, data) => {
-        if (err) {
-          $("#error-span")
-            .addClass("error")
-            .text(`${err}`);
-          return;
-        }
-        socket.emit(Constants.SOCKET_NEW_PLAYER, JSON.stringify({
-          securityData: {
-            // TODO: Remove the need for the old security system.
-            clientData: {
-              id: window.securityData.clientData.id,
-              token: window.securityData.clientData.token
-            }
-          },
-          playerData: data,
-          otherData: {}
-        }), error => {
-          if (error) {
-            $("#error-span")
-              .addClass("error")
-              .text(`${error}`);
-            return;
-          }
-          localStorage.setItem(
-            "prevSocketID",
-            socket.id
-          );
-          dialog.dialog("close");
-          window.location.href =
-            `${window.location.protocol}//
-            ${window.location.hostname}/play`;
-        });
-      });
+      submitPlayInfo(socket).call(dialog);
     });
   });
 
@@ -203,7 +119,7 @@ if (pathname === "/") {
     }
   }, 1000 * 60 * 60 * 2 - 1000 * 60 * 20);
 } else if (pathname === "/license") {
-  $(document).ready(async() => {
+  $(async() => {
     document.body.innerHTML = await pollServer({
       url: "/xhr",
       headers: {},
