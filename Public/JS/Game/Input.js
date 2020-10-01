@@ -24,8 +24,6 @@ export default class Input extends EventEmitter {
     this.leftMouseDown = false;
     this.rightMouseDown = false;
     this.mousePosition = [0, 0];
-    // TODO: See if this property is needed.
-    this.pastMousePosition = [0, 0];
   }
   /**
    * Event handler for the `keydown` event.
