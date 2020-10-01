@@ -2,8 +2,8 @@
  * @fileoverview Utility methods for the client
  * @author Horton Cheng <horton0712@gmail.com>
  */
-/* eslint-disable no-undef */
 
+import Constants from "../Constants-client.js";
 /**
  * @callback AJAXCallback
  * @param {Error} err
@@ -11,19 +11,51 @@
  * @returns {void}
  */
 /**
+ * Get the type definitions
+ * @typedef {import("jquery")} jQuery
+ * @typedef {import("socket.io-client")} SocketIOStatic
+ */
+/**
+ * @typedef {Object<string, string>} ParsedCookies
+ * @typedef {() => void} VoidFunction
+ * @typedef {SocketIOStatic} SocketIOClient
+ * @typedef {"EINVALID"|"EMISSING"|"ELENGTH"|"ENOTAUTH"|"EFAILED"} ErrorCodes
+ *
  * @typedef {Object} AJAXOpts
  * @prop {string} url
  * @prop {Object<string, any>|string|Array<any>} data
  * @prop {Object<string, string>} headers
- */
-/**
- * @typedef {Object<string, string>} ParsedCookies
+ *
+ * @typedef {Object} PlayData
+ * @prop {string} name
+ * @prop {string} game
+ * @prop {string} team
  */
 
 /**
  * Export RegExp to check for signed cookies.
  */
 export const signedCookieRegExp = /^s:(.+)\..+/;
+/**
+ * ValidationError class.
+ * @extends Error
+ */
+export class ValidationError extends Error {
+  /**
+   * Constructor for a ValidationError class.
+   * @class
+   * @param {string} msg The error message.
+   * @param {ErrorCodes} typeCode The error code.
+   * @param {string} toFix A string describing how to fix the error. This
+   * should ***not*** be too verbose.
+   */
+  constructor(msg, typeCode, toFix) {
+    super(msg);
+
+    this.typeCode = typeCode;
+    this.toFix = toFix;
+  }
+}
 /**
  * Given a value, a minimum, and a maximum, returns true if value is
  * between the minimum and maximum, inclusive of both bounds. This
@@ -165,35 +197,136 @@ export function parseCookies(cookies) {
   return objToReturn;
 }
 
-// TODO: Update the method that gets the client's play info, and give
-// it a better name.
 /**
- * Gets this client's game info.
- * @param {AJAXCallback} cb The callback to run when
- * the function is done.
+ * Gets this player's play data.
+ * @returns {PlayData}
  */
-export async function init(cb) {
-  // Yes, I know this gives me a warning with ESLint... but I
-  // don't want to change the code right now. Maybe in v0.4.2 or 0.4.3.
+export function getPlayData() {
+  // Helpers.
+  /**
+   * Checks if a bunch of values is a type using `typeof`.
+   * @param {string} type The type that is expected.
+   * @param  {...any} args The values to check.
+   * @returns {boolean}
+   */
+  function isType(type, ...args) {
+    // Type checking, just to be sure.
+    if (args === undefined || args === null) {
+      throw new TypeError("Invalid arguments!");
+    } else if (typeof type !== "string") {
+      throw new TypeError("Invalid type parameter!");
+    }
+    for (const val of args) {
+      if (typeof val !== type) {
+        // Type does not match, return false.
+        return false;
+      }
+    }
+    // Everythin passes, so return true.
+    return true;
+  }
+  // First, get the data.
   const data = {
     name: $("#name-input").val(),
     game: $("input[name='game']:checked", "#game-select").val(),
     team: $("select#teams option:checked").val()
   };
-  let err = null;
-  console.log(data.name);
-  console.log(typeof data.name);
 
-  if (!data.name || data.name.length > 22) {
-    err = new Error("Name is too long or blank!");
-    cb(err, data);
-    return;
-  } else if (!data.game) {
-    err = new Error("Game not selected!");
-    cb(err, data);
-    return;
+  // Then, do some validation.
+  // Check if all the values in the `data` object are strings.
+  if (!isType("string", ...Object.values(data))) {
+    throw new ValidationError(
+      "Missing required data!", "EINVALID"
+    );
+  } else if (data.name.length < 2 || data.name.length > 22) {
+    // Check the length of the name.
+    throw new ValidationError(
+      "Name is too long or less than two characters!", "ELENGTH",
+      "Enter a name between 2 characters and 22 characters."
+    );
   }
-  cb(err, data);
+
+  // All is well, so return the data.
+  return data;
+}
+/**
+ * Submits this player's play info.
+ * @param {SocketIOClient.Socket} socket The Socket.IO socket.
+ * @returns {VoidFunction}
+ */
+export function submitPlayInfo(socket) {
+  /**
+   * @this {Object}
+   */
+  return () => {
+    try {
+      // Get the play data.
+      // The function will throw if something goes wrong.
+      const playData = getPlayData();
+
+      // Check if the socket is connected. This will save us some
+      // future headaches... Maybe.
+      if (!socket.connected) {
+        throw new Error("Socket is not connected!");
+      }
+      // All is well, so emit the message.
+      socket.emit(Constants.SOCKET_NEW_PLAYER, JSON.stringify({
+        playerData: playData,
+        otherData: {}
+      }), err => {
+        if (err) {
+          $("#error-span")
+            .addClass("error")
+            .text(`${err.message}`);
+          return;
+        }
+        console.log(this);
+        this.dialog("close");
+        window.location.href =
+          `${window.location.protocol}//` +
+          `${window.location.hostname}` +
+          `:${window.location.port}/play`;
+      });
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        $("#error-span")
+          .addClass("error")
+          .text(`${err.message}`);
+      } else {
+        console.error(err);
+        $("#error-span")
+          .addClass("error")
+          .text(
+            "Something went wrong. Please see your JS console for details."
+          );
+      }
+    }
+  };
+}
+/**
+ * Creates a `Play` dialog.
+ * @param {string} dialogElem The element to create the dialog from.
+ * @param {SocketIOClient.Socket} socket The Socket.IO socket.
+ * @returns {Object}
+ */
+export function createPlayDialog(dialogElem, socket) {
+  const dialog = $(dialogElem)
+    .dialog({
+      autoOpen: false,
+      modal: true,
+      width: Math.round(Constants.VIEWPORT_WIDTH / 3),
+      height: Math.round(Constants.VIEWPORT_HEIGHT * 10 / 1.5 / 10),
+      buttons: {}
+    });
+  const buttons = dialog.dialog("option", "buttons");
+  $.extend(buttons, {
+    Play: submitPlayInfo.bind(dialog)(socket),
+    Cancel: () => {
+      dialog.dialog("close");
+    }
+  });
+  dialog.dialog("option", "buttons", buttons);
+  return dialog;
 }
 
 /**
