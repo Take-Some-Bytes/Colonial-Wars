@@ -11,7 +11,7 @@ const Constants = {
   WORLD_MIN: 0,
   WORLD_MAX: 9000,
   // Version.
-  VERSION: "0.4.2-DEV",
+  VERSION: "0.4.3-DEV",
   // Drawing constants.
   DRAWING_TROOP_BASE_PATH: "/imgs/troops",
   DRAWING_BUILDING_BASE_PATH: "/imgs/buildings",
@@ -86,7 +86,6 @@ const Constants = {
   SOCKET_DISCONNECT: "disconnect",
   SOCKET_AVAILABLE_GAMES: "available-games",
   SOCKET_ERROR: "error",
-  SOCKET_SECURITY_DATA: "security-data",
   SOCKET_PROCEED: "proceed",
   SOCKET_SCREEN_RESIZE: "screen-resize"
 };
