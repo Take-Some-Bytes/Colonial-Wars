@@ -302,7 +302,9 @@ router.route("/xhr")
           }
         );
       }
-      // TODO: See if this should send HTTP 204 No Content.
+      // For some reason jQuery AJAX chokes on HTTP 204...
+      // so until we don't use jQuery AJAX anymore, we must not
+      // return HTTP 204.
       res
         .status(200)
         .end("OK");
