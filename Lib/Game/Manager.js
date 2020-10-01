@@ -4,13 +4,16 @@
  */
 
 // Imports.
+// const debug = require("../common/debug");
+const { clearMap } = require("../common/util");
 const crypto = require("crypto");
-const socketIO = require("socket.io");
-
 const Game = require("./Game");
 const Vector = require("./Physics/Vector");
-const { deepClear } = require("../common/util");
 const Constants = require("../common/constants");
+
+/**
+ * @typedef {import("socket.io")} SocketIO
+ */
 
 // TODO: Clean up this class. Remove unneeded code, methods, and such.
 /**
@@ -28,10 +31,6 @@ class Manager {
      * @type {Map<string, Game>}
      */
     this.games = new Map();
-
-    // TODO: See if the following properties are needed.
-    this.deltaTime = 0;
-    this.lastUpdateTime = 0;
   }
   /**
    * Gets all the games as an array.
@@ -48,10 +47,7 @@ class Manager {
    * Initializes the Manager state.
    */
   init() {
-    // TODO: See if this is even needed.
-    this.lastUpdateTime = Date.now();
-
-    deepClear(this.games, true);
+    this.games = clearMap(this.games);
   }
   /**
    * Adds a new game, then returns the made game.
@@ -127,7 +123,7 @@ class Manager {
   /**
    * Adds a new client to the specified game.
    * @param {string} gameID The game's ID.
-   * @param {socketIO.Socket} client The socket object associated with the
+   * @param {SocketIO.Socket} client The socket object associated with the
    * client.
    * @param {string} name The display name of the client.
    * @param {string} team The team of the player.
@@ -143,7 +139,7 @@ class Manager {
   /**
    * Removes a client from the specified game.
    * @param {string} gameID The game's ID.
-   * @param {socketIO.Socket} client The socket object associated with the
+   * @param {SocketIO.Socket} client The socket object associated with the
    * client.
    */
   removeClientFromGame(gameID, client) {
