@@ -93,10 +93,6 @@ class Icon extends UIElement {
         newIncrease :
         parseInt(newIncrease, 10);
 
-    // debug("Updating valueIncrease of icon: ", this.image);
-    // debug(
-    //   `New valueIncrease: ${parsedValue}. Type of it: ${typeof parsedValue}`
-    // );
     if (typeof parsedValue !== "number") {
       throw new TypeError(
         "The supplied parameter is not, and could not be converted to a number!"
