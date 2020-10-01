@@ -57,12 +57,12 @@ export default class Game {
 
     // TODO: Remove all these properties for now. We won't be needing
     // them yet. And, UI management is going to be done in another class.
-    this.buttons = [];
-    this.icons = [];
-    this.resources = {};
-    this.resourceRates = {};
-    this.population = {};
-    this.uiBackgrounds = [];
+    // this.buttons = [];
+    // this.icons = [];
+    // this.resources = {};
+    // this.resourceRates = {};
+    // this.population = {};
+    // this.uiBackgrounds = [];
     // this.obstacles = [];
 
     this.self = null;
@@ -91,7 +91,6 @@ export default class Game {
     this.deltaTime = currentTime - this.lastUpdateTime;
     this.lastUpdateTime = currentTime;
 
-    // this.update(this.token);
     if (this.self) {
       this.viewport.update(this.deltaTime);
     }
@@ -113,12 +112,12 @@ export default class Game {
 
       this.drawing.drawTiles();
       // TODO: Comment out all the following code. We don't need it right now.
-      this.buildings.forEach(this.drawing.drawBuilding.bind(this.drawing));
-      this.uiBackgrounds.forEach(
-        this.drawing.drawUIBackground.bind(this.drawing)
-      );
-      this.buttons.forEach(this.drawing.drawButton.bind(this.drawing));
-      this.icons.forEach(this.drawing.drawStat.bind(this.drawing));
+      // this.buildings.forEach(this.drawing.drawBuilding.bind(this.drawing));
+      // this.uiBackgrounds.forEach(
+      //   this.drawing.drawUIBackground.bind(this.drawing)
+      // );
+      // this.buttons.forEach(this.drawing.drawButton.bind(this.drawing));
+      // this.icons.forEach(this.drawing.drawStat.bind(this.drawing));
     }
   }
   /**
@@ -127,21 +126,21 @@ export default class Game {
    */
   onReceiveGameState(data) {
     const parsedData = JSON.parse(data);
-    const gameData = parsedData.gameData.gameStats;
-    const playerData = parsedData.gameData.playerStats;
+    // const gameData = parsedData.gameData.gameStats;
+    // const playerData = parsedData.gameData.playerStats;
 
     this.self = parsedData.gameData.self;
     // this.players = state.players;
     // this.projectiles = state.projectiles;
     // TODO: Comment out the rest of the property assigning.
-    this.buildings = gameData.buildings;
+    // this.buildings = gameData.buildings;
     // this.troops = state.troops;
-    this.buttons = playerData.playerUi[0].children;
-    this.icons = playerData.playerUi[1].children;
-    this.resources = playerData.resources;
-    this.resourceRates = playerData.resourceRates;
-    this.population = playerData.population;
-    this.uiBackgrounds = playerData.playerUi;
+    // this.buttons = playerData.playerUi[0].children;
+    // this.icons = playerData.playerUi[1].children;
+    // this.resources = playerData.resources;
+    // this.resourceRates = playerData.resourceRates;
+    // this.population = playerData.population;
+    // this.uiBackgrounds = playerData.playerUi;
 
     this.viewport.updateTrackingPosition(parsedData.gameData.self);
   }
@@ -178,14 +177,6 @@ export default class Game {
         otherData: {}
       }));
     }
-  }
-  // TODO: Remove the following function. It is not needed.
-  /**
-   * Resets this client's token.
-   * @param {string} newToken The new token for the client.
-   */
-  resetToken(newToken) {
-    this.token = newToken;
   }
   /**
    * Factory method for creating a Game class instance.
