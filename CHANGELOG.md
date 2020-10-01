@@ -13,7 +13,20 @@ release version numbers **must** start with `v0`.
 feel free to open an [issue](https://github.com/Take-Some-Bytes/Colonial-Wars/issues) if you find
 one.
 
-Pre-production releases are not tagged on github.
+Pre-production releases are not tagged on github, except for those thatt mark important
+deadlines. But, production builds are still not available for those releases.
+## [v0.4.3] - 2020-09-30
+### Added:
+- Added `io` as an eslint global, so that we don't have to disable eslint-no-undef for the
+client files where they use `io`.
+### Changed:
+- Commented a *lot* of unneeded code in various files.
+- Updated client files to remove the using of deprecated features.
+- Updated JSDocs and type definitions (because I like to have VSCode Intellisense).
+### Fixed:
+- Fixed error reporting to be more useful.
+### Removed:
+- Removed most of the UI management from the server side.
 ## [v0.4.2] - 2020-09-24
 ### Added:
 - Added ``/Lib/store.js`` for the session store class.
@@ -287,4 +300,5 @@ GPL v3.0 license file in the ``Docs`` directory (Note that this changelog was wr
 [v0.3.8]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/fc615a74a5228a266e44f7ecb46ffdeead983cad
 [v0.4.0]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/0c1ef2ba053425cb204fffa1b718c88448f81c6b
 [v0.4.1]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/a733f2b33f81cd43bed2c3503b7ff384275adb50
-[v0.4.2]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/dev
+[v0.4.2]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/7ae43a0effa4dbb7cc5ee1e4da12fdd0a8e5d841
+[v0.4.3]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/v0.4.3
