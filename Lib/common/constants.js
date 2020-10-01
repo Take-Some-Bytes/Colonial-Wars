@@ -913,10 +913,9 @@ const Constants = {
   SOCKET_DISCONNECT: "disconnect",
   SOCKET_AVAILABLE_GAMES: "available-games",
   SOCKET_ERROR: "error",
-  SOCKET_SECURITY_DATA: "security-data",
   SOCKET_PROCEED: "proceed",
   // Version.
-  VERSION: "0.4.2-DEV",
+  VERSION: "0.4.3-DEV",
   // UI things.
   BUTTON_COOLDOWN: 500,
   BUTTON_KEYS: [
