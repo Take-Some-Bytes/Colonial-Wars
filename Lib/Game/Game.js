@@ -11,15 +11,18 @@ const Building = require("./Game/Building");
 const Troop = require("./Game/Troop");
 const Constants = require("../common/constants");
 const {
-  deepClear, getNonCallableProps, getMapValues
+  getNonCallableProps, // , getMapValues
+  clearMap
 } = require("../common/util");
 const { getEuclideanDist2, inCircle } = require("../common/gameCommon");
 const debug = require("../common/debug");
 const config = require("../../config");
-const socketIO = require("socket.io");
 
 /**
  * @typedef {"Game is closed"|"Game is open"} GameStatus
+ */
+/**
+ * @typedef {import("socket.io")} SocketIO
  */
 
 /**
@@ -55,7 +58,7 @@ class Game {
     this.players = new Map();
     /**
      * This is a Map containing all of the connected clients.
-     * @type {Map<string, socketIO.Socket>}
+     * @type {Map<string, SocketIO.Socket>}
      */
     this.clients = new Map();
 
@@ -108,42 +111,12 @@ class Game {
     this.numPlayers = 0;
     this.closed = false;
 
-    // TODO: Check if all this deep clearing is needed.
-    // deepClear(this.teams);
-    deepClear(this.projectiles, Array.isArray(this.projectiles));
-    deepClear(this.troops, Array.isArray(this.troops));
-    // deepClear(this.obstacles, Array.isArray(this.obstacles));
-    deepClear(this.buildings, Array.isArray(this.buildings));
-    deepClear(this.players);
-    deepClear(this.clients);
-
-    this.addMainBases();
-  }
-  /**
-   * Adds the game's main bases, if any are needed.
-   */
-  addMainBases() {
-    // TODO: Remove this function. We don't need it. We are
-    // going to load all buildings and stats from JSON files.
-    if (this.mode !== "FFA") {
-      const objKeys = Object.getOwnPropertyNames(this.startPositions);
-      const objKeysLength = objKeys.length;
-
-      for (let i = 0; i < objKeysLength; i++) {
-        const startPosition = this.startPositions[objKeys[i]];
-        const mainBaseToCreate = Building.create(
-          startPosition,
-          "main_base",
-          objKeys[i]
-        );
-
-        this.buildings.push(mainBaseToCreate);
-      }
-    }
+    this.players = clearMap(this.players);
+    this.clients = clearMap(this.clients);
   }
   /**
    * Adds a new player.
-   * @param {socketIO.Socket} socket
+   * @param {SocketIO.Socket} socket
    * The socket object associated with the player.
    * @param {string} name The name of the player.
    * @param {string} team The team of the player.
@@ -443,26 +416,23 @@ class Game {
       // environment.
       if (config.environment === "development") {
         const dataToEmit = JSON.stringify({
-          securityData: {
-            gameToken: this.token
-          },
           gameData: {
-            self: getNonCallableProps(currentPlayer),
-            playerStats: {
-              resources: currentPlayer.resources,
-              resourceRate: currentPlayer.resourceRate,
-              population: currentPlayer.population,
-              // troops: this.troops
-              playerUi: getMapValues(currentPlayer.ui, "array")
-            },
-            gameStats: {
+            self: getNonCallableProps(currentPlayer)// ,
+            // playerStats: {
+            //   resources: currentPlayer.resources,
+            //   resourceRate: currentPlayer.resourceRate,
+            //   population: currentPlayer.population,
+            //   // troops: this.troops
+            //   playerUi: getMapValues(currentPlayer.ui, "array")
+            // },
+            // gameStats: {
             // players: players,
             // projectiles: this.projectiles,
-              buildings: this.buildings.map(building => {
-                const newProps = getNonCallableProps(building);
-                return newProps;
-              })
-            }
+            // buildings: this.buildings.map(building => {
+            //   const newProps = getNonCallableProps(building);
+            //   return newProps;
+            // })
+            // }
           },
           otherData: {}
         });
@@ -481,26 +451,23 @@ class Game {
         client.emit(Constants.SOCKET_UPDATE, dataToEmit);
       } else {
         client.emit(Constants.SOCKET_UPDATE, JSON.stringify({
-          securityData: {
-            gameToken: this.token
-          },
           gameData: {
-            self: getNonCallableProps(currentPlayer),
-            playerStats: {
-              resources: currentPlayer.resources,
-              resourceRate: currentPlayer.resourceRate,
-              population: currentPlayer.population,
-              // troops: this.troops
-              playerUi: getMapValues(currentPlayer.ui, "array")
-            },
-            gameStats: {
+            self: getNonCallableProps(currentPlayer)// ,
+            // playerStats: {
+            //   resources: currentPlayer.resources,
+            //   resourceRate: currentPlayer.resourceRate,
+            //   population: currentPlayer.population,
+            //   // troops: this.troops
+            //   playerUi: getMapValues(currentPlayer.ui, "array")
+            // },
+            // gameStats: {
             // players: players,
             // projectiles: this.projectiles,
-              buildings: this.buildings.map(building => {
-                const newProps = getNonCallableProps(building);
-                return newProps;
-              })
-            }
+            // buildings: this.buildings.map(building => {
+            //   const newProps = getNonCallableProps(building);
+            //   return newProps;
+            // })
+            // }
           },
           otherData: {}
         }));
