@@ -172,7 +172,7 @@ try {
   );
 } catch (err) {
   // TODO: Give more information about the error was thrown.
-  throw new Error("Failed to load configurations.");
+  throw new Error(`Failed to load configurations. Error is: ${err}`);
 }
 
 // Declare the actual environment variables that will be exported.
