@@ -3,9 +3,6 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-// Imports.
-const debug = require("./debug");
-
 // JSDoc typedefs for VSCode.
 /**
  * @typedef {"array"|"object"|"nested array"} OutAsFormat
@@ -106,52 +103,18 @@ function deepFreeze(object) {
 
   return Object.freeze(object);
 }
-// TODO: Remove the following function. It is completely useless.
 /**
- * Clears all of a object's stuff. Could delete properties if you want it to,
- * but by default it only gives them the value of `undefined`.
- * @param {Map|Array|{}} variable Whatever object variable you need to clear.
- * @param {boolean} [deleteProperties=false] Delete properties?
- * @returns {*}
+ * Clears a `Map`. If the parameter supplied is not a `Map`, then this function
+ * will create a new one.
+ * @param {Map} map The `Map` to clear.
+ * @returns {Map}
  */
-function deepClear(variable, deleteProperties = false) {
-  // I'm not even going to put comments here.
-  if (variable instanceof Map) {
-    if (deleteProperties) {
-      return variable.clear();
-    }
-    for (const [key, value] of variable) {
-      if (value instanceof Map) {
-        deepClear(value, deleteProperties);
-      } else {
-        variable.set(key, undefined);
-      }
-    }
-  } else if (variable instanceof Array) {
-    if (deleteProperties) {
-      return variable.splice(0);
-    }
-    for (let i = 0; i < variable.length; i++) {
-      variable[i] = undefined;
-      continue;
-    }
-  } else if (typeof variable === "object") {
-    const properties = Object.getOwnPropertyNames(variable);
-    for (let i = 0; i < properties.length; i++) {
-      const property = variable[properties[i]];
-      if (deleteProperties) {
-        delete variable[property];
-        continue;
-      } else {
-        variable[property] = undefined;
-        continue;
-      }
-    }
-  } else {
-    throw new TypeError(
-      `Expected type Map, Array, or Object. Recieved type : ${typeof variable}.`
-    );
+function clearMap(map) {
+  if (map instanceof Map) {
+    map.clear();
+    return map;
   }
+  return new Map();
 }
 /**
  * Multiplies stuff. Skips a number if it is zero or negative.
@@ -230,17 +193,6 @@ function checkProperties(obj) {
   }
   return true;
 }
-// TODO: Find a better way to log the memory usage.
-/**
- * Logs the memory usage of the current node js process.
- */
-function logMemoryUsage() {
-  debug("----Memory Usage----");
-  const used = process.memoryUsage();
-  for (const key in used) {
-    debug(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
-  }
-}
 // TODO: See if the following function is needed.
 /**
  * Gets all the non-callable (Non-function) properties of an object.
@@ -257,7 +209,7 @@ function getNonCallableProps(obj) {
 
   for (const key in props) {
     const prop = props[key];
-    if (!(typeof prop !== "function")) {
+    if (typeof prop === "function") {
       delete props[key];
     }
   }
@@ -379,10 +331,9 @@ module.exports = exports = {
   normalizeAngle,
   makeID,
   deepFreeze,
-  deepClear,
+  clearMap,
   multiplySomething,
   checkProperties,
-  logMemoryUsage,
   getNonCallableProps,
   mixUp,
   getMapValues,
