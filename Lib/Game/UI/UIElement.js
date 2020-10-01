@@ -53,9 +53,9 @@ class UIElement {
   isMouseInside(event) {
     // TODO: Clean up this expression.
     return event.mouseX > this.position.x &&
-         event.mouseX < this.position.x + this.width &&
-         event.mouseY > this.position.y &&
-         event.mouseY < this.position.y + this.height;
+      event.mouseX < this.position.x + this.width &&
+      event.mouseY > this.position.y &&
+      event.mouseY < this.position.y + this.height;
   }
   /**
    * Handles a mouse event.
