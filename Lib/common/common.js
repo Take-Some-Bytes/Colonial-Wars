@@ -283,6 +283,19 @@ function jwtDecodePromise(token, options) {
   });
 }
 /**
+ * `crypto.randomBytes` promisified.
+ * @param {number} length The length of the random Bytes.
+ * @returns {Promise<Buffer>}
+ */
+function randomBytesPromise(length) {
+  return new Promise((resolve, reject) => {
+    crypto.randomBytes(length, (err, buf) => {
+      if (err) { reject(err); }
+      resolve(buf);
+    });
+  });
+}
+/**
  * Creates a socketIOAuth JWT, and sets the client in the
  * pendingClients map.
  * @param {import("qs").ParsedQs} query The query.
@@ -295,7 +308,7 @@ function jwtDecodePromise(token, options) {
  */
 async function createSocketAuthJWT(query, payload, req, res, next) {
   // Generate the required parameters for the signing of the JWT.
-  const utk = crypto.randomBytes(16).toString("hex");
+  const utk = (await randomBytesPromise(16)).toString("hex");
   const jwtConfig = payload === "default" ?
     {
       pssPhrs: query.passPhrase,
