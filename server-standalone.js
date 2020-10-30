@@ -58,7 +58,9 @@ debug("Done imports, starting server.");
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
+const io = socketIO(server, {
+  maxHttpBufferSize: 1000 * 1000
+});
 const playIO = io.of("/play");
 
 // Disable "X-Powered-By" for security.
