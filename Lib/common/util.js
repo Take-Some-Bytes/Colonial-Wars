@@ -14,7 +14,7 @@
 /**
  * Special `NO_FREEZE` symbol.
  */
-const no_freeze = Symbol("NO_FREEZE");
+const NO_FREEZE = Symbol("NO_FREEZE");
 /**
  * Given a value, a minimum, and a maximum, returns true if value is
  * between the minimum and maximum, inclusive of both bounds. This
@@ -84,7 +84,7 @@ function deepFreeze(object) {
   // Retrieve the property names defined on object.
   const propNames = Object.getOwnPropertyNames(object);
   // Check for a special "NO_FREEZE" symbol.
-  if (object[no_freeze] === true) {
+  if (object[NO_FREEZE] === true) {
     return;
   }
 
@@ -94,7 +94,7 @@ function deepFreeze(object) {
 
     if (value && typeof value === "object") {
       // Check for a special "NO_FREEZE" symbol.
-      if (value[no_freeze] === true) {
+      if (value[NO_FREEZE] === true) {
         return;
       }
       deepFreeze(value);
@@ -340,5 +340,5 @@ module.exports = exports = {
   removeFromArray,
   isJson,
   // Symbols.
-  no_freeze
+  NO_FREEZE
 };
