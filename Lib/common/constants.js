@@ -1012,14 +1012,8 @@ const Constants = {
     index: false,
     redirect: false
   },
-  CONTENT_TYPES: {
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".ico": "image/x-icon",
-    ".jpg": "image/jpeg",
-    ".png": "image/png"
-  },
   HEADERS: {
+    /* eslint-disable camelcase */
     REPORT_TO: [
       {
         endpoints: [
@@ -1040,6 +1034,7 @@ const Constants = {
         group: "colonialwars-csp-report",
         max_age: 60 * 60 * 24 * 2
       }
+      /* eslint-enable camelcase */
     ].map(JSON.stringify).join(", "),
     CSP_DIRECTIVES: {
       defaultSrc: ["'self'"],
