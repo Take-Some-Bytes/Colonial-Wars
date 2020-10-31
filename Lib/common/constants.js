@@ -915,7 +915,7 @@ const Constants = {
   SOCKET_ERROR: "error",
   SOCKET_PROCEED: "proceed",
   // Version.
-  VERSION: "0.4.3-DEV",
+  VERSION: "0.4.4-DEV",
   // UI things.
   BUTTON_COOLDOWN: 500,
   BUTTON_KEYS: [
