@@ -198,21 +198,6 @@ const envVars = {
       ) ||
       "/var/log/colonialwars/"
   },
-  httpsConfig: {
-    /**
-     * @type {boolean}
-     */
-    isHttps:
-      parsedArgs.keyedValues.isHttps === "true" ||
-      envVariables.IS_HTTPS === "true",
-    /**
-     * @type {string}
-     */
-    httpsConfigPath:
-      parsedArgs.httpsConfigPath ||
-      envVariables.HTTPS_CONFIG_PATH ||
-      "/etc/letsencrypt/live/"
-  },
   serverConfig: {
     /**
      * @type {string}

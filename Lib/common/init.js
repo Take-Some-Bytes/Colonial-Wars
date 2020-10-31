@@ -14,7 +14,7 @@ const winston = require("winston");
 const config = require("../../config");
 const Constants = require("./constants");
 const SessionStore = require("../store");
-const { makeID, mixUp, deepFreeze, no_freeze } = require("./util");
+const { makeID, mixUp, deepFreeze, NO_FREEZE } = require("./util");
 
 const Manager = require("../Game/Manager");
 
@@ -49,9 +49,8 @@ exports = module.exports = {};
  */
 // Create a token in morgan.
 morgan.token("reqPath", req => {
-  const protocol = config.httpsConfig.isHttps ? "https:" : "http:";
   const url = new URL(
-    req.url, `${protocol}//${req.headers.host}`
+    req.url, `http://${req.headers.host}`
   );
   const reqPath = url.pathname;
   return reqPath;
@@ -278,7 +277,7 @@ const wsSessions = new SessionStore(null, {
   ttl: config.securityOpts.maxTokenAge
 });
 // Don't freeze the `wsSessions` SessionStore.
-wsSessions[no_freeze] = true;
+wsSessions[NO_FREEZE] = true;
 /**
  * Export Socket.IO session store.
  * @readonly
