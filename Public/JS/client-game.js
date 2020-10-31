@@ -2,9 +2,10 @@
  * @fileoverview This is the client main file for the game page.
  * @author Horton Cheng <horton0712@gmai.com>
  */
+// NOTICE: THE CODE IN THIS FILE IS EXPERIMENTAL.
+// We're seeing how well we do without jQuery.
 /**
  * Get the type definitions
- * @typedef {import("jquery")} jQuery
  * @typedef {import("socket.io-client")} SocketIOStatic
  */
 
@@ -24,77 +25,69 @@ if (pathname === "/play") {
   });
 
   // NO CONTEXT MENU FOR YOU!!!
-  $(document).on("contextmenu", e => {
+  document.addEventListener("contextmenu", e => {
     e.preventDefault();
     return false;
   });
-  // BUG: This doesn't seem to be working.
-  $("#reconnect").on("click", e => {
-    e.preventDefault();
-
-    socket.connect();
-  });
-  $(window).on("resize", () => {
+  window.addEventListener("resize", () => {
     changeViewportStats();
-
-    socket.emit(Constants.SOCKET_SCREEN_RESIZE, JSON.stringify({
-      gameData: {},
-      otherData: {
-        screen_size: {
-          height: Constants.VIEWPORT_HEIGHT,
-          width: Constants.VIEWPORT_WIDTH
-        }
-      }
-    }));
   });
-  $(() => {
-    $("body")
-      .height(Constants.VIEWPORT_HEIGHT)
-      .width(Constants.VIEWPORT_WIDTH);
-    $("main")
-      .height(Constants.VIEWPORT_HEIGHT)
-      .width(Constants.VIEWPORT_WIDTH);
+  window.addEventListener("load", () => {
+    const documentBody = document.body;
+    const main = document.querySelector("main");
+    documentBody.style.height = `${Constants.VIEWPORT_HEIGHT}px`;
+    documentBody.style.width = `${Constants.VIEWPORT_WIDTH}px`;
+    main.style.height = `${Constants.VIEWPORT_HEIGHT}px`;
+    main.style.width = `${Constants.VIEWPORT_WIDTH}px`;
 
     socket.on(Constants.SOCKET_DISCONNECT, reason => {
       if (reason === "io server disconnect") {
-        $("body")
-          .html("")
-          .html(
-            "<h1>Connection lost."
-          );
+        while (document.body.hasChildNodes()) {
+          document.body.removeChild(document.body.firstChild);
+        }
+        document.body.insertAdjacentHTML(
+          "afterbegin", "<h1>Connection lost.</h1>"
+        );
         return;
       }
       socket.connect();
     });
     socket.on("reconnect_attempt", attemptNumber => {
       if (attemptNumber > 2) {
-        $("body")
-          .html("")
-          .html(
-            "<h1>Unable to connect to game. Click <a href=\"/\">" +
-            "here</a> to go back to the main page.</h1>"
-          );
+        while (document.body.hasChildNodes()) {
+          document.body.removeChild(document.body.firstChild);
+        }
+        document.body.insertAdjacentHTML(
+          "afterbegin",
+          "<h1>Unable to connect to game. Click <a href=\"/\">" +
+          "here</a> to go back to the main page.</h1>"
+        );
         return;
       }
       socket.connect();
     });
     socket.on("connect_error", err => {
       console.error(err);
-      $("body")
-        .html("")
-        .html(
-          "<h1>Unable to connect to game. Click <a href=\"/\">" +
-          "here</a> to go back to the main page.</h1>"
-        );
+      while (document.body.hasChildNodes()) {
+        document.body.removeChild(document.body.firstChild);
+      }
+      document.body.insertAdjacentHTML(
+        "afterbegin",
+        "<h1>Unable to connect to game. Click <a href=\"/\">" +
+        "here</a> to go back to the main page.</h1>"
+      );
     });
     socket.on(Constants.SOCKET_ERROR, err => {
-      $("body")
-        .html("")
-        .html(
-          "<h1>An error has occured. Click <a href=\"/\">" +
-          "here</a> to go back to the main page.</h1>\n" +
-          `<h3>Error is: ${err}</h3>`
-        );
+      console.error(err);
+      while (document.body.hasChildNodes()) {
+        document.body.removeChild(document.body.firstChild);
+      }
+      document.body.insertAdjacentHTML(
+        "afterbegin",
+        "<h1>An error has occured. Click <a href=\"/\">" +
+        "here</a> to go back to the main page.</h1>\n" +
+        `<h3>Error is: ${err}</h3>`
+      );
     });
 
     socket.connect();
