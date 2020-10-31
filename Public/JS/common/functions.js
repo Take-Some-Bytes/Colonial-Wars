@@ -168,35 +168,19 @@ export function parseCookies(cookies) {
   cookies
     .split("; ")
     .forEach(cookie => {
-      // TODO: Just don't try to parse the cookie value into
-      // anything special, only strings, please.
       const splitCookie = cookie.split("=");
       const key = splitCookie[0];
       let val = decodeURIComponent(splitCookie[1]);
 
-      console.log(signedCookieRegExp.test(val));
-      console.log(
-        val.replace(signedCookieRegExp, "$1"));
       if (signedCookieRegExp.test(val)) {
         val = val.replace(signedCookieRegExp, "$1");
       }
-      if (typeof val === "undefined") {
-        val = null;
-      }
-
-      val = isNaN(parseFloat(val)) ?
-        val :
-        parseFloat(val);
-      val = val === "true" || val === "false" ?
-        val === "false" :
-        val;
 
       objToReturn[key] = val;
     });
 
   return objToReturn;
 }
-
 /**
  * Gets this player's play data.
  * @returns {PlayData}
@@ -226,10 +210,21 @@ export function getPlayData() {
     return true;
   }
   // First, get the data.
+  let tempData = null;
   const data = {
-    name: $("#name-input").val(),
-    game: $("input[name='game']:checked", "#game-select").val(),
-    team: $("select#teams option:checked").val()
+    name: document.querySelector("#name-input").value,
+    game:
+      (tempData = document
+        .querySelector("#game-select input[name='game']:checked")
+      ) !== null ?
+        tempData.value :
+        null,
+    team:
+      (tempData = document
+        .querySelector("#teams option:checked")
+      ) !== null ?
+        tempData.value :
+        null
   };
 
   // Then, do some validation.
@@ -275,9 +270,11 @@ export function submitPlayInfo(socket) {
         otherData: {}
       }), err => {
         if (err) {
-          $("#error-span")
-            .addClass("error")
-            .text(`${err.message}`);
+          const errorSpan = document.querySelector("#error-span");
+          errorSpan.classList.add("error");
+          errorSpan.insertAdjacentText(
+            "afterbegin", `${err.message}`
+          );
           return;
         }
         console.log(this);
@@ -289,16 +286,31 @@ export function submitPlayInfo(socket) {
       });
     } catch (err) {
       if (err instanceof ValidationError) {
-        $("#error-span")
-          .addClass("error")
-          .text(`${err.message}`);
+        const errorSpan = document.querySelector("#error-span");
+        while (errorSpan.hasChildNodes()) {
+          const child = errorSpan.firstChild;
+          if (child.nodeType === 3) {
+            errorSpan.removeChild(child);
+          }
+        }
+        errorSpan.classList.add("error");
+        errorSpan.insertAdjacentText(
+          "afterbegin", `${err.message}`
+        );
       } else {
         console.error(err);
-        $("#error-span")
-          .addClass("error")
-          .text(
-            "Something went wrong. Please see your JS console for details."
-          );
+        const errorSpan = document.querySelector("#error-span");
+        while (errorSpan.hasChildNodes()) {
+          const child = errorSpan.firstChild;
+          if (child.nodeType === 3) {
+            errorSpan.removeChild(child);
+          }
+        }
+        errorSpan.classList.add("error");
+        errorSpan.insertAdjacentText(
+          "afterbegin",
+          "Something went wrong. Please see your JS console for details."
+        );
       }
     }
   };
@@ -327,28 +339,4 @@ export function createPlayDialog(dialogElem, socket) {
   });
   dialog.dialog("option", "buttons", buttons);
   return dialog;
-}
-
-/**
- * Polls the server for something, and returns a promise
- * with the value as the response that the server sent.
- * Method is always GET.
- * @param {AJAXOpts} opts Options.
- * @returns {Promise<string>}
- */
-export function pollServer(opts) {
-  return new Promise((resolve, reject) => {
-    $.ajax({
-      data: opts.data,
-      headers: opts.headers,
-      url: opts.url,
-      method: "GET"
-    })
-      .done(data => {
-        resolve(data);
-      })
-      .fail(err => {
-        reject(err);
-      });
-  });
 }
