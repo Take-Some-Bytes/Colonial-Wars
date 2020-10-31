@@ -45,11 +45,11 @@ const Constants = {
     American: 4,
     Italian: 5
   },
-  DRAWING_BUTTON_ROWS: {
-    civil_button: 0,
-    defense_button: 1,
-    military_button: 2
-  },
+  // DRAWING_BUTTON_ROWS: {
+  //   civil_button: 0,
+  //   defense_button: 1,
+  //   military_button: 2
+  // },
   DRAWING_ICON_POSITIONS: {
     wood: [2, 1],
     stone: [1, 1],
