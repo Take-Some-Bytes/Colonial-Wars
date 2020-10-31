@@ -38,6 +38,10 @@ if (typeof statusCode !== "number" || isNaN(statusCode)) {
   //     console.error(message);
   //   }
   // };
-  message = `Error: status is ${statusCode}.`;
-  document.body.innerHTML = message;
+  const documentBody = document.body;
+  while (documentBody.hasChildNodes()) {
+    documentBody.removeChild(documentBody.firstChild);
+  }
+  message = `<h1 class="error middle">Error: status is ${statusCode}.</h1>`;
+  documentBody.insertAdjacentHTML("afterbegin", message);
 }
