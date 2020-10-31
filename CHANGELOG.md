@@ -13,8 +13,21 @@ release version numbers **must** start with `v0`.
 feel free to open an [issue](https://github.com/Take-Some-Bytes/Colonial-Wars/issues) if you find
 one.
 
-Pre-production releases are not tagged on github, except for those thatt mark important
+Pre-production releases are not tagged on github, except for those that mark important
 deadlines. But, production builds are still not available for those releases.
+## [v0.4.4] - 2020-10-30
+### Added:
+- Added a `Makefile` so that I could run stuff with `make`, instead of `npm run`. NPM has a
+weird bug in which, when I stop my application with `Ctrl+C`, the HTTP server closes itself
+(somehow), making the application throw a `fatal` error all the time.
+- Added example `.env` file to give people an idea of what type of configurations are
+expected.
+### Changed:
+- Changed Eslint configurations; now, `camelcase` is turned on (though not all files abide by it
+currently).
+- Changed accepted configurations; ditched HTTPS options.
+- Changed code to make use of mostly asynchronous methods; synchronous code in libraries have
+not been fixed.
 ## [v0.4.3] - 2020-09-30
 ### Added:
 - Added `io` as an eslint global, so that we don't have to disable eslint-no-undef for the
@@ -302,3 +315,4 @@ GPL v3.0 license file in the ``Docs`` directory (Note that this changelog was wr
 [v0.4.1]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/a733f2b33f81cd43bed2c3503b7ff384275adb50
 [v0.4.2]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/7ae43a0effa4dbb7cc5ee1e4da12fdd0a8e5d841
 [v0.4.3]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/v0.4.3
+[v0.4.4]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/master
