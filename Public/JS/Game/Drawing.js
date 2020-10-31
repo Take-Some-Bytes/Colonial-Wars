@@ -5,7 +5,7 @@
 
 import Constants from "../Constants-client.js";
 import Vector from "./Physics/Vector.js";
-import Viewport from "./Viewport.js";
+import Viewport from "./Physics/Viewport.js";
 
 /**
  * Drawing class.
