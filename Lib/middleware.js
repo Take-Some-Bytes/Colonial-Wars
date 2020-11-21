@@ -5,7 +5,6 @@
 
 // Imports.
 const express = require("express");
-const jwt = require("jsonwebtoken");
 // eslint-disable-next-line no-unused-vars
 const socketIO = require("socket.io");
 const cookieParser = require("cookie-parser");
@@ -14,11 +13,10 @@ const config = require("../config");
 const init = require("./common/init");
 const Constants = require("./common/constants");
 const debug = require("./common/debug");
-const { sendError, jwtVerifyPromise } = require("./common/common");
+const common = require("./common/common");
 
 const loggers = init.winstonLoggers;
 const ServerLogger = loggers.get("Server-logger");
-const SecurityLogger = loggers.get("Security-logger");
 
 // JSDoc typedefs to make development easier.
 /**
@@ -75,16 +73,13 @@ function sysCheckpoint(implementedMethods) {
   // the `implementedMethods` array all uppercase strings.
   return (req, res, next) => {
     const reqUrlLength = req.url.length;
-    // IDEA: Maybe we should not have this? The following code
-    // tries to get the client's real IP, if the app is behind a
-    // reverse proxy, which it should not be.
     const clientIP = req.ips.length < 1 ?
       req.ip :
       req.ips[0];
 
     // YOUR REQUEST URL MUST NOT BE SUPER LONG!
     if (reqUrlLength > Constants.REQ_URL_MAX_LEN) {
-      sendError({
+      common.sendError({
         httpOpts: {
           status: 414
         },
@@ -99,7 +94,7 @@ function sysCheckpoint(implementedMethods) {
       })(req, res, next);
       return;
     } else if (!implementedMethods.includes(req.method)) {
-      sendError({
+      common.sendError({
         httpOpts: {
           status: 501
         },
@@ -125,6 +120,7 @@ function requestCheckpoint() {
     for (
       const path of Object.getOwnPropertyNames(Constants.ALLOWED_METHODS_MAP)
     ) {
+      // DYNAMIC REGEXes INCOMING!!!
       const pathRegex = new RegExp(path);
       /**
        * @type {Array<string>}
@@ -132,7 +128,7 @@ function requestCheckpoint() {
       const methods = Constants.ALLOWED_METHODS_MAP[path];
       if (pathRegex.test(req.url)) {
         if (!methods.includes(req.method.toUpperCase())) {
-          sendError({
+          common.sendError({
             httpOpts: {
               status: 405
             },
@@ -148,7 +144,6 @@ function requestCheckpoint() {
     }
 
     // Send a 204 response right here if the method is OPTIONS.
-    // TODO: See if we need to support the OPTIONS HTTP method.
     if (req.method === "OPTIONS") {
       res
         .status(204)
@@ -168,12 +163,11 @@ function acceptCheckpoint(acceptOpts) {
   /**
    * Checks what the client accepts. Private.
    * @param {express.request} req Request.
-   * @param {express.response} res Response.
    * @param {CheckAcceptOpts} opts Options.
    * @returns {string|false}
    * @private
    */
-  function checkAccept(req, res, opts) {
+  function checkAccept(req, opts) {
     // This dynamically gets the accept function that
     // is needed and calls it.
     const acceptFunction = {
@@ -193,7 +187,7 @@ function acceptCheckpoint(acceptOpts) {
       // Do not execute the following function for the
       // `ignorAcceptMismatch` key.
       if (key === "ignoreAcceptMismatch") { return; }
-      const acceptsType = checkAccept(req, res, {
+      const acceptsType = checkAccept(req, {
         whichAccept: key,
         acceptedTypes: acceptOpts[key]
       });
@@ -203,7 +197,7 @@ function acceptCheckpoint(acceptOpts) {
     // ignore accept mismatch, and send a 406 Not Acceptable response if
     // we don't ignore accept mismatch.
     if (accepted.some(type => !type) && !acceptOpts.ignoreAcceptMismatch) {
-      sendError({
+      common.sendError({
         httpOpts: {
           status: 406
         },
@@ -243,7 +237,7 @@ function wrapCookieParser(secrets, cookie) {
       if (err) { throw err; }
     });
   } catch (err) {
-    // TODO See if we want to handle the error in this function, or let
+    // TODO: See if we want to handle the error in this function, or let
     // the caller handle it.
     ServerLogger.error(`Failed to wrap cookie-parser. Error is: ${err}.`);
     return {};
@@ -259,18 +253,15 @@ function acceptNewSocket(secrets) {
   return async(socket, next) => {
     const req = wrapCookieParser(secrets, socket.request.headers.cookie);
     const cookies = req.signedCookies;
-
-    // YOU MUST HAVE A socketIOAuth COOKIE, AND IT MUST BE A STRING!
-    if (typeof cookies.socketIOAuth !== "string") {
-      debug("No Socket.IO authorization!");
-      next(new Error("No Socket.IO authorization!"));
-      return;
-    }
     try {
-      /**
-       * @type {SocketIOAuthPayload}
-       */
-      const decoded = await jwtVerifyPromise(
+      // YOU MUST HAVE A socketIOAuth COOKIE, AND IT MUST BE A STRING!
+      if (typeof cookies.socketIOAuth !== "string") {
+        throw new common.ValidationError(
+          "No Socket.IO authorization!", "EMISSING",
+          "Do not delete your cookies."
+        );
+      }
+      const decoded = await common.validateSocketAuthJWT(
         cookies.socketIOAuth, init.jwtSecret,
         {
           issuer: config.serverConfig.appName,
@@ -280,54 +271,26 @@ function acceptNewSocket(secrets) {
           ignoreNotBefore: true
         }
       );
-
-      // TODO: See if this could be refactored.
-      // Check the unique token, passphrase, and if the client's session exists.
-      if (!decoded.utk || typeof decoded.utk !== "string") {
-        debug("Missing unique token!");
-        next(new Error("Missing unique token!"));
-        return;
-      } else if (!config.securityOpts.passPhrases.includes(decoded.pssPhrs)) {
-        debug("Invalid passphrase!");
-        next(new Error("Invalid passphrase!"));
-      } else {
-        const pending = await init.wsSessions.get(decoded.utk);
-        if (typeof pending === "boolean" && !pending) {
-          debug("Your session does not exist.");
-          next(new Error("Your session does not exist."));
-          return;
-        }
-        if (pending.sessionData.joinedGame) {
-          socket.auth = pending.sessionData;
-        }
-        const auth = Object.assign(
-          pending.sessionData, { connected: true }
+      const pending = await init.wsSessions.get(decoded.utk);
+      if (typeof pending === "boolean" && !pending) {
+        throw new common.ValidationError(
+          "Your session does not exist.", "ENOEXIST",
+          "Go to the home page, and don't try anything nasty."
         );
-        init.wsSessions.set(decoded.utk, {
-          sessionData: auth
-        });
-        socket.auth = auth;
-        socket.touchInterval = setInterval(() => {
-          init.wsSessions.touch(decoded.utk);
-        }, 1000 * 60 * 19);
-        next();
       }
+      const auth = Object.assign(
+        pending.sessionData, { connected: true }
+      );
+      init.wsSessions.set(decoded.utk, {
+        sessionData: auth
+      });
+      socket.auth = auth;
+      socket.touchInterval = setInterval(() => {
+        init.wsSessions.touch(decoded.utk);
+      }, 1000 * 60 * 19);
+      next();
     } catch (err) {
-      // TODO: See if this could be refactored.
-      if (
-        err instanceof jwt.NotBeforeError ||
-        err instanceof jwt.JsonWebTokenError ||
-        err instanceof jwt.TokenExpiredError
-      ) {
-        SecurityLogger.notice(
-          `Socket ${socket.id} failed authentication. Error is: ` +
-          `${err.stack}`
-        );
-        next(new Error("Unauthorized."));
-      } else {
-        ServerLogger.error(err.stack);
-        next(new Error("Server error."));
-      }
+      common.onWsProcessingError(socket, next, err);
     }
   };
 }
@@ -342,17 +305,15 @@ function checkSocket(secrets) {
     const req = wrapCookieParser(secrets, socket.request.headers.cookie);
     const cookies = req.signedCookies;
 
-    // YOU ALSO STILL MUST HAVE A socketIOAuth COOKIE!
-    if (typeof cookies.socketIOAuth !== "string") {
-      debug("No Socket.IO authorization!");
-      next(new Error("No Socket.IO authorization!"));
-      return;
-    }
     try {
-      /**
-       * @type {SocketIOAuthPayload}
-       */
-      const decoded = await jwtVerifyPromise(
+      // YOU ALSO STILL MUST HAVE A socketIOAuth COOKIE!
+      if (typeof cookies.socketIOAuth !== "string") {
+        throw new common.ValidationError(
+          "No Socket.IO authorization!", "EMISSING",
+          "Do not delete your cookies."
+        );
+      }
+      const decoded = await common.validateSocketAuthJWT(
         cookies.socketIOAuth, init.jwtSecret,
         {
           issuer: config.serverConfig.appName,
@@ -362,80 +323,63 @@ function checkSocket(secrets) {
           ignoreNotBefore: true
         }
       );
-
-      // TODO: See if this could be refactored.
-      // Check the unique token, passphrase, and client session.
-      if (!decoded.utk || typeof decoded.utk !== "string") {
-        next(new Error("Missing unique token!"));
-        return;
-      } else if (!config.securityOpts.passPhrases.includes(decoded.pssPhrs)) {
-        next(new Error("Invalid passphrase!"));
-      } else {
-        const pending = await init.wsSessions.get(decoded.utk);
-        if (typeof pending === "boolean" && !pending) {
-          next(new Error("Your session does not exist."));
-          return;
-        }
-        if (
-          pending.sessionData.validationData.passPhrase !== decoded.pssPhrs ||
-          !config.securityOpts.passPhrases.includes(decoded.pssPhrs)
-        ) {
-          next(new Error("Invalid auth!"));
-          return;
-        } else if (
-          typeof pending.sessionData.playData === "object" &&
-          Object.keys(pending.sessionData.playData).length < 1
-        ) {
-          next(new Error("No play data!"));
-          return;
-        }
-        try {
-          init.manager.addClientToGame(
-            pending.sessionData.playData.gameID,
-            socket,
-            pending.sessionData.playData.clientName,
-            pending.sessionData.playData.clientTeam
-          );
-        } catch (err) {
-          // TODO: See if we need to be less verbose with the error.
-          next(new Error(err));
-          return;
-        }
-        // Emit the "proceed" event to get the client to proceed with
-        // tasks.
-        const game = init.manager.getGame(pending.sessionData.playData.gameID);
-        socket.emit(Constants.SOCKET_PROCEED, JSON.stringify({
-          playerData: {
-            gameID: pending.sessionData.playData.gameID,
-            gameMap: game.mapName
-          },
-          otherData: {
-            status: "success"
-          }
-        }));
-        socket.gameID = pending.sessionData.playData.gameID;
-        socket.auth = pending.sessionData;
-        socket.touchInterval = setInterval(() => {
-          init.wsSessions.touch(decoded.utk);
-        }, 1000 * 60 * 19);
-        next();
-      }
-    } catch (err) {
-      // TODO: See if this could be refactored.
-      if (
-        err instanceof jwt.NotBeforeError ||
-        err instanceof jwt.JsonWebTokenError ||
-        err instanceof jwt.TokenExpiredError
-      ) {
-        SecurityLogger.notice(
-          `Socket ${socket.id} failed authentication. Error is: ` +
-          `${err.stack}`
+      const pending = await init.wsSessions.get(decoded.utk);
+      if (typeof pending === "boolean" && !pending) {
+        throw new common.ValidationError(
+          "Your session does not exist.", "ENOEXIST",
+          "Go to the home page, and don't try anything nasty."
         );
-        next(new Error("Unauthorized."));
-      } else {
-        ServerLogger.error(err.stack);
-        next(new Error("Server error."));
       }
+      if (
+        pending.sessionData.validationData.passPhrase !== decoded.pssPhrs ||
+          !config.securityOpts.passPhrases.includes(decoded.pssPhrs)
+      ) {
+        throw new common.ValidationError(
+          "Passphrases do not match!", "ENOMATCH",
+          "Go to the home page, and don't try anything nasty."
+        );
+      } else if (
+        typeof pending.sessionData.playData === "object" &&
+          Object.keys(pending.sessionData.playData).length < 1
+      ) {
+        throw new common.ValidationError(
+          "Play data does not exist!", "ENOEXIST",
+          "Go to the home page, and make sure you fill in all the required" +
+          " \"Play\" dialog fields."
+        );
+      }
+      try {
+        init.manager.addClientToGame(
+          pending.sessionData.playData.gameID,
+          socket,
+          pending.sessionData.playData.clientName,
+          pending.sessionData.playData.clientTeam
+        );
+      } catch (err) {
+        throw new Error(
+          `Failed to add client ${socket.id} to game!`
+        );
+      }
+      // Emit the "proceed" event to get the client to proceed with
+      // tasks.
+      const game = init.manager.getGame(pending.sessionData.playData.gameID);
+      socket.emit(Constants.SOCKET_PROCEED, JSON.stringify({
+        playerData: {
+          gameID: pending.sessionData.playData.gameID,
+          gameMap: game.mapName
+        },
+        otherData: {
+          status: "success"
+        }
+      }));
+      socket.gameID = pending.sessionData.playData.gameID;
+      socket.auth = pending.sessionData;
+      socket.touchInterval = setInterval(() => {
+        init.wsSessions.touch(decoded.utk);
+      }, 1000 * 60 * 19);
+      next();
+    } catch (err) {
+      common.onWsProcessingError(socket, next, err);
     }
   };
 }
@@ -451,3 +395,4 @@ module.exports = exports = {
   acceptNewSocket,
   checkSocket
 };
+debug("Exported middleware handlers.");
