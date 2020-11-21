@@ -182,21 +182,22 @@ const envVars = {
      * @type {boolean}
      */
     noLog:
-      parsedArgs._.includes("noLog") ||
-      envVariables.NO_LOG === "true",
+      envVariables.NO_LOG ||
+      parsedArgs._.includes("noLog"),
     /**
      * @type {string}
      */
     logTo:
-      parsedArgs.keyedValues.logTo ||
-      (typeof envVariables === "string" && envVariables.LOG_TO.startsWith("~") ?
+      (typeof envVariables.LOG_TO === "string" &&
+      envVariables.LOG_TO.startsWith("~") ?
         path.join(
           require("os").homedir(),
           envVariables.LOG_TO.substring(2)
         ) :
         envVariables.LOG_TO
       ) ||
-      "/var/log/colonialwars/"
+      parsedArgs.keyedValues.logTo ||
+      "/var/log/weblog/"
   },
   serverConfig: {
     /**
@@ -209,8 +210,8 @@ const envVars = {
      * @type {number}
      */
     port:
+      envVariables.PORT ||
       parseInt(
-        envVariables.PORT ||
         parsedArgs.keyedValues.port,
         10
       ),
@@ -218,25 +219,48 @@ const envVars = {
      * @type {string}
      */
     appName:
-      parsedArgs.keyedValues.appName ||
       envVariables.APP_NAME ||
-      "app"
+      parsedArgs.keyedValues.appName ||
+      "app",
+    rootDirs: {
+      publicRoot:
+        path.resolve(
+          envVariables.PUBLIC_ROOT ||
+          parsedArgs.keyedValues.publicRoot ||
+          path.join(__dirname, "../Public")
+        ),
+      dataRoot:
+        path.resolve(
+          envVariables.DATA_ROOT ||
+          parsedArgs.keyedValues.dataRoot ||
+          path.join(__dirname, "../Lib/data")
+        )
+    }
   },
   securityOpts: {
+    /**
+     * @type {number}
+     */
     maxTokenAge:
       parseInt(
-        parsedArgs.keyedValues.maxTokenAge ||
         envVariables.MAX_TOKEN_AGE ||
+        parsedArgs.keyedValues.maxTokenAge ||
         1000 * 60 * 60 * 2,
         10
       ),
+    /**
+     * @type {Object<string, string>}
+     */
     validSubjectsMap: {
       sockAuthCW: "SocketIOAuth@Colonialwars"
     },
+    /**
+     * @type {Array<string>}
+     */
     passPhrases:
       parseArray(
-        parsedArgs.keyedValues.passPhrases ||
-        envVariables.PASSPHRASES
+        envVariables.PASSPHRASES ||
+        parsedArgs.keyedValues.passPhrases
       ) || null
   },
   secrets: {
@@ -244,11 +268,14 @@ const envVars = {
      * @type {string}
      */
     cookieSecret:
-      parsedArgs.keyedValues.cookieSecret ||
-      envVariables.COOKIE_SECRET,
+      envVariables.COOKIE_SECRET ||
+      parsedArgs.keyedValues.cookieSecret,
+    /**
+     * @type {string}
+     */
     jwtSecret:
-      parsedArgs.keyedValues.jwtSecret ||
-      envVariables.JWT_SECRET
+      envVariables.JWT_SECRET ||
+      parsedArgs.keyedValues.jwtSecret
   },
   /**
    * @type {string}
