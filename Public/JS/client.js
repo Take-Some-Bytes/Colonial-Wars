@@ -10,7 +10,8 @@
  */
 
 import {
-  createPlayDialog, pollServer, submitPlayInfo
+  changeViewportStats, createPlayDialog,
+  pollServer, submitPlayInfo
 } from "./common/functions.js";
 import Constants from "./Constants-client.js";
 const pathname = window.location.pathname;
@@ -19,6 +20,7 @@ let socket = null;
 
 if (pathname === "/") {
   $(window).on("resize", () => {
+    changeViewportStats();
     if (socket && socket.connected) {
       dialog = createPlayDialog("#dialog-form-container", socket);
     }
