@@ -15,6 +15,27 @@ one.
 
 Pre-production releases are not tagged on github, except for those that mark important
 deadlines. But, production builds are still not available for those releases.
+## [v0.4.5] - 2020-11-20
+### Changed:
+- Bumped all dependencies to their latest (compatible) versions.
+- Made environment variables take precedence over process arguments.
+- Revert the naming of `server.js` to `server-standalone.js`.
+- Refactored a lot of code:
+  * Refactored application shutdown code; also fixed it to work better.
+  * Refactored Express router and Socket.IO handlers into a different folder called
+  `controllers`.
+- Specified a specific major version number for the `node` field of the `engines`
+option in `package.json`.
+### Fixed:
+- Fixed the "HTTP server already closed" nonsense with NPM scripts.
+Now, the shutdown functions detects if the HTTP server is "listening", via `server.listening`,
+before attempting to close it.
+- Fixed the client-side `Play` dialog. Now it resizes when the window resizes.
+- Fixed NPM and Make scripts to work with the new naming–and to make them work properly,
+in some cases.
+### Removed:
+- Removed empty `logs` folder–with the way things are going right now, we will probably be
+using Syslog for logging sometime soon. And it's useless anyways.
 ## [v0.4.4] - 2020-10-30
 ### Added:
 - Added a `Makefile` so that I could run stuff with `make`, instead of `npm run`. NPM has a
@@ -315,4 +336,5 @@ GPL v3.0 license file in the ``Docs`` directory (Note that this changelog was wr
 [v0.4.1]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/a733f2b33f81cd43bed2c3503b7ff384275adb50
 [v0.4.2]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/7ae43a0effa4dbb7cc5ee1e4da12fdd0a8e5d841
 [v0.4.3]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/v0.4.3
-[v0.4.4]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/master
+[v0.4.4]: https://github.com/Take-Some-Bytes/colonialwars/tree/1cf9007d54e1357b9aacc3426011228b77b2ce54
+[v0.4.5]: https://github.com/Take-Some-Bytes/Colonial-Wars/tree/master
