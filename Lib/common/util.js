@@ -10,6 +10,7 @@
 /**
  * @typedef {"object"|"nested array"} InAsFormat
  */
+const debug = require("./debug");
 
 /**
  * Special `NO_FREEZE` symbol.
@@ -117,7 +118,7 @@ function clearMap(map) {
   return new Map();
 }
 /**
- * Multiplies stuff. Skips a number if it is zero or negative.
+ * Multiplies stuff. Skips a number if it is zero.
  * @param {Array<number>} factors Factors to multiply.
  * @returns {number}
  */
@@ -257,9 +258,12 @@ function mixUp(string, additionalLetters, maxLength) {
  * @returns {Array<any>|Array<Array<any>>|{}}
  */
 function getMapValues(map, outAs) {
-  // TODO: Implement typechecks on the parameters of this function, because
-  // an exception will be thrown if the parameters are not the type
-  // they are supposed to be.
+  if (!(map instanceof Map)) {
+    throw new TypeError("map parameter is not a Map!");
+  }
+  if (typeof outAs !== "string") {
+    throw new TypeError("outAs parameter is not a string!");
+  }
   if (
     outAs.toLowerCase() === "nested array" || outAs.toLowerCase() === "object"
   ) {
@@ -267,8 +271,6 @@ function getMapValues(map, outAs) {
       {} :
       [];
 
-    // FIXME: Fix this to use `map.entries()`. Just iterating over the
-    // map does not do anything.
     for (const [key, value] of map) {
       if (valueToReturn instanceof Array) {
         valueToReturn.push([key, value]);
@@ -285,7 +287,7 @@ function getMapValues(map, outAs) {
     }
     return valueToReturn;
   }
-  throw new TypeError("Invalid outAs parameter!");
+  throw new TypeError("Unrecognized outAs parameter!");
 }
 /**
  * Removes a specific value from an array. Returns true if the value
@@ -303,8 +305,8 @@ function removeFromArray(array, val) {
   return false;
 }
 /**
- * Checks if a string is valid JSON. If it is, return it. If not,
- * return false.
+ * Checks if a string is valid JSON. If it is, return the parsed
+ * object. If not, return false.
  * @param {string} str The string to check.
  * @returns {Object<string, any>|false}
  */
@@ -342,3 +344,5 @@ module.exports = exports = {
   // Symbols.
   NO_FREEZE
 };
+
+debug("Exported utility methods.");
