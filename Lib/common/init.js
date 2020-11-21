@@ -14,6 +14,7 @@ const winston = require("winston");
 const config = require("../../config");
 const Constants = require("./constants");
 const SessionStore = require("../store");
+const debug = require("./debug");
 const { makeID, mixUp, deepFreeze, NO_FREEZE } = require("./util");
 
 const Manager = require("../Game/Manager");
@@ -63,8 +64,6 @@ const winstonFormat = printf(({ level, message, label, timestamp }) => {
 });
 // Add logging colours.
 winston.addColors(Constants.WINSTON_LOGGING_LEVELS.colors);
-// TODO: See if we should use functions, or just make the loggers
-// and be done with them.
 /**
  * Makes the winston transports.
  * @param {boolean} logToFile Whether to log to a file.
@@ -73,7 +72,10 @@ winston.addColors(Constants.WINSTON_LOGGING_LEVELS.colors);
  */
 function makeTransports(logToFile, isProd) {
   const consoleTransports = {
-    allLevelConsole: new winston.transports.Console()
+    allLevelConsole: new winston.transports.Console({
+      // And again. I WANT TO USE CRLF BECAUSE I DO.
+      eol: "\r\n"
+    })
   };
 
   let dirName = "";
@@ -105,7 +107,9 @@ function makeTransports(logToFile, isProd) {
       for (const fileName of Constants.WINSTON_LOG_FILE_NAMES) {
         transportsToReturn[fileName] = new winston.transports.File({
           filename: path.join(dirName, `${fileName}.log`),
-          level: fileName === "errors" ? "warning" : "info"
+          level: fileName === "errors" ? "warning" : "info",
+          // I want to use CRLF. Why? BECAUSE I DO.
+          eol: "\r\n"
         });
       }
       return transportsToReturn;
@@ -213,6 +217,7 @@ exports.winstonLoggers = winstonLoggers;
  * @readonly
  */
 exports.morganLoggers = morganLoggers;
+debug("Exported and made loggers.");
 
 // Initialize manager instance.
 const manager = Manager.create();
@@ -228,7 +233,7 @@ manager.addNewGame(
  * @readonly
  */
 exports.manager = manager;
-
+debug("Exported and made Game manager.");
 
 // Create the cookie secret.
 const cookieSecret = mixUp(
@@ -253,6 +258,7 @@ const jwtSecret = mixUp(
  * @readonly
  */
 exports.jwtSecret = jwtSecret;
+debug("Exported and made JWT and cookie secrets.");
 
 // Declare server cache.
 /**
@@ -270,6 +276,7 @@ cache.errorPage = errorPage;
  * @readonly
  */
 exports.cache = cache;
+debug("Exported server cache.");
 
 // Initialize Socket.IO session store.
 const wsSessions = new SessionStore(null, {
@@ -283,6 +290,7 @@ wsSessions[NO_FREEZE] = true;
  * @readonly
  */
 exports.wsSessions = wsSessions;
+debug("Exported and made Socket.IO session storage.");
 
 // Initialize helmet functions.
 /**
@@ -301,6 +309,7 @@ const helmetFunctions = [
  * @readonly
  */
 exports.helmetFunctions = helmetFunctions;
+debug("Exported and initialized helmet module functions.");
 
 // Make exports read-only.
 deepFreeze(exports);
