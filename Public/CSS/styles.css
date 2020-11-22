@@ -62,7 +62,7 @@
 /* Conditional classes */
 .error {
   color: rgb(248, 25, 25);
-  font-size: large;
+  font-weight: bold;
 }
 
 /* ID classes */

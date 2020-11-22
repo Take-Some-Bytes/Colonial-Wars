@@ -3,9 +3,9 @@
  * @author Horton Cheng <horton0712@gmail.com>
  */
 
-import Constants from "../Constants-client.js";
-import Entity from "./Physics/Entity.js";
-import Vector from "./Physics/Vector.js";
+import Constants from "../../Constants-client.js";
+import Entity from "./Entity.js";
+import Vector from "./Vector.js";
 
 // TODO: See about moving this file into the /Physics folder.
 /**

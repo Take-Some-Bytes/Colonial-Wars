@@ -7,7 +7,7 @@ import Constants from "../Constants-client.js";
 import Drawing from "./Drawing.js";
 import Input from "./Input.js";
 import Vector from "./Physics/Vector.js";
-import Viewport from "./Viewport.js";
+import Viewport from "./Physics/Viewport.js";
 
 // JSDoc typedefs for easier development.
 /**
