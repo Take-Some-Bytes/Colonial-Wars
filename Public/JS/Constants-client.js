@@ -11,7 +11,7 @@ const Constants = {
   WORLD_MIN: 0,
   WORLD_MAX: 9000,
   // Version.
-  VERSION: "0.4.4-DEV",
+  VERSION: "0.4.5-DEV",
   // Drawing constants.
   DRAWING_TROOP_BASE_PATH: "/imgs/troops",
   DRAWING_BUILDING_BASE_PATH: "/imgs/buildings",

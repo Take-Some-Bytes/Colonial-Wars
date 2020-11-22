@@ -1,7 +1,7 @@
 dev: 
-	clear&&DEBUG=colonialwars node --inspect server-standalone.js
+	clear&&DEBUG=colonialwars node --inspect server.js
 find-sync-io:
-	node --trace-sync-io server-standalone.js
+	node --trace-sync-io server.js
 sec-check:
 	npm audit&&npm outdated
 staging:

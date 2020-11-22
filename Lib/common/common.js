@@ -7,17 +7,25 @@
 const fs = require("fs");
 const path = require("path");
 const express = require("express");
+const socketIO = require("socket.io");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const http = require("http");
 
 const init = require("./init");
 // Keep the debug require here just so that if we need it, we'll have it.
-// const debug = require("./debug");
+const debug = require("./debug");
 const config = require("../../config");
 // const util = require("util");
 const loggers = init.winstonLoggers;
 const SecurityLogger = loggers.get("Security-logger");
+const ServerLogger = loggers.get("Server-logger");
 
+/**
+ * @callback SocketIONext
+ * @param {*} [err]
+ * @returns {void}
+ */
 /**
  * @typedef {Object} SendErrorOpts Options.
  * @prop {Object} [httpOpts]
@@ -35,11 +43,24 @@ const SecurityLogger = loggers.get("Security-logger");
  * the cached error page from ``init.js``.
  */
 /**
- * @typedef {"EINVALID"|"EMISSING"|"ENOEXIST"|"ENOTAUTH"|"EFAILED"} ErrorCodes
+ * @typedef {"EMISSING"|"ENOEXIST"} MissingCodes
+ * @typedef {"ENOMATCH"|"EINVALID"} ValueErrorCodes
+ * @typedef {"EFAILED"|ValueErrorCodes|MissingCodes} ErrorCodes
  */
 /**
  * @typedef {import("../middleware").SocketIOAuthPayload} SocketIOAuthPayload
  */
+/**
+ * @callback ShutDownHandler
+ * @param {NodeJS.Signals} signal
+ * @returns {Promise<never>}
+ */
+/**
+ * @callback ExceptionHandler
+ * @param {any} reason
+ * @returns {Promise<never>}
+ */
+
 /**
  * ValidationError class.
  * @extends Error
@@ -58,6 +79,26 @@ class ValidationError extends Error {
 
     this.typeCode = typeCode;
     this.toFix = toFix;
+  }
+  /**
+   * Returns this error formatted as a string. Omits the error stack.
+   * @returns {string}
+   */
+  format() {
+    return (
+      `${this.typeCode}: ${this.message} To fix this error, ` +
+      `${this.toFix}`
+    );
+  }
+  /**
+   * Returns this error formatted as a string. Includes the error stack.
+   * @returns {string}
+   */
+  formatVerbose() {
+    return (
+      `${this.typeCode}: ${this.stack}\r\n\tTo fix this error,` +
+      ` ${this.toFix}`
+    );
   }
 }
 /**
@@ -115,25 +156,55 @@ function sendError(opts) {
   }
 
   return (req, res) => {
+    debug(
+      `Sending error to client with status code ${_opts.httpOpts.status}` +
+      `, who requested ${req.url}.`
+    );
     res.type(_opts.httpOpts.contentType);
     res.cookie(
       "statusCode", _opts.httpOpts.status,
       { signed: true, sameSite: "strict" }
     );
-    // Cehck if we need to log or not.
+    // Check if we need to log or not.
     if (_opts.logOpts.doLog) {
-      // TODO: See if we should check if a logger exists or not before
-      // attempting to log a message.
-      loggers
+      const log = loggers
         .get(_opts.logOpts.loggerID)[
           _opts.logOpts.logLevel
-        ](_opts.logOpts.logMessage);
+        ];
+      if (typeof log === "function") {
+        log(_opts.logOpts.logMessage);
+      }
     }
 
     res
       .status(_opts.httpOpts.status)
       .send(_opts.messageToSend);
   };
+}
+/**
+ * Handles an error while processing a Socket.IO socket in middleware.
+ * @param {socketIO.Socket} socket The Socket.IO socket.
+ * @param {SocketIONext} next Next function.
+ * @param {Error} err The error that was thrown.
+ */
+function onWsProcessingError(socket, next, err) {
+  if (err instanceof ValidationError) {
+    SecurityLogger.notice(
+      `Socket ${socket.id} failed processing. Error is:` +
+      ` ${err.format()}`
+    );
+    next(
+      new Error(`Processing failed. Error is ${err.message}.`)
+    );
+  } else {
+    ServerLogger.error(
+      `Error occured while processing socket ${socket.id}.` +
+      `Error: ${err}. Error stack:\r\n${err.stack}.`
+    );
+    next(
+      new Error("Server error.")
+    );
+  }
 }
 /**
  * Serves a single file.
@@ -145,6 +216,12 @@ function sendError(opts) {
  */
 function serveFile(req, res, next, file, sendType) {
   // Open and pipe the file to the client.
+  // We don't use the new `pipeline` function because we can't
+  // send an error response if the ReadStream fails–`pipeline`
+  // automatically closes all streams.
+  debug(
+    `Sending file ${file} for URL ${req.url}.`
+  );
   const s = fs.createReadStream(file);
   s.on("open", () => {
     if (sendType) {
@@ -154,15 +231,17 @@ function serveFile(req, res, next, file, sendType) {
   });
   s.on("error", err => {
     const is404 = err.code === "ENOENT";
+    // Destory the Readstream so that memory leaks don't happen.
+    s.destroy();
     sendError({
       httpOpts: {
         status: is404 ? 404 : 500
       },
       logOpts: {
         doLog: true,
-        loggerID: is404 ? "Server-logger" : "Security-logger",
+        loggerID: "Server-logger",
         logLevel: "error",
-        logMessage: err.stack
+        logMessage: `Error while serving URL ${req.url}: ${err.stack}`
       }
     })(req, res, next);
   });
@@ -180,10 +259,14 @@ function handleOther(req, res, next) {
   const protocol = req.socket.encrypted ? "https:" : "http:";
   const reqPath = new URL(req.url, `${protocol}//${req.headers.host}`);
   const includesFavicon = reqPath.pathname.includes("/favicon.ico");
-  let actualPath = path.join(__dirname, "../../Public", reqPath.pathname);
+  let actualPath = path.join(
+    config.serverConfig.rootDirs.publicRoot, reqPath.pathname
+  );
 
   if (includesFavicon) {
-    actualPath = path.join(__dirname, "../../Public", "Images/favicon.ico");
+    actualPath = path.join(
+      config.serverConfig.rootDirs.publicRoot, "Images/favicon.ico"
+    );
   } else if (!path.extname(actualPath)) {
     actualPath += ".html";
   }
@@ -197,12 +280,16 @@ function handleOther(req, res, next) {
   );
 }
 /**
- * Logs a CSP report.
+ * Logs a report, CSP or not.
  * @param {express.request} req Client Request.
  * @param {express.response} res Server Response.
  * @param {express.NextFunction} next Next function.
  */
-function logCSPReport(req, res, next) {
+function logReport(req, res, next) {
+  // Get the real client IP.
+  const clientIP = req.ips.length > 1 ?
+    req.ips[0] :
+    req.ip;
   // Check if req.body is existent.
   if (
     req.body &&
@@ -212,12 +299,18 @@ function logCSPReport(req, res, next) {
   ) {
     // We have to be very careful!
     // We have no idea what there is in req.body.
-    // Not much validation is done, since this is a development server.
-    if (typeof req.body["csp-report"] === "object") {
-      SecurityLogger.warning(JSON.stringify(req.body, null, 3));
-      return;
-    } else if (typeof req.body.type === "string") {
-      SecurityLogger.warning(JSON.stringify(req.body, null, 3));
+    // In production, this endpoint should not be used.
+    if (
+      typeof req.body["csp-report"] === "object" ||
+      req.body instanceof Array
+    ) {
+      const report = JSON.stringify(req.body, null, 3);
+      SecurityLogger.warning(
+        `Report received. Report:\r\n${report}`
+      );
+      res
+        .status(204)
+        .end();
       return;
     }
   }
@@ -226,7 +319,12 @@ function logCSPReport(req, res, next) {
       status: 400
     },
     logOpts: {
-      doLog: false
+      doLog: true,
+      loggerID: "Security-logger",
+      logLevel: "warning",
+      logMessage:
+        `${clientIP} accessed reporting endpoint with an invalid or ` +
+        `non-existent request body. Request body:\r\n${req.body}`
     }
   })(req, res, next);
 }
@@ -293,6 +391,30 @@ function randomBytesPromise(length) {
       if (err) { reject(err); }
       resolve(buf);
     });
+  });
+}
+/**
+ * Closes this application's server.
+ * @param {socketIO.Server} ioServer The Socket.IO server to close. The HTTP
+ * server is accessible through this, so no HTTP server reference is needed.
+ * @returns {Promise<void>}
+ */
+function closeServer(ioServer) {
+  const SocketIOServer = socketIO;
+  return new Promise((resolve, reject) => {
+    if (ioServer instanceof SocketIOServer) {
+      if (
+        ioServer.httpServer instanceof http.Server &&
+        ioServer.httpServer.listening === false
+      ) {
+        resolve(undefined);
+        return;
+      }
+      ioServer.close(err => {
+        if (err) { reject(err); }
+        resolve(undefined);
+      });
+    }
   });
 }
 /**
@@ -375,7 +497,7 @@ async function validateSocketAuthJWT(token, ...jwtConf) {
     );
   }
 
-  // Then, check the unique token, the passphrase, and the client session.
+  // Then, check the unique token, and the passphrase.
   if (!decoded.utk || typeof decoded.utk !== "string") {
     throw new ValidationError(
       "Missing or invalid unique token!", "EMISSING",
@@ -391,6 +513,91 @@ async function validateSocketAuthJWT(token, ...jwtConf) {
   // If all checks have been passed, return the decoded JWT.
   return decoded;
 }
+/**
+ * Returns a function that gracefully shuts down this Node.JS application.
+ * @param {Array<NodeJS.Timer>} intervals An array of intervals to clear.
+ * @param {Array<socketIO.Socket>} ioConnections An array of Socket.IO
+ * connections to close.
+ * @param {socketIO.Server} ioServer The Socket.IO server to close.
+ * @returns {ShutDownHandler}
+ */
+function shutDown(intervals, ioConnections, ioServer) {
+  return async signal => {
+    ServerLogger.info(
+      `Received signal ${signal}. Shutting down application...`
+    );
+    intervals.forEach(interval => {
+      clearInterval(interval);
+    });
+    ioConnections.forEach(conn => {
+      conn.disconnect(true);
+    });
+
+    // If the HTTP server is already closed or closing, don't
+    // proceed with this handler.
+    if (
+      ioServer.httpServer instanceof http.Server &&
+      ioServer.httpServer.listening === false
+    ) {
+      ServerLogger.warning(
+        "HTTP server is already in CLOSED or CLOSING state."
+      );
+      return;
+    }
+
+    await closeServer(ioServer);
+    ServerLogger.info(
+      "Server closed successfully. Exiting..."
+    );
+    // To be safe, exit after a second, in case there are still
+    // asynchronous things that need to be done.
+    setTimeout(() => {
+      // eslint-disable-next-line no-process-exit
+      process.exit(0);
+    }, 1000);
+  };
+}
+/**
+ * Handles an uncaught error in the Node.JS process.
+ * @param {Array<NodeJS.Timer>} intervals An array of intervals to clear.
+ * @param {Array<socketIO.Socket>} ioConnections An array of Socket.IO
+ * connections to close.
+ * @param {socketIO.Server} ioServer The Socket.IO server to close.
+ * @returns {ExceptionHandler}
+ */
+function handleError(intervals, ioConnections, ioServer) {
+  return async err => {
+    // Clear intervals and connections so we could shutdown properly.
+    intervals.forEach(interval => {
+      clearInterval(interval);
+    });
+    ioConnections.forEach(socket => {
+      socket.disconnect(true);
+    });
+
+    // Only try closing the HTTP server if the server is still
+    // open.
+    if (
+      ioServer.httpServer instanceof http.Server &&
+      ioServer.httpServer.listening === true
+    ) {
+      await closeServer(ioServer);
+    }
+
+    // We use a fatal log level because we couldn't recover from
+    // the uncaught exception (at least not likely).
+    ServerLogger.fatal("Server crashed. Error is:");
+    ServerLogger.fatal(err.stack);
+    ServerLogger.fatal("Exiting...");
+    debug(`Is server listening? ${ioServer.httpServer.listening}`);
+    // To be safe, exit after a second, in case there are still
+    // asynchronous things that need to be done.
+    setTimeout(() => {
+      // eslint-disable-next-line no-process-exit
+      process.exit(1);
+    }, 1000);
+  };
+}
 
 /**
  * Module exports.
@@ -399,13 +606,17 @@ module.exports = exports = {
   // Functions.
   serveFile,
   handleOther,
-  logCSPReport,
+  logReport,
   sendError,
+  onWsProcessingError,
   jwtSignPromise,
   jwtVerifyPromise,
   jwtDecodePromise,
   createSocketAuthJWT,
   validateSocketAuthJWT,
+  closeServer,
+  shutDown,
+  handleError,
   // Classes.
   ValidationError
 };

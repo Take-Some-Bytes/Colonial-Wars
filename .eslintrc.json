@@ -238,7 +238,8 @@
     "jsdoc/newline-after-description": ["warn", "never"],
     "jsdoc/no-undefined-types": ["warn", {
       "definedTypes": [
-        "true", "false"
+        "true", "false", "never",
+        "NodeJS", "VoidFunction"
       ]
     }],
     "jsdoc/require-property": "off",

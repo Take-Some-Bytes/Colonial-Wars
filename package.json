@@ -1,12 +1,12 @@
 {
-   "name": "colonial-wars",
-   "version": "0.4.4",
+   "name": "colonialwars",
+   "version": "0.4.5",
    "description": "Colonial Wars is a multiplayer, online game, set in the colonial era.",
-   "main": "server-standalone.js",
+   "main": "server.js",
    "scripts": {
-      "dev-windows": "@powershell -Command $env:DEBUG='colonialwars'; node --inspect server-standalone.js",
-      "dev": "DEBUG=colonialwars node --inspect server-standalone.js",
-      "find-sync-io": "node server-standalone.js --trace-sync-io",
+      "dev-windows": "@powershell -Command $env:DEBUG='colonialwars'; node --inspect server.js",
+      "dev": "DEBUG=colonialwars node --inspect server.js",
+      "find-sync-io": "node --trace-sync-io server.js",
       "sec-check": "npm audit&&npm outdated",
       "staging": "node server.js"
    },
@@ -23,22 +23,22 @@
       "email": "horton0712@gmail.com"
    },
    "devDependencies": {
-      "eslint": "^7.12.1",
-      "eslint-plugin-jsdoc": "^30.7.3",
+      "eslint": "^7.14.0",
+      "eslint-plugin-jsdoc": "^30.7.8",
       "eslint-plugin-node": "^11.1.0"
    },
    "dependencies": {
       "cookie-parser": "^1.4.5",
-      "debug": "^4.2.0",
+      "debug": "^4.3.1",
       "express": "^4.17.1",
-      "helmet": "^4.1.1",
+      "helmet": "^4.2.0",
       "jsonwebtoken": "^8.5.1",
       "morgan": "^1.10.0",
       "socket.io": "^2.3.0",
       "winston": "^3.3.3"
    },
    "engines": {
-      "node": ">=10.0.0"
+      "node": "12.x"
    },
    "private": true,
    "license": "AGPL-3.0-or-later"

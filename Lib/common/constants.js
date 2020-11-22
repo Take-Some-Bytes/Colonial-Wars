@@ -5,6 +5,7 @@
 
 // Imports.
 const { deepFreeze } = require("./util");
+const debug = require("./debug");
 const Vector = require("../Game/Physics/Vector");
 
 // IDEA: Maybe we should move all these constants to a JSON file?
@@ -915,7 +916,7 @@ const Constants = {
   SOCKET_ERROR: "error",
   SOCKET_PROCEED: "proceed",
   // Version.
-  VERSION: "0.4.4-DEV",
+  VERSION: "0.4.5-DEV",
   // UI things.
   BUTTON_COOLDOWN: 500,
   BUTTON_KEYS: [
@@ -1079,3 +1080,5 @@ deepFreeze(Constants);
  * Module exports.
  */
 module.exports = exports = Constants;
+
+debug("Frozen and exported constants.");
