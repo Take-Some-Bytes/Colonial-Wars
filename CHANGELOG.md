@@ -15,7 +15,7 @@ one.
 
 Pre-production releases are not tagged on github, except for those that mark important
 deadlines. But, production builds are still not available for those releases.
-## [v0.4.5] - 2020-11-20
+## [v0.4.5] - 2020-11-21
 ### Changed:
 - Bumped all dependencies to their latest (compatible) versions.
 - Made environment variables take precedence over process arguments.
